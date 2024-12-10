@@ -81,8 +81,6 @@ COIN_GECKO_API_KEY=your_coin_gecko_api_key
 
 1. Start the application:
 
-   ```bash
    run the segla.sh script
-   ```
 
 2. Access the application at `http://localhost:3000`.
