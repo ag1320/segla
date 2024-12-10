@@ -1,0 +1,49 @@
+.content-box {
+  margin-top: 20px;
+  width: 100%;
+  margin-right: 50px;
+  margin-left: 50px;
+}
+
+.card-container{
+  width: 100%;
+}
+
+.card-text {
+  text-align: center;
+  color: white;
+}
+
+.bold-text{
+  font-weight: bold;
+}
+
+.custom-card:hover {
+  
+  transform: scale(1.02);
+}
+
+.hidden-container{
+  display: none;
+}
+
+.page-margin{
+  height: 5vh;
+}
+
+
+.grow-card {
+  animation: growAnimation 1s ease-in-out;
+}
+
+@keyframes growAnimation {
+  0% {
+    transform: scale(0.9);
+  }
+  50% {
+    transform: scale(1.02)
+  }
+  100% {
+    transform: scale(1); 
+  }
+}

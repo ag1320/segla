@@ -1,0 +1,95 @@
+.delete-budget-icon{
+  margin-left: 0px;
+  fill: #fff
+}
+
+.action-button-container{
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  height: 100%;
+  padding-left: 5%;
+}
+
+.actions-header-container{
+  margin-left:5%;
+  margin-top: 50px;
+  margin-bottom: 20px;
+}
+
+
+.action-text{
+  display: flex;
+  justify-content: center;
+}
+
+.master-lists-header-container{
+  margin-right: 5%;
+  margin-top: 50px;
+  margin-bottom: 20px;
+}
+
+.master-list-text{
+  display: flex;
+  justify-content: center;
+}
+
+.remaining-balance-container{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.view-buttons-container{
+  display: flex;
+  justify-content: flex-end;
+  margin-right: 5%;
+}
+
+.delete-budget-button{
+  color: #fff;
+  border: solid white 1px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  /* max-width: 25%; */
+}
+
+.export-csv-button{
+  color: #fff;
+  border: solid white 1px;
+  border-radius: 10px;
+  /* max-width: 25%; */
+}
+
+.export-csv-text{
+  font-size: small;
+  margin-right: 10px;
+}
+
+.delete-budget-text{
+  font-size: small;
+  margin-left: 20px;
+}
+
+.view-fixed-income-button{
+  color: #fff;
+  border: solid white 1px;
+  border-radius: 10px;
+}
+.view-fixed-expenses-button{
+  color: #fff;
+  border: solid white 1px;
+  border-radius: 10px;
+}
+.view-budget-categories-button{
+  color: #fff;
+  border: solid white 1px;
+  border-radius: 10px;
+}
+
+.view-generate-report-button{
+  color: #fff;
+  border: solid white 1px;
+  border-radius: 10px;
+}

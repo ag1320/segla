@@ -1,0 +1,21 @@
+.expense-card[red='true']{
+  background-color: #f0acac;
+}
+
+.expense-card[orange='true']{
+  background-color: rgb(249, 239, 167);
+}
+
+.add-expense-icon{
+  margin-right: 10px;
+}
+
+.add-expense-button{
+  color: #fff;
+  margin-bottom: 30px;
+}
+
+.monthly-expenses-total{
+  color: #fff;
+  margin-bottom: 30px;
+}

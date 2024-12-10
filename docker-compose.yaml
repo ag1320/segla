@@ -1,0 +1,47 @@
+version: "3"
+services:
+  database:
+    image: "postgres:latest"
+    volumes:
+      - ./database:/var/lib/postgresql/data
+    networks:
+      - network1
+    container_name: database
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:5432"
+
+  server:
+    networks:
+      - network1
+    build: ./server
+    ports:
+      - "3001:3001"
+    container_name: server
+    depends_on:
+      - database
+    environment:
+      DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
+    volumes:
+      - ./server:/app
+      - /mnt/c/Users/aaron/OneDrive/Documents/Family/Financial/Budget:/var/Users/aaron
+    env_file: ".env"
+
+  frontend:
+    networks:
+      - network1
+    build: ./ui
+    ports:
+      - "3000:3000"
+    container_name: frontend
+    depends_on:
+      - server
+    volumes:
+      - ./ui:/app
+
+networks:
+  network1:
+    driver: bridge

@@ -1,0 +1,21 @@
+.chart-container {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: flex-start;
+  height: 500px; 
+  width: 800px; 
+  flex-grow: 1;
+  padding: 0;
+}
+
+
+.chart {
+  width: 100%;
+  padding:0;
+  margin: 0;
+}
+
+.report-table-container{
+  height: 100%;
+  overflow-y: auto;
+}
