@@ -979,6 +979,28 @@ function getReportData(startDateString, endDateString, formattedCategories) {
     });
 }
 
+function getReportDataTotal(startDateString, endDateString) {
+
+  return knex("monthly_expenses")
+    .select(
+      "monthly_expenses.amount",
+      "monthly_expenses.month",
+      "monthly_expenses.year",
+      "monthly_expenses.type",
+    )
+    .whereBetween(
+      knex.raw("TO_DATE(CONCAT(monthly_expenses.month, ' ', monthly_expenses.year), 'Month YYYY')"),
+      [startDateString, endDateString]
+    )
+    .then((data) => {
+      return data;
+    })
+    .catch((error) => {
+      console.error('Error executing query:', error);
+      throw error;
+    });
+}
+
 
 
 module.exports = {
@@ -1064,7 +1086,8 @@ module.exports = {
   deleteEquity,
   patchEquity,
   getReportData,
-  fetchCryptoMarketData
+  fetchCryptoMarketData,
+  getReportDataTotal,
 };
 
 

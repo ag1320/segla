@@ -516,6 +516,7 @@ export default function Budget() {
       <ReportModal
         open={viewReport}
         setOpen={setViewReport}
+        setOpenGenerateReport={setViewGenerateReport}
       />
       <Grid container style={{ height: "100%" }}>
         {!viewExpenses && !viewIncome && !viewCategories ? (

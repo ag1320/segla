@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect, useRef } from "react";
+import { useContext, useEffect } from "react";
 import { AppContext } from "../../AppContext";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import "./GenerateReportModal.css";
@@ -59,18 +59,40 @@ export default function GenerateReportModal({ open, setOpen, setViewReport }) {
 
   let { currentBudgetCategories } = useContext(AppContext);
   let { setReportData } = useContext(AppContext);
+  let { setReportTotalData } = useContext(AppContext);
   let { reportStartDate, setReportStartDate } = useContext(AppContext);
   let { reportEndDate, setReportEndDate } = useContext(AppContext);
-  let { setSnackbarError } = useContext(AppContext)
+  let { setSnackbarError } = useContext(AppContext);
+  let { reportSelectedCategories, setReportSelectedCategories } =
+    useContext(AppContext);
+  let { reportSelectedTypeCategories, setReportSelectedTypeCategories } =
+    useContext(AppContext);
 
-  const [selectedCategories, setSelectedCategories] = useState([]);
+  const typeCategories = [
+    "Varied Expenses",
+    "Fixed Expenses",
+    "Income",
+    "Month End Distributions",
+    "Total Fixed and Varied Expenses",
+  ];
+
   const handleChipClick = (category) => {
-    if (selectedCategories.includes(category)) {
-      setSelectedCategories(
-        selectedCategories.filter((item) => item !== category)
+    if (reportSelectedCategories.includes(category)) {
+      setReportSelectedCategories(
+        reportSelectedCategories.filter((item) => item !== category)
       );
     } else {
-      setSelectedCategories([...selectedCategories, category]);
+      setReportSelectedCategories([...reportSelectedCategories, category]);
+    }
+  };
+
+  const handleTypeChipClick = (type) => {
+    if (reportSelectedTypeCategories.includes(type)) {
+      setReportSelectedTypeCategories(
+        reportSelectedTypeCategories.filter((item) => item !== type)
+      );
+    } else {
+      setReportSelectedTypeCategories([...reportSelectedTypeCategories, type]);
     }
   };
 
@@ -82,15 +104,19 @@ export default function GenerateReportModal({ open, setOpen, setViewReport }) {
     setReportEndDate(newDate);
   };
 
-  const handleModalClose = () => {
+  const handleModalClose = (event, reason) => {
+    if (reason === "backdropClick" || reason === "escapeKeyDown") {
+      setReportStartDate(null);
+      setReportEndDate(null);
+      setReportSelectedCategories([]);
+    }
     setOpen(false);
-    setSelectedCategories([]);
   };
 
   const formatSelectedCategories = () => {
     const formattedCategories = [];
 
-    for (const selectedCategory of selectedCategories) {
+    for (const selectedCategory of reportSelectedCategories) {
       const selectedCategoryLowerCase = selectedCategory.toLowerCase();
 
       // Check if the category is a subcategory of "Utilities" by searching the budgetCategories array
@@ -122,9 +148,15 @@ export default function GenerateReportModal({ open, setOpen, setViewReport }) {
   };
 
   const handleSubmit = () => {
-    if (reportStartDate === null || reportEndDate === null || reportEndDate < reportStartDate || selectedCategories.length === 0){
-      setSnackbarError(true)
-      return
+    if (
+      reportStartDate === null ||
+      reportEndDate === null ||
+      reportEndDate < reportStartDate ||
+      (reportSelectedCategories.length === 0 &&
+        reportSelectedTypeCategories.length === 0)
+    ) {
+      setSnackbarError(true);
+      return;
     }
 
     let formattedCategories = formatSelectedCategories();
@@ -136,18 +168,112 @@ export default function GenerateReportModal({ open, setOpen, setViewReport }) {
         startDateString,
         endDateString,
         formattedCategories,
+        reason: "categories",
       };
       let res = await axios.get(`http://localhost:3001/reportData`, {
         params: payload,
       });
       return res.data;
     }
+    async function getTotalData() {
+      let payload = {
+        startDateString,
+        endDateString,
+        formattedCategories: [],
+        reason: "total",
+      };
+      let res = await axios.get(`http://localhost:3001/reportData`, {
+        params: payload,
+      });
+      return res.data;
+    }
+
+    if (reportSelectedTypeCategories.length > 0) {
+      getTotalData().then((items) => {
+        console.log("items", items);
+        setReportTotalData(items);
+      });
+    } else {
+      setReportTotalData([]);
+    }
     getReportData().then((items) => {
       setReportData(items);
     });
     setViewReport(true);
-    handleModalClose();
+    handleModalClose(null, null);
   };
+
+  useEffect(() => {
+    // // Add categories to currentBudgetCategories if they don't exist
+    // const variedExpensesCategory = {
+    //   budget_categories_id: "varied-unique-id",
+    //   category: "Varied Expenses",
+    //   subcategory: null,
+    // };
+    // if (
+    //   !currentBudgetCategories.some((cat) => cat.category === "Varied Expenses")
+    // ) {
+    //   setCurrentBudgetCategories((prevCategories) => [
+    //     ...prevCategories,
+    //     variedExpensesCategory,
+    //   ]);
+    // }
+    // const fixedExpensesCategory = {
+    //   budget_categories_id: "fixed-unique-id",
+    //   category: "Fixed Expenses",
+    //   subcategory: null,
+    // };
+    // if (
+    //   !currentBudgetCategories.some((cat) => cat.category === "Fixed Expenses")
+    // ) {
+    //   setCurrentBudgetCategories((prevCategories) => [
+    //     ...prevCategories,
+    //     fixedExpensesCategory,
+    //   ]);
+    // }
+    // const incomeCategory = {
+    //   budget_categories_id: "income-unique-id",
+    //   category: "Income",
+    //   subcategory: null,
+    // };
+    // if (!currentBudgetCategories.some((cat) => cat.category === "Income")) {
+    //   setCurrentBudgetCategories((prevCategories) => [
+    //     ...prevCategories,
+    //     incomeCategory,
+    //   ]);
+    // }
+    // const monthEndDistributionsCategory = {
+    //   budget_categories_id: "med-unique-id",
+    //   category: "Month End Distributions",
+    //   subcategory: null,
+    // };
+    // if (
+    //   !currentBudgetCategories.some(
+    //     (cat) => cat.category === "Month End Distributions"
+    //   )
+    // ) {
+    //   setCurrentBudgetCategories((prevCategories) => [
+    //     ...prevCategories,
+    //     monthEndDistributionsCategory,
+    //   ]);
+    // }
+    // const totalFixedAndVariedCategory = {
+    //   budget_categories_id: "varied-and-fixed-unique-id",
+    //   category: "Total Fixed and Varied Expenses",
+    //   subcategory: null,
+    // };
+    // if (
+    //   !currentBudgetCategories.some(
+    //     (cat) => cat.category === "Total Fixed and Varied Expenses"
+    //   )
+    // ) {
+    //   setCurrentBudgetCategories((prevCategories) => [
+    //     ...prevCategories,
+    //     totalFixedAndVariedCategory,
+    //   ]);
+    // }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentBudgetCategories]);
 
   return (
     <Modal
@@ -162,7 +288,7 @@ export default function GenerateReportModal({ open, setOpen, setViewReport }) {
             Generate a Budget Report
           </Typography>
         </Box>
-        <Grid container spacing = {2}>
+        <Grid container spacing={2}>
           <Grid item xs={12}>
             <Box className="monthly-expense-text">
               <Typography
@@ -223,7 +349,28 @@ export default function GenerateReportModal({ open, setOpen, setViewReport }) {
           </Grid>
         </Grid>
         <Grid container rowSpacing={4} columnSpacing={2}>
-          <Grid item xs={12}>
+
+          <Grid item xs={12} className="type-categories">
+            <Grid container spacing={2} justifyContent="start">
+              {typeCategories.map((type) => (
+                <Grid item>
+                  <Chip
+                    label={type}
+                    onClick={() => handleTypeChipClick(type)}
+                    color={
+                      reportSelectedTypeCategories.includes(type)
+                        ? "primary"
+                        : "default"
+                    }
+                    variant="outlined"
+                    clickable
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          </Grid>
+
+          <Grid item xs={12} className="categories">
             <Grid container spacing={2} justifyContent="start">
               {currentBudgetCategories.map((categoryObj) =>
                 // Check if the category is 'Utilities' and if it has a subcategory
@@ -235,7 +382,7 @@ export default function GenerateReportModal({ open, setOpen, setViewReport }) {
                       label={categoryObj.category}
                       onClick={() => handleChipClick(categoryObj.category)}
                       color={
-                        selectedCategories.includes(categoryObj.category)
+                        reportSelectedCategories.includes(categoryObj.category)
                           ? "primary"
                           : "default"
                       }
@@ -256,7 +403,7 @@ export default function GenerateReportModal({ open, setOpen, setViewReport }) {
                     label="Utilities"
                     onClick={() => handleChipClick("Utilities")}
                     color={
-                      selectedCategories.includes("Utilities")
+                      reportSelectedCategories.includes("Utilities")
                         ? "primary"
                         : "default"
                     }
@@ -266,7 +413,7 @@ export default function GenerateReportModal({ open, setOpen, setViewReport }) {
                 </Grid>
               )}
               {/* Render chips for subcategories of 'Utilities' category when 'Utilities' chip is clicked */}
-              {selectedCategories.includes("Utilities") &&
+              {reportSelectedCategories.includes("Utilities") &&
                 currentBudgetCategories
                   .filter(
                     (categoryObj) =>
@@ -281,7 +428,7 @@ export default function GenerateReportModal({ open, setOpen, setViewReport }) {
                           handleChipClick(subcategoryObj.subcategory)
                         }
                         color={
-                          selectedCategories.includes(
+                          reportSelectedCategories.includes(
                             subcategoryObj.subcategory
                           )
                             ? "primary"

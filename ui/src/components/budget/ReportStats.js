@@ -27,11 +27,18 @@ const ReportStats = ({ data }) => {
     return Math.max(...arr);
   };
 
-  // Find the month of highest spending
+  // Find the month(s) of highest spending
   const extractHighestSpendMonth = (arr, labels) => {
-    const maxIndex = arr.indexOf(calculateMax(arr));
-    const [month, year] = labels[maxIndex];
-    return `${month} ${year}`;
+    if (arr.length === 0 || !arr) return "N/A";
+    const maxValue = calculateMax(arr);
+    const maxIndices = arr
+      .map((value, index) => (value === maxValue ? index : -1))
+      .filter((index) => index !== -1);
+    const months = maxIndices.map((index) => {
+      const [month, year] = labels[index];
+      return `${month} ${year}`;
+    });
+    return months.join(", ");
   };
 
   return (

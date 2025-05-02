@@ -69,6 +69,9 @@ function AppProvider({ children }) {
   const [reportData, setReportData] = useState([]);
   const [reportStartDate, setReportStartDate] = useState(null);
   const [reportEndDate, setReportEndDate] = useState(null);
+  const [reportSelectedCategories, setReportSelectedCategories] = useState([]);
+  const [reportTotalData, setReportTotalData] = useState([]);
+  const [reportSelectedTypeCategories, setReportSelectedTypeCategories] = useState([]);
 
   const valueObj = {
     url,
@@ -182,7 +185,13 @@ function AppProvider({ children }) {
     cryptoRefresh,
     setCryptoRefresh,
     cryptoMarketRefresh,
-    setCryptoMarketRefresh
+    setCryptoMarketRefresh,
+    reportSelectedCategories,
+    setReportSelectedCategories,
+    reportTotalData,
+    setReportTotalData,
+    reportSelectedTypeCategories,
+    setReportSelectedTypeCategories,
   }
 
   return (

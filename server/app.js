@@ -88,6 +88,7 @@ const {
   deleteEquity,
   patchEquity,
   getReportData,
+  getReportDataTotal,
   fetchCryptoMarketData
 } = require("./controllers/controllers");
 
@@ -873,10 +874,16 @@ app.delete("/notes", (req, res) => {
 });
 
 app.get("/reportData", (req, res) => {
-  let { startDateString, endDateString, formattedCategories } = req.query;
-  getReportData(startDateString, endDateString, formattedCategories)
-    .then((data) => res.status(200).send(data))
-    .catch((err) => res.status(403).send(err));
+  let { startDateString, endDateString, formattedCategories, reason } = req.query;
+  if (reason === "total") {
+    getReportDataTotal(startDateString, endDateString)
+      .then((data) => res.status(200).send(data))
+      .catch((err) => res.status(403).send(err));
+  } else {
+    getReportData(startDateString, endDateString, formattedCategories)
+      .then((data) => res.status(200).send(data))
+      .catch((err) => res.status(403).send(err));
+  }
 });
 
 

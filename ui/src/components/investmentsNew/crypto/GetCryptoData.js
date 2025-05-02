@@ -48,7 +48,6 @@ const GetCryptoData = () => {
 
   // on page load, get data
 useEffect(() => {
-  console.log("made it here");
   getCryptoDBData().then((items) => {
     if (items) {
       const transformedData = items.map((item) => ({

@@ -1,11 +1,46 @@
-.chart-container {
-  margin-bottom: 20px;
+.report-title-wrapper {
+  position: relative;
   display: flex;
-  justify-content: flex-start;
-  height: 500px; 
-  width: 800px; 
+  justify-content: center;
+  align-items: center;
+}
+
+.report-title-text {
+  text-align: center;
+  font-weight: 500;
+}
+
+.report-edit-button {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+
+.report-divider-container{
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+.report-divider{
+  border: 1px solid #bbb;
+  width: 60%;
+}
+
+.report-divider-2{
+  width: 90%;
+  margin-bottom: 30px;
+}
+
+.chart-container {
+  display: flex;
+  justify-content: flex-start; 
+  width: 100%; 
   flex-grow: 1;
-  padding: 0;
+  margin-bottom: 30px;
 }
 
 
