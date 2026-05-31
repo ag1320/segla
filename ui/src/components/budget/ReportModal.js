@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../../AppContext";
 import { Bar } from "react-chartjs-2";
+import { Chart as ChartJS, registerables } from "chart.js";
 import "./ReportModal.css";
 import {
   Modal,
@@ -12,7 +13,9 @@ import {
 } from "@mui/material";
 import ReportStats from "./ReportStats";
 import EditIcon from "@mui/icons-material/Edit";
-import {constructReportData} from "../../Calculations";
+import { constructReportData } from "../../Calculations";
+
+ChartJS.register(...registerables);
 
 export default function ReportModal({ open, setOpen, setOpenGenerateReport }) {
   const style = {
@@ -33,8 +36,11 @@ export default function ReportModal({ open, setOpen, setOpenGenerateReport }) {
   let { reportData, setReportData } = useContext(AppContext);
   let { reportStartDate, setReportStartDate } = useContext(AppContext);
   let { reportEndDate, setReportEndDate } = useContext(AppContext);
-  let { setReportSelectedCategories } = useContext(AppContext);
-  let { reportSelectedTypeCategories,setReportSelectedTypeCategories } = useContext(AppContext);
+  let { reportSelectedCategories, setReportSelectedCategories } =
+    useContext(AppContext);
+  let { reportWarningsAndLimitsData } = useContext(AppContext);
+  let { reportSelectedTypeCategories, setReportSelectedTypeCategories } =
+    useContext(AppContext);
   let { setReportTotalData } = useContext(AppContext);
   let { reportTotalData } = useContext(AppContext);
 
@@ -56,7 +62,7 @@ export default function ReportModal({ open, setOpen, setOpenGenerateReport }) {
     setReportTotalData([]);
     setOpen(false);
   };
-  
+
   const options = {
     maintainAspectRatio: true,
     responsive: true,
@@ -87,11 +93,25 @@ export default function ReportModal({ open, setOpen, setOpenGenerateReport }) {
   }
 
   useEffect(() => {
-    setData(constructReportData(reportStartDate, reportEndDate, reportData, reportTotalData, reportSelectedTypeCategories));
+    setData(
+      constructReportData(
+        reportStartDate,
+        reportEndDate,
+        reportData,
+        reportTotalData,
+        reportSelectedTypeCategories,
+        reportWarningsAndLimitsData,
+        reportSelectedCategories,
+      ),
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reportStartDate, reportEndDate, reportData, reportTotalData, reportSelectedTypeCategories]);
-
-  console.log("data", data);
+  }, [
+    reportStartDate,
+    reportEndDate,
+    reportData,
+    reportTotalData,
+    reportSelectedTypeCategories,
+  ]);
 
   return (
     <Modal

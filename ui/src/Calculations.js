@@ -3,7 +3,7 @@ function holdDuration(transactions) {
   let time = new Date();
   let today = time.getTime();
   let times = transactions.map((transaction) =>
-    new Date(transaction.date).getTime()
+    new Date(transaction.date).getTime(),
   );
   let sorted = times.sort();
   let result = (today - sorted[0]) / 1000 / 60 / 60 / 24 / 365;
@@ -65,8 +65,6 @@ function realizedGains(asset, transactions) {
   return result;
 }
 
-
-
 /************REPORT****************/
 
 function getRandomRGB() {
@@ -110,11 +108,9 @@ const createReportDatasetObj = (label, data) => {
     data: data,
     label: label,
   };
-}
-
+};
 
 function sortByMonthAndYear(array) {
-  console.log("array", array);
   const monthsMap = {
     January: 1,
     February: 2,
@@ -150,7 +146,10 @@ function sumExpensesByMonthAndType(data, reportSelectedTypeCategories) {
   reportSelectedTypeCategories.forEach((typeCategory) => {
     let filtered = [];
     if (typeCategory === "Total Fixed and Varied Expenses") {
-      filtered = data.filter((item) => item.type === "varied expense" || item.type === "fixed expense");
+      filtered = data.filter(
+        (item) =>
+          item.type === "varied expense" || item.type === "fixed expense",
+      );
     } else {
       let type = "";
       switch (typeCategory) {
@@ -179,23 +178,21 @@ function sumExpensesByMonthAndType(data, reportSelectedTypeCategories) {
       const monthNumber = new Date(`${month} 1, ${year}`).getMonth() + 1; // Convert month name to number
       const key = `${year}-${String(monthNumber).padStart(2, "0")}`; // e.g., "2025-01"
       if (!totalsMap.has(key)) {
-      totalsMap.set(key, 0);
+        totalsMap.set(key, 0);
       }
       totalsMap.set(key, totalsMap.get(key) + amount);
     });
 
-    console.log("totalsMap", totalsMap);
-
     // Ensure all months in the range have a value, even if it's 0
     const allMonths = new Set(
       data.map(({ month, year }) => {
-      const monthNumber = new Date(`${month} 1, ${year}`).getMonth() + 1; // Convert month name to number
-      return `${year}-${String(monthNumber).padStart(2, "0")}`;
-      })
+        const monthNumber = new Date(`${month} 1, ${year}`).getMonth() + 1; // Convert month name to number
+        return `${year}-${String(monthNumber).padStart(2, "0")}`;
+      }),
     );
     allMonths.forEach((key) => {
       if (!totalsMap.has(key)) {
-      totalsMap.set(key, 0);
+        totalsMap.set(key, 0);
       }
     });
 
@@ -209,73 +206,79 @@ function sumExpensesByMonthAndType(data, reportSelectedTypeCategories) {
 
 //sum the transactions by category by month and year
 function sumExpensesByMonthAndCategory(data) {
-  let simplifiedData = [];
-  data.forEach((transaction) => {
-    let entry = simplifiedData.find(
-      (item) =>
-        item.category === transaction.category &&
-        item.subcategory === transaction.subcategory
-    );
-    if (entry) {
-      let monthIndex = entry.sumOfTransactionsByMonth.findIndex(
-        (item) =>
-          item.month === transaction.month && item.year === transaction.year
-      );
-      if (monthIndex !== -1) {
-        entry.sumOfTransactionsByMonth[monthIndex].amount +=
-          transaction.amount;
-      } else {
-        entry.sumOfTransactionsByMonth.push({
-          month: transaction.month,
-          year: transaction.year,
-          amount: transaction.amount,
-        });
-      }
-    } else {
-      simplifiedData.push({
-        category: transaction.category,
-        subcategory: transaction.subcategory,
-        sumOfTransactionsByMonth: [
-          {
-            month: transaction.month,
-            year: transaction.year,
-            amount: transaction.amount,
-          },
-        ],
-      });
-    }
-  });
+  if (!Array.isArray(data) || data.length === 0) {
+    return [];
+  }
 
-  return simplifiedData;
+  const categoryMap = new Map();
+
+  data.forEach(
+    ({ category, subcategory, month, year, amount, limit, warning }) => {
+      const categoryKey = `${category}|||${subcategory}`;
+      let entry = categoryMap.get(categoryKey);
+
+      if (!entry) {
+        entry = {
+          category,
+          subcategory,
+          sumOfTransactionsByMonth: new Map(),
+        };
+        categoryMap.set(categoryKey, entry);
+      }
+
+      const monthYearKey = `${year}-${month}`;
+      const currentAmount =
+        entry.sumOfTransactionsByMonth.get(monthYearKey) || 0;
+      entry.sumOfTransactionsByMonth.set(monthYearKey, currentAmount + amount);
+    },
+  );
+
+  return Array.from(categoryMap.values()).map((entry) => {
+    const sumOfTransactionsByMonth = Array.from(
+      entry.sumOfTransactionsByMonth,
+    ).map(([monthYear, amount]) => {
+      const [year, month] = monthYear.split("-");
+      return { month, year, amount };
+    });
+
+    return {
+      category: entry.category,
+      subcategory: entry.subcategory,
+      sumOfTransactionsByMonth,
+    };
+  });
 }
 
 const zeroOutEmptyMonths = (labels, simplifiedCategoryData) => {
-    //insert 0s into months that dont have any spending in that category
-    for (let i = 0; i < labels.length; i++) {
-      const month = labels[i][0];
-      const year = labels[i][1];
-  
-      simplifiedCategoryData.forEach((entry) => {
-        if (
-          entry.sumOfTransactionsByMonth[i]?.month !== month &&
-          entry.sumOfTransactionsByMonth[i]?.year !== year
-        ) {
-          const obj = { month, year, amount: 0 };
-          entry.sumOfTransactionsByMonth.splice(i, 0, obj);
-        }
-      });
-    }
-}
+  // Rebuild each category's month series from the report labels to keep ordering stable.
+  simplifiedCategoryData.forEach((entry) => {
+    const monthYearToAmountMap = new Map(
+      entry.sumOfTransactionsByMonth.map((item) => [
+        `${item.year}-${item.month}`,
+        item.amount,
+      ]),
+    );
+
+    entry.sumOfTransactionsByMonth = labels.map(([month, year]) => ({
+      month,
+      year,
+      amount: monthYearToAmountMap.get(`${year}-${month}`) || 0,
+    }));
+  });
+};
 
 const getCategoryDatasets = (reportDataCategories, labels) => {
   let datasetObjs = [];
   let sortedReportDataCategories = sortByMonthAndYear(reportDataCategories);
-  let simplifiedCategoryData = sumExpensesByMonthAndCategory(sortedReportDataCategories);
+
+  let simplifiedCategoryData = sumExpensesByMonthAndCategory(
+    sortedReportDataCategories,
+  );
 
   //sort by month and year
   simplifiedCategoryData.forEach((entry) => {
     let sortedSumOfTransactionByMonth = sortByMonthAndYear(
-      entry.sumOfTransactionsByMonth
+      entry.sumOfTransactionsByMonth,
     );
     entry.sumOfTransactionsByMonth = sortedSumOfTransactionByMonth;
   });
@@ -292,26 +295,101 @@ const getCategoryDatasets = (reportDataCategories, labels) => {
       ? (category = entry.subcategory)
       : (category = entry.category);
 
-    let datasetObj = createReportDatasetObj(
-      category,
-      categoryData
-    );
+    let datasetObj = createReportDatasetObj(category, categoryData);
+
     datasetObjs.push(datasetObj);
   });
 
   return datasetObjs;
-}
+};
 
-const constructReportData = ( reportStartDate, reportEndDate, reportDataCategories, reportTotalData, reportSelectedTypeCategories) => {
+const getWarningsAndLimitsDatasets = (reportWarningsAndLimitsData, labels) => {
+  if (
+    !Array.isArray(reportWarningsAndLimitsData) ||
+    reportWarningsAndLimitsData.length === 0
+  ) {
+    return [];
+  }
+
+  // Create a map of month/year to warning/limit values
+  const monthYearToDataMap = new Map(
+    reportWarningsAndLimitsData.map((entry) => [
+      `${entry.year}-${entry.month}`,
+      entry,
+    ]),
+  );
+
+  // Align data with chart labels
+  const warningData = labels.map(([month, year]) => {
+    const entry = monthYearToDataMap.get(`${year}-${month}`);
+    return entry?.warning ?? 0;
+  });
+
+  const limitData = labels.map(([month, year]) => {
+    const entry = monthYearToDataMap.get(`${year}-${month}`);
+    return entry?.limit ?? 0;
+  });
+
+  const warningDatasetObj = {
+    label: "Warning",
+    type: "line",
+    borderColor: "rgb(164, 151, 0)",
+    borderWidth: 2,
+    fill: false,
+    pointRadius: 0,
+    tension: 0.4,
+    data: warningData,
+  };
+
+  const limitDatasetObj = {
+    label: "Limit",
+    type: "line",
+    borderColor: "rgba(255,0,0,1)",
+    borderWidth: 2,
+    fill: false,
+    pointRadius: 0,
+    tension: 0.4,
+    data: limitData,
+  };
+
+  return [warningDatasetObj, limitDatasetObj];
+};
+
+const constructReportData = (
+  reportStartDate,
+  reportEndDate,
+  reportDataCategories,
+  reportTotalData,
+  reportSelectedTypeCategories,
+  reportWarningsAndLimitsData,
+  reportSelectedCategories,
+) => {
+  let warningsAndLimitsDatasets = [];
   let labels = generateReportLabels(reportStartDate, reportEndDate);
-  let categoryDatasets = getCategoryDatasets(reportDataCategories, labels);
-  console.log("categoryDatasets", categoryDatasets);
-  let typeDatasets = sumExpensesByMonthAndType(reportTotalData, reportSelectedTypeCategories);
-  let datasets = [...categoryDatasets, ...typeDatasets];
 
-  let data = {labels, datasets};
-  return data
-}
+  //Need to fix bug. Whenever you select the full date range for eating out, the page errors out
+  let categoryDatasets = getCategoryDatasets(reportDataCategories, labels);
+  let typeDatasets = sumExpensesByMonthAndType(
+    reportTotalData,
+    reportSelectedTypeCategories,
+  );
+
+  //if exactly 1 category is selected, then display the warnings and limits for that category on the graph as well
+  if (reportSelectedCategories.length === 1) {
+    warningsAndLimitsDatasets = getWarningsAndLimitsDatasets(
+      reportWarningsAndLimitsData,
+      labels,
+    );
+  }
+
+  let datasets = [
+    ...categoryDatasets,
+    ...typeDatasets,
+    ...warningsAndLimitsDatasets,
+  ];
+  let data = { labels, datasets };
+  return data;
+};
 
 /************END REPORT****************/
 
@@ -324,5 +402,5 @@ export {
   totalValue,
   unrealizedGains,
   realizedGains,
-  constructReportData
+  constructReportData,
 };

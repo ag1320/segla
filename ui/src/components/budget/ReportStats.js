@@ -34,12 +34,17 @@ const ReportStats = ({ data }) => {
     const maxIndices = arr
       .map((value, index) => (value === maxValue ? index : -1))
       .filter((index) => index !== -1);
+
     const months = maxIndices.map((index) => {
       const [month, year] = labels[index];
       return `${month} ${year}`;
     });
     return months.join(", ");
   };
+
+  const statsDatasets = data.datasets.filter(
+    (dataset) => dataset.label !== "Warning" && dataset.label !== "Limit",
+  );
 
   return (
     <TableContainer component={Paper}>
@@ -57,7 +62,7 @@ const ReportStats = ({ data }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.datasets.map((category, index) => (
+          {statsDatasets.map((category, index) => (
             <TableRow key={category.label}>
               <TableCell component="th" scope="row">
                 {category.label}

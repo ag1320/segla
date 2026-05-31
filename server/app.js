@@ -89,7 +89,8 @@ const {
   patchEquity,
   getReportData,
   getReportDataTotal,
-  fetchCryptoMarketData
+  fetchCryptoMarketData,
+  getReportDataWarningsAndLimits,
 } = require("./controllers/controllers");
 
 app.use(express.json());
@@ -98,7 +99,7 @@ app.use(
   cors({
     origin: "*",
     methods: "GET, PUT, POST, PATCH, DELETE",
-  })
+  }),
 );
 
 // app.get("/aaron", (req, res) => {
@@ -112,7 +113,6 @@ app.use(
 //query yfapi
 //update price in the db
 //sanitize data
-
 
 /*
 **********************************************
@@ -129,7 +129,7 @@ app.get("/data", (req, res) => {
     getCryptoTransactions(account).then((data) => {
       transactionsFull = transactionsFull.concat(data);
       let tickersFull = Array.from(
-        new Set(transactionsFull.map((transaction) => transaction.ticker))
+        new Set(transactionsFull.map((transaction) => transaction.ticker)),
       );
 
       let tickers = splitTickers(tickersFull);
@@ -152,7 +152,7 @@ app.get("/data", (req, res) => {
                 let shares = data[0].totalShares;
                 let expenseRatio = data[0]?.expenseRatio;
                 let transactions = transactionsFull.filter(
-                  (el) => el.ticker === symbol
+                  (el) => el.ticker === symbol,
                 );
                 let asset = transactions[0].asset;
                 let detailedAsset = transactions[0].detailedAsset;
@@ -309,7 +309,7 @@ app.patch("/vanguardRetirement", (req, res) => {
     totalReturn,
     totalReturnPercentage,
     ytdReturnPercentage,
-    id
+    id,
   )
     .then((data) => res.sendStatus(201))
     .catch((err) => {
@@ -340,7 +340,7 @@ app.post("/tsp", (req, res) => {
     totalReturn,
     contribution,
     govtContribution,
-    ytdReturnPercentage
+    ytdReturnPercentage,
   )
     .then((data) => res.status(200).send(data))
     .catch((err) => res.status(403).send(err));
@@ -373,7 +373,7 @@ app.patch("/tsp", (req, res) => {
     contribution,
     govtContribution,
     ytdReturnPercentage,
-    id
+    id,
   );
   patchTsp(
     accountHolder,
@@ -383,7 +383,7 @@ app.patch("/tsp", (req, res) => {
     contribution,
     govtContribution,
     ytdReturnPercentage,
-    id
+    id,
   )
     .then((data) => res.sendStatus(201))
     .catch((err) => {
@@ -428,7 +428,7 @@ app.patch("/vanguardBrokerage", (req, res) => {
     totalReturn,
     totalReturnPercentage,
     ytdReturnPercentage,
-    id
+    id,
   )
     .then((data) => res.sendStatus(201))
     .catch((err) => {
@@ -546,7 +546,7 @@ app.post("/loans", (req, res) => {
     payoffDate,
     monthlyPayment,
     remainingBalance,
-    type
+    type,
   )
     .then((data) => res.status(200).send(data))
     .catch((err) => res.status(403).send(err));
@@ -560,8 +560,24 @@ app.delete("/loans", (req, res) => {
 });
 
 app.patch("/loans", (req, res) => {
-  let { url, holder, interestRate, payoffDate, monthlyPayment, remainingBalance, id } = req.body;
-  patchLoans(url, holder, interestRate, payoffDate, monthlyPayment, remainingBalance, id)
+  let {
+    url,
+    holder,
+    interestRate,
+    payoffDate,
+    monthlyPayment,
+    remainingBalance,
+    id,
+  } = req.body;
+  patchLoans(
+    url,
+    holder,
+    interestRate,
+    payoffDate,
+    monthlyPayment,
+    remainingBalance,
+    id,
+  )
     .then((data) => res.sendStatus(201))
     .catch((err) => {
       res.status(403).send(err);
@@ -575,12 +591,8 @@ app.get("/equity", (req, res) => {
 });
 
 app.post("/equity", (req, res) => {
-  let {
-    address, valuation, remainingBalance
-  } = req.body;
-  postEquity(
-    address, valuation, remainingBalance
-  )
+  let { address, valuation, remainingBalance } = req.body;
+  postEquity(address, valuation, remainingBalance)
     .then((data) => res.status(200).send(data))
     .catch((err) => res.status(403).send(err));
 });
@@ -602,7 +614,7 @@ app.patch("/equity", (req, res) => {
 });
 
 app.get("/crypto-market", (req, res) => {
-  let { idTags } = req.query
+  let { idTags } = req.query;
   fetchCryptoMarketData(idTags)
     .then((data) => res.status(200).send(data.data))
     .catch((err) => res.status(403).send(err));
@@ -874,9 +886,18 @@ app.delete("/notes", (req, res) => {
 });
 
 app.get("/reportData", (req, res) => {
-  let { startDateString, endDateString, formattedCategories, reason } = req.query;
+  let { startDateString, endDateString, formattedCategories, reason } =
+    req.query;
   if (reason === "total") {
     getReportDataTotal(startDateString, endDateString)
+      .then((data) => res.status(200).send(data))
+      .catch((err) => res.status(403).send(err));
+  } else if (reason === "warningsAndLimits") {
+    getReportDataWarningsAndLimits(
+      startDateString,
+      endDateString,
+      formattedCategories,
+    )
       .then((data) => res.status(200).send(data))
       .catch((err) => res.status(403).send(err));
   } else {
@@ -886,8 +907,7 @@ app.get("/reportData", (req, res) => {
   }
 });
 
-
 const port = 3001;
 app.listen(port, () =>
-  console.log(`Backend listening at http://localhost:${port}`)
+  console.log(`Backend listening at http://localhost:${port}`),
 );

@@ -6,47 +6,45 @@ import { useState, createContext } from "react";
 export const AppContext = createContext(null);
 
 function AppProvider({ children }) {
-  const [url, setUrl] = useState('');
+  const [url, setUrl] = useState("");
   //investments old - may be able to delete these
-  const [selectedTicker, setSelectedTicker] = useState('');
-  const [doesExist, setDoesExist] = useState(false)
-  const [stockComposition, setStockComposition] = useState({})
-  const [bondComposition, setBondComposition] = useState({})
-  const [cryptoComposition, setCryptoComposition] = useState({})
-  const [displayRow, setDisplayRow] = useState({})
-  const [refresh, setRefresh] = useState(false)
+  const [selectedTicker, setSelectedTicker] = useState("");
+  const [doesExist, setDoesExist] = useState(false);
+  const [stockComposition, setStockComposition] = useState({});
+  const [bondComposition, setBondComposition] = useState({});
+  const [cryptoComposition, setCryptoComposition] = useState({});
+  const [displayRow, setDisplayRow] = useState({});
+  const [refresh, setRefresh] = useState(false);
   const [rows, setRows] = useState([]);
-  const [portfolioValue, setPortfolioValue] = useState(0)
+  const [portfolioValue, setPortfolioValue] = useState(0);
 
   //investments new
-  const [vanguardRetirementTotal, setVanguardRetirementTotal] = useState(0)
-  const [tspTotal, setTspTotal] = useState(0)
-  const [vanguardBrokerageTotal, setVanguardBrokerageTotal] = useState(0)
-  const [pa529Total, setPa529Total] = useState(0)
-  const [cryptoData, setCryptoData] = useState([])
-  const [cryptoTotal, setCryptoTotal] = useState(0)
-  const [cryptoRefresh, setCryptoRefresh] = useState(false)
-  const [cryptoMarketRefresh, setCryptoMarketRefresh] = useState(false)
-  const [baskTotal, setBaskTotal] = useState(0)
-  const [equityTotal, setEquityTotal] = useState(0)
-  const [mortgageTotal, setMortgageTotal] = useState(0)
-  const [studentLoanTotal, setStudentLoanTotal] = useState(0)
-  const [autoLoanTotal, setAutoLoanTotal] = useState(0)
-
-
+  const [vanguardRetirementTotal, setVanguardRetirementTotal] = useState(0);
+  const [tspTotal, setTspTotal] = useState(0);
+  const [vanguardBrokerageTotal, setVanguardBrokerageTotal] = useState(0);
+  const [pa529Total, setPa529Total] = useState(0);
+  const [cryptoData, setCryptoData] = useState([]);
+  const [cryptoTotal, setCryptoTotal] = useState(0);
+  const [cryptoRefresh, setCryptoRefresh] = useState(false);
+  const [cryptoMarketRefresh, setCryptoMarketRefresh] = useState(false);
+  const [baskTotal, setBaskTotal] = useState(0);
+  const [equityTotal, setEquityTotal] = useState(0);
+  const [mortgageTotal, setMortgageTotal] = useState(0);
+  const [studentLoanTotal, setStudentLoanTotal] = useState(0);
+  const [autoLoanTotal, setAutoLoanTotal] = useState(0);
 
   //budget
-  const [budgetData, setBudgetData] = useState({})
-  const [newBudget, setNewBudget] = useState(false)
-  const [fixedExpenses, setFixedExpenses] = useState([])
-  const [fixedIncome, setFixedIncome] = useState([])
-  const [date, setDate] = useState(null)
-  const [monthlyIncome, setMonthlyIncome] = useState([])
-  const [budgetRefresh, setBudgetRefresh] = useState(false)
-  const [monthlyFixedExpenses, setMonthlyFixedExpenses] = useState([])
-  const [openAddExpense, setOpenAddExpense] = useState(true)
-  const [budgetCategories, setBudgetCategories] = useState([])
-  const [monthlyVariedExpenses, setMonthlyVariedExpenses] = useState([])
+  const [budgetData, setBudgetData] = useState({});
+  const [newBudget, setNewBudget] = useState(false);
+  const [fixedExpenses, setFixedExpenses] = useState([]);
+  const [fixedIncome, setFixedIncome] = useState([]);
+  const [date, setDate] = useState(null);
+  const [monthlyIncome, setMonthlyIncome] = useState([]);
+  const [budgetRefresh, setBudgetRefresh] = useState(false);
+  const [monthlyFixedExpenses, setMonthlyFixedExpenses] = useState([]);
+  const [openAddExpense, setOpenAddExpense] = useState(true);
+  const [budgetCategories, setBudgetCategories] = useState([]);
+  const [monthlyVariedExpenses, setMonthlyVariedExpenses] = useState([]);
   const [monthlyExpensesRefresh, setMonthlyExpensesRefresh] = useState(false);
   const [currentBudgetCategories, setCurrentBudgetCategories] = useState([]);
   const [displayBudgetCategories, setDisplayBudgetCategories] = useState([]);
@@ -63,15 +61,18 @@ function AppProvider({ children }) {
   const [notes, setNotes] = useState([]);
   const [snackbarSuccess, setSnackbarSuccess] = useState(false);
   const [snackbarError, setSnackbarError] = useState(false);
-  const [reason, setReason] = useState('Budget');
+  const [reason, setReason] = useState("Budget");
   const [error, setError] = useState(false);
-  const [shares, setShares] = useState(null)
+  const [shares, setShares] = useState(null);
   const [reportData, setReportData] = useState([]);
+  const [reportWarningsAndLimitsData, setReportWarningsAndLimitsData] =
+    useState([]);
   const [reportStartDate, setReportStartDate] = useState(null);
   const [reportEndDate, setReportEndDate] = useState(null);
   const [reportSelectedCategories, setReportSelectedCategories] = useState([]);
   const [reportTotalData, setReportTotalData] = useState([]);
-  const [reportSelectedTypeCategories, setReportSelectedTypeCategories] = useState([]);
+  const [reportSelectedTypeCategories, setReportSelectedTypeCategories] =
+    useState([]);
 
   const valueObj = {
     url,
@@ -176,6 +177,8 @@ function AppProvider({ children }) {
     setAutoLoanTotal,
     reportData,
     setReportData,
+    reportWarningsAndLimitsData,
+    setReportWarningsAndLimitsData,
     reportStartDate,
     setReportStartDate,
     reportEndDate,
@@ -192,7 +195,7 @@ function AppProvider({ children }) {
     setReportTotalData,
     reportSelectedTypeCategories,
     setReportSelectedTypeCategories,
-  }
+  };
 
   return (
     <div className="App-provider">

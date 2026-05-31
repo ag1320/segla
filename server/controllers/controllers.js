@@ -1,9 +1,8 @@
-require('dotenv').config({ path: '../../.env' });
+require("dotenv").config({ path: "../../.env" });
 const knex = require("./dbConnection");
 const axios = require("axios").default;
 const fastcsv = require("fast-csv");
 const fs = require("fs");
-
 
 /*
 **********************************************
@@ -184,9 +183,9 @@ function patchShares(id, asset, shares) {
 **********************************************
 */
 
-const fetchData = () =>{
-  return
-}
+const fetchData = () => {
+  return;
+};
 
 function getVanguardRetirement() {
   return knex("vanguard_retirement")
@@ -218,7 +217,7 @@ function patchVanguardRetirement(
   total_return,
   total_return_percentage,
   ytd_return_percentage,
-  vanguard_account_id
+  vanguard_account_id,
 ) {
   console.log(
     "payload",
@@ -228,7 +227,7 @@ function patchVanguardRetirement(
     total_return,
     total_return_percentage,
     ytd_return_percentage,
-    vanguard_account_id
+    vanguard_account_id,
   );
   return knex("vanguard_retirement")
     .update({
@@ -273,7 +272,7 @@ function patchVanguardBrokerage(
   total_return,
   total_return_percentage,
   ytd_return_percentage,
-  vanguard_account_id
+  vanguard_account_id,
 ) {
   return knex("vanguard_brokerage")
     .update({
@@ -301,7 +300,7 @@ function postTsp(
   total_return,
   my_contribution,
   govt_contribution,
-  ytd_return_percentage
+  ytd_return_percentage,
 ) {
   return knex("tsp")
     .insert({
@@ -331,7 +330,7 @@ function patchTsp(
   my_contribution,
   govt_contribution,
   ytd_return_percentage,
-  tsp_account_id
+  tsp_account_id,
 ) {
   return knex("tsp")
     .update({
@@ -357,7 +356,7 @@ function postPa529(
   beneficiary,
   current_value,
   total_return,
-  projected_college_year
+  projected_college_year,
 ) {
   return knex("pa529")
     .insert({
@@ -381,7 +380,7 @@ function patchPa529(
   current_value,
   total_return,
   projected_college_year,
-  pa529_account_id
+  pa529_account_id,
 ) {
   return knex("pa529")
     .update({
@@ -419,14 +418,7 @@ function deleteCrypto(crypto_id) {
     .then((data) => data);
 }
 
-function patchCrypto(
-  ticker,
-  name,
-  url,
-  shares,
-  total_spent,
-  crypto_id
-) {
+function patchCrypto(ticker, name, url, shares, total_spent, crypto_id) {
   return knex("cryptocurrency")
     .update({
       ticker,
@@ -468,7 +460,7 @@ function patchBask(
   current_value,
   total_return,
   ytd_return,
-  bask_account_id
+  bask_account_id,
 ) {
   return knex("bask")
     .update({
@@ -494,7 +486,7 @@ function postLoans(
   payoff_date,
   monthly_payment,
   remaining_balance,
-  type
+  type,
 ) {
   return knex("loans")
     .insert({
@@ -523,7 +515,7 @@ function patchLoans(
   payoff_date,
   monthly_payment,
   remaining_balance,
-  loan_account_id
+  loan_account_id,
 ) {
   return knex("loans")
     .update({
@@ -573,11 +565,11 @@ function patchEquity(address, valuation, remaining_balance, equity_id) {
 }
 
 function fetchCryptoMarketData(idTags) {
-  let url = 'https://api.coingecko.com/api/v3/simple/price?'
-  url = url + 'ids='+idTags
-  url = url + '&vs_currencies=usd'
-  let apiKey = process.env.COIN_GECKO_API_KEY
-  console.log("url", url)
+  let url = "https://api.coingecko.com/api/v3/simple/price?";
+  url = url + "ids=" + idTags;
+  url = url + "&vs_currencies=usd";
+  let apiKey = process.env.COIN_GECKO_API_KEY;
+  console.log("url", url);
   let options = {
     method: "GET",
     url,
@@ -587,9 +579,9 @@ function fetchCryptoMarketData(idTags) {
   };
 
   return axios
-  .request(options)
-  .then((data) =>data)
-  .catch((err) => err);
+    .request(options)
+    .then((data) => data)
+    .catch((err) => err);
 }
 
 /*
@@ -938,21 +930,18 @@ function findError(response, input) {
 function getReportData(startDateString, endDateString, formattedCategories) {
   const categories = formattedCategories.map((cat) => JSON.parse(cat));
   const mainCategories = categories
-    .filter(cat => cat.category !== "Utilities")
-    .map(cat => cat.category);
+    .filter((cat) => cat.category !== "Utilities")
+    .map((cat) => cat.category);
   const subcategories = categories
-    .filter(cat => cat.subcategory !== null)
-    .map(cat => cat.subcategory);
-
-  console.log(mainCategories);
-  console.log(subcategories);
+    .filter((cat) => cat.subcategory !== null)
+    .map((cat) => cat.subcategory);
 
   return knex("monthly_expenses")
     .join("budget_categories_snapshot", function () {
       this.on(
         "monthly_expenses.category_id",
         "=",
-        "budget_categories_snapshot.budget_categories_snapshot_id"
+        "budget_categories_snapshot.budget_categories_snapshot_id",
       );
     })
     .select(
@@ -960,27 +949,30 @@ function getReportData(startDateString, endDateString, formattedCategories) {
       "monthly_expenses.month",
       "monthly_expenses.year",
       "budget_categories_snapshot.category",
-      "budget_categories_snapshot.subcategory"
+      "budget_categories_snapshot.subcategory",
     )
     .whereBetween(
-      knex.raw("TO_DATE(CONCAT(monthly_expenses.month, ' ', monthly_expenses.year), 'Month YYYY')"),
-      [startDateString, endDateString]
+      knex.raw(
+        "TO_DATE(CONCAT(monthly_expenses.month, ' ', monthly_expenses.year), 'Month YYYY')",
+      ),
+      [startDateString, endDateString],
     )
     .where(function () {
-      this.whereIn("budget_categories_snapshot.category", mainCategories)
-        .orWhereIn("budget_categories_snapshot.subcategory", subcategories);
+      this.whereIn(
+        "budget_categories_snapshot.category",
+        mainCategories,
+      ).orWhereIn("budget_categories_snapshot.subcategory", subcategories);
     })
     .then((data) => {
       return data;
     })
     .catch((error) => {
-      console.error('Error executing query:', error);
+      console.error("Error executing query:", error);
       throw error;
     });
 }
 
 function getReportDataTotal(startDateString, endDateString) {
-
   return knex("monthly_expenses")
     .select(
       "monthly_expenses.amount",
@@ -989,19 +981,49 @@ function getReportDataTotal(startDateString, endDateString) {
       "monthly_expenses.type",
     )
     .whereBetween(
-      knex.raw("TO_DATE(CONCAT(monthly_expenses.month, ' ', monthly_expenses.year), 'Month YYYY')"),
-      [startDateString, endDateString]
+      knex.raw(
+        "TO_DATE(CONCAT(monthly_expenses.month, ' ', monthly_expenses.year), 'Month YYYY')",
+      ),
+      [startDateString, endDateString],
     )
     .then((data) => {
       return data;
     })
     .catch((error) => {
-      console.error('Error executing query:', error);
+      console.error("Error executing query:", error);
       throw error;
     });
 }
 
+function getReportDataWarningsAndLimits(
+  startDateString,
+  endDateString,
+  formattedCategories,
+) {
+  const categories = formattedCategories.map((cat) => JSON.parse(cat));
+  const mainCategories = categories
+    .filter((cat) => cat.category !== "Utilities")
+    .map((cat) => cat.category);
+  const subcategories = categories
+    .filter((cat) => cat.subcategory !== null)
+    .map((cat) => cat.subcategory);
 
+  return knex("budget_categories_snapshot")
+    .select("category", "subcategory", "month", "year", "limit", "warning")
+    .whereBetween(knex.raw("TO_DATE(CONCAT(month, ' ', year), 'Month YYYY')"), [
+      startDateString,
+      endDateString,
+    ])
+    .whereIn("category", mainCategories)
+    .orWhereIn("subcategory", subcategories)
+    .then((data) => {
+      return data;
+    })
+    .catch((error) => {
+      console.error("Error executing query:", error);
+      throw error;
+    });
+}
 
 module.exports = {
   insertTransaction,
@@ -1088,16 +1110,16 @@ module.exports = {
   getReportData,
   fetchCryptoMarketData,
   getReportDataTotal,
+  getReportDataWarningsAndLimits,
 };
 
-
-    // .where(function() {
-    //   this.whereIn("budget_categories_snapshot.category", categories.map(cat => cat.category));
-    //   categories.forEach(cat => {
-    //     if (cat.subcategory !== null) {
-    //       this.orWhere("budget_categories_snapshot.subcategory", cat.subcategory);
-    //     } else {
-    //       this.orWhereNull("budget_categories_snapshot.subcategory");
-    //     }
-    //   });
-    // })
+// .where(function() {
+//   this.whereIn("budget_categories_snapshot.category", categories.map(cat => cat.category));
+//   categories.forEach(cat => {
+//     if (cat.subcategory !== null) {
+//       this.orWhere("budget_categories_snapshot.subcategory", cat.subcategory);
+//     } else {
+//       this.orWhereNull("budget_categories_snapshot.subcategory");
+//     }
+//   });
+// })
