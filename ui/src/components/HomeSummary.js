@@ -38,7 +38,7 @@ export default function HomeSummary({ composition, title }) {
     <Grid container>
       <Grid item xs = {0} sm = {1} md = {1} lg = {2}/>
       <Grid item xs = {12} sm = {4} md = {4} lg = {3}>
-        <Donut composition={investmentSummary} title="Investments" />
+        <Donut composition={investmentSummary} title="Assets" />
       </Grid>
       <Grid item xs = {0} sm = {2} md = {2}lg = {2}/>
       <Grid item xs = {12} sm = {4} md = {4}lg = {3}>

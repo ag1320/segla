@@ -21,6 +21,7 @@ import dollars from "../images/dollars.png";
 import wallet from "../images/wallet.png";
 import house from "../images/house.png";
 import stock from "../images/stock.png";
+import netWorth from "../images/net-worth.png";
 import "./Home.css";
 import Budget from "./budget/Budget";
 import Retirement from "./retirement/Retirement";
@@ -92,6 +93,8 @@ export default function Home() {
     0
   );
   const totalLoan = mortgageTotal + studentLoanTotal + autoLoanTotal;
+  const totalAssets = totalRetirement + totalOther + totalReserve + equityTotal;
+  const netWorthTotal = totalAssets - totalLoan;
 
   useEffect(() => {
     setShowComponents(false);
@@ -592,7 +595,80 @@ export default function Home() {
               </div>
             </StyledCard>
           </Grid>
-          <Grid item xs = {12} className="page-margin">
+          <Grid item xs={12} md={4} lg={3} xl={3}>
+            <StyledCard
+              sx={{ boxShadow: 20 }}
+              className={"grow-card custom-card"}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  height: "100%",
+                }}
+              >
+                <CardHeader
+                  sx={{ backgroundColor: "rgba(0, 188, 212, 0.3)" }}
+                />
+                <CardMedia
+                  component="img"
+                  height="100"
+                  sx={{ objectFit: "contain", marginTop: "10px" }}
+                  image={netWorth}
+                  title="net worth"
+                />
+                <CardContent>
+                  <Typography variant="h5" className="card-text">
+                    Net Worth
+                  </Typography>
+                  <StyledDivider />
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <Typography variant="body1" className="card-text">
+                        Assets:
+                      </Typography>
+                      <Typography variant="h6" className="card-text">
+                        {formatCurrency(totalAssets)}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Typography variant="body1" className="card-text">
+                        Loans:
+                      </Typography>
+                      <Typography variant="h6" className="card-text">
+                        {formatCurrency(totalLoan)}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <StyledDivider />
+                      <Typography variant="body1" className="card-text">
+                        Net Worth:
+                      </Typography>
+                      <Typography variant="h6" className="card-text bold-text">
+                        {formatCurrency(netWorthTotal)}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+                <div
+                  style={{
+                    flex: "1",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  <div
+                    style={{
+                      backgroundColor: "rgba(0, 188, 212, 0.3)",
+                      paddingTop: "30px",
+                    }}
+                  />
+                </div>
+              </div>
+            </StyledCard>
+          </Grid>
+          <Grid item xs={12} className="page-margin">
 
           </Grid>
         </Grid>

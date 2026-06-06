@@ -1,4 +1,4 @@
-import { Grid, Button, Box, Typography, Divider, Tooltip } from "@mui/material";
+import { Grid, Button, Box, Typography, Divider, Tooltip, Paper } from "@mui/material";
 import { useContext, useState, useEffect } from "react";
 import { AppContext } from "../../AppContext.js";
 import axios from "axios";
@@ -34,7 +34,7 @@ export default function Budget() {
   let { setTotalIncome } = useContext(AppContext);
   let { notes, setNotes } = useContext(AppContext);
   let { reason, setReason } = useContext(AppContext);
-  let { setRemainingBalance } = useContext(AppContext);
+  let { remainingBalance, setRemainingBalance } = useContext(AppContext);
   let { setTotalFixedIncome } = useContext(AppContext);
   let { setTotalDistributions } = useContext(AppContext);
   let { setTotalFixedExpenses } = useContext(AppContext);
@@ -521,257 +521,126 @@ export default function Budget() {
       <Grid container style={{ height: "100%" }}>
         {!viewExpenses && !viewIncome && !viewCategories ? (
           <>
-            <Grid item xs={12}>
-              <Grid container>
-                <Grid item xs={6}>
-                  <Box className="actions-header-container">
+            {/* Unified header panel */}
+            <Grid item xs={12} sx={{ px: 3, pt: 3, pb: 2 }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  background: "linear-gradient(135deg, #1e3347 0%, #243447 100%)",
+                  borderRadius: 2,
+                  p: 3,
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+                }}
+              >
+                {/* Top row: date picker, remaining balance, donut */}
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, mb: 2.5 }}>
+                  <RemainingBalance />
+
+                  {date && (
+                    <Box sx={{ textAlign: "center" }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "rgba(255,255,255,0.45)", display: "block", mb: 0.5, textTransform: "uppercase", letterSpacing: "0.08em", fontSize: "0.65rem" }}
+                      >
+                        Remaining Balance
+                      </Typography>
+                      <Typography
+                        variant="h3"
+                        sx={{
+                          fontWeight: 700,
+                          lineHeight: 1,
+                          color: remainingBalance >= 0 ? "#66bb6a" : "#ef5350",
+                        }}
+                      >
+                        ${Math.abs(parseFloat(remainingBalance)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </Typography>
+                      {remainingBalance < 0 && (
+                        <Typography variant="caption" sx={{ color: "#ef5350" }}>over budget</Typography>
+                      )}
+                    </Box>
+                  )}
+
+                  <Box sx={{ width: 240, flexShrink: 0 }}>
                     {date ? (
-                      <Grid container>
-                        <Grid item xs={7}>
-                          <Box className="action-text">
-                            <Typography
-                              component={"span"}
-                              textAlign="center"
-                              color="white"
-                              variant="h6"
-                            >
-                              Monthly Budget Actions
-                            </Typography>
-                          </Box>
-                          <Divider color="white" />
-                        </Grid>
-                      </Grid>
+                      <Donut composition={balance} title="Budget" />
                     ) : (
-                      <></>
+                      <Donut composition={emptyComposition} title="" />
                     )}
                   </Box>
-                </Grid>
-                <Grid item xs={6}>
-                  <Box className="master-lists-header-container">
-                    <Box className="master-list-text">
-                      <Typography component={"span"} color="white" variant="h6">
-                        Main Actions
-                      </Typography>
-                    </Box>
-                    <Divider color="white" />
-                  </Box>
-                </Grid>
-              </Grid>
-            </Grid>
-            <Grid item xs={12}>
-              <Box className="buttons-container">
-                <Grid container>
-                  <Grid item xs={6}>
-                    <Grid container className="action-button-container">
-                      <Grid item xs={7}>
-                        <Box>
-                          {date ? (
-                            <Grid
-                              container
-                              spacing={2}
-                              style={{ justifyContent: "center" }}
-                            >
-                              <Grid item>
-                                <Tooltip
-                                  title="Delete This Month's Budget"
-                                  arrow
-                                >
-                                  <Button
-                                    onClick={handleDelete}
-                                    className="delete-budget-button"
-                                    variant="outlined"
-                                  >
-                                    <DeleteIcon className="delete-budget-icon" />
-                                    <Typography
-                                      component="span"
-                                      className="delete-budget-text"
-                                    >
-                                      Delete
-                                    </Typography>
-                                  </Button>
-                                </Tooltip>
-                              </Grid>
-                              <Grid item>
-                                <Tooltip
-                                  title="Export This Month's Budget as '.csv'"
-                                  arrow
-                                >
-                                  <Button
-                                    className="export-csv-button"
-                                    onClick={handleExportCSVClick}
-                                  >
-                                    <ArticleOutlinedIcon />
-                                    <Typography
-                                      component="span"
-                                      className="delete-budget-text"
-                                    >
-                                      Export
-                                    </Typography>
-                                  </Button>
-                                </Tooltip>
-                              </Grid>
-                            </Grid>
-                          ) : (
-                            <Grid container>
-                              <Grid item xs={9}>
-                                <Box className="action-text">
-                                  <Typography
-                                    component={"span"}
-                                    textAlign="center"
-                                    color="white"
-                                    variant="h4"
-                                  >
-                                    Your Personal Budget App
-                                  </Typography>
-                                </Box>
-                                <Divider color="white" />
-                                <Box className="action-text">
-                                  <Typography
-                                    component={"span"}
-                                    textAlign="center"
-                                    color="#777"
-                                    variant="h6"
-                                  >
-                                    Select a Month to Begin
-                                  </Typography>
-                                </Box>
-                              </Grid>
-                            </Grid>
-                          )}
-                        </Box>
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                  <Grid item xs={6} justifyContent="center">
-                    <Box className="view-buttons-container">
-                      <Grid
-                        container
-                        spacing={2}
-                        style={{ justifyContent: "center" }}
+                </Box>
+
+                {/* Divider */}
+                <Divider sx={{ borderColor: "rgba(255,255,255,0.08)", mb: 1.5 }} />
+
+                {/* Action row */}
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Tooltip title={date ? "Delete this month's budget" : "Select a month first"} arrow>
+                    <span>
+                      <Button
+                        disabled={!date}
+                        onClick={handleDelete}
+                        variant="outlined"
+                        startIcon={<DeleteIcon />}
+                        size="small"
+                        sx={{
+                          color: "#ef5350",
+                          borderColor: "#ef5350",
+                          "&:hover": { borderColor: "#ef9a9a", backgroundColor: "rgba(239,83,80,0.08)" },
+                          "&.Mui-disabled": { color: "rgba(255,255,255,0.15)", borderColor: "rgba(255,255,255,0.1)" },
+                        }}
                       >
-                        <Grid item>
-                          <Tooltip
-                            title="view/edit your monthly fixed income"
-                            arrow
-                          >
-                            <Button
-                              variant="outlined"
-                              className="view-fixed-income-button"
-                              onClick={handleViewIncome}
-                            >
-                              <AttachMoneyIcon />
-                              <Typography
-                                component="span"
-                                className="delete-budget-text"
-                              >
-                                Monthly Income
-                              </Typography>
-                            </Button>
-                          </Tooltip>
-                        </Grid>
-                        <Grid item>
-                          <Box
-                            style={{
-                              width: "100%",
-                              display: "flex",
-                              justifyContent: "end",
-                            }}
-                          >
-                            <Tooltip
-                              title="view/edit your monthly fixed expenses"
-                              arrow
-                            >
-                              <Button
-                                variant="outlined"
-                                className="view-fixed-expenses-button"
-                                onClick={handleViewExpenses}
-                              >
-                                <RemoveIcon />
-                                <AttachMoneyIcon />
-                                <Typography
-                                  component="span"
-                                  className="delete-budget-text"
-                                >
-                                  Monthly Expenses
-                                </Typography>
-                              </Button>
-                            </Tooltip>
-                          </Box>
-                        </Grid>
-                        <Grid item>
-                          <Box
-                            style={{
-                              width: "100%",
-                              display: "flex",
-                              justifyContent: "end",
-                            }}
-                          >
-                            <Tooltip
-                              title="view/edit your budget categories"
-                              arrow
-                            >
-                              <Button
-                                variant="outlined"
-                                className="view-budget-categories-button"
-                                onClick={handleViewCategories}
-                              >
-                                <FormatListNumberedIcon />
-                                <Typography
-                                  component="span"
-                                  className="delete-budget-text"
-                                >
-                                  Budget Categories
-                                </Typography>
-                              </Button>
-                            </Tooltip>
-                          </Box>
-                        </Grid>
-                        <Grid item>
-                          <Box
-                            style={{
-                              width: "100%",
-                              display: "flex",
-                              justifyContent: "end",
-                            }}
-                          >
-                            <Tooltip title="generate a budget report" arrow>
-                              <Button
-                                variant="outlined"
-                                className="view-generate-report-button"
-                                onClick={handleGenerateReport}
-                              >
-                                <LeaderboardIcon />
-                                <Typography
-                                  component="span"
-                                  className="delete-budget-text"
-                                >
-                                  Generate Report
-                                </Typography>
-                              </Button>
-                            </Tooltip>
-                          </Box>
-                        </Grid>
-                      </Grid>
-                    </Box>
-                  </Grid>
-                </Grid>
-              </Box>
-            </Grid>
-            <Grid item xs={12}>
-              <Grid container>
-                <Grid item xs={5} className="remaining-balance-container">
-                  <RemainingBalance />
-                </Grid>
-                <Grid item xs={2} />
-                <Grid item xs={3}>
-                  {date ? (
-                    <Donut composition={balance} title="Budget" />
-                  ) : (
-                    <Donut composition={emptyComposition} title="" />
-                  )}
-                </Grid>
-                <Grid item xs={2} />
-              </Grid>
+                        Delete
+                      </Button>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title={date ? "Export this month's budget as CSV" : "Select a month first"} arrow>
+                    <span>
+                      <Button
+                        disabled={!date}
+                        onClick={handleExportCSVClick}
+                        variant="outlined"
+                        startIcon={<ArticleOutlinedIcon />}
+                        size="small"
+                        sx={{
+                          color: "rgba(255,255,255,0.7)",
+                          borderColor: "rgba(255,255,255,0.25)",
+                          "&:hover": { borderColor: "rgba(255,255,255,0.6)", backgroundColor: "rgba(255,255,255,0.05)" },
+                          "&.Mui-disabled": { color: "rgba(255,255,255,0.15)", borderColor: "rgba(255,255,255,0.1)" },
+                        }}
+                      >
+                        Export CSV
+                      </Button>
+                    </span>
+                  </Tooltip>
+
+                  <Box sx={{ flex: 1 }} />
+
+                  <Tooltip title="View/edit income sources" arrow>
+                    <Button variant="outlined" startIcon={<AttachMoneyIcon />} size="small" onClick={handleViewIncome}
+                      sx={{ color: "#4fc3f7", borderColor: "#4fc3f7", "&:hover": { borderColor: "#81d4fa", backgroundColor: "rgba(79,195,247,0.08)" } }}>
+                      Income
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="View/edit fixed expenses" arrow>
+                    <Button variant="outlined" startIcon={<RemoveIcon />} size="small" onClick={handleViewExpenses}
+                      sx={{ color: "#4fc3f7", borderColor: "#4fc3f7", "&:hover": { borderColor: "#81d4fa", backgroundColor: "rgba(79,195,247,0.08)" } }}>
+                      Fixed Expenses
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="View/edit budget categories" arrow>
+                    <Button variant="outlined" startIcon={<FormatListNumberedIcon />} size="small" onClick={handleViewCategories}
+                      sx={{ color: "#4fc3f7", borderColor: "#4fc3f7", "&:hover": { borderColor: "#81d4fa", backgroundColor: "rgba(79,195,247,0.08)" } }}>
+                      Categories
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="Generate a budget report" arrow>
+                    <Button variant="outlined" startIcon={<LeaderboardIcon />} size="small" onClick={handleGenerateReport}
+                      sx={{ color: "#4fc3f7", borderColor: "#4fc3f7", "&:hover": { borderColor: "#81d4fa", backgroundColor: "rgba(79,195,247,0.08)" } }}>
+                      Report
+                    </Button>
+                  </Tooltip>
+                </Box>
+              </Paper>
             </Grid>
           </>
         ) : (

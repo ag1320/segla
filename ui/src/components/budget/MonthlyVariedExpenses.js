@@ -195,7 +195,7 @@ export default function MonthlyVariedExpenses() {
                             borderRadius: 3,
                             backgroundColor: "rgba(255,255,255,0.1)",
                             "& .MuiLinearProgress-bar": {
-                              backgroundColor: getProgressColor(pct),
+                              backgroundColor: statusColor ?? getProgressColor(pct),
                               borderRadius: 3,
                             },
                           }}

@@ -3,6 +3,7 @@ const knex = require("./dbConnection");
 const axios = require("axios").default;
 const fastcsv = require("fast-csv");
 const fs = require("fs");
+const path = require("path");
 
 /*
 **********************************************
@@ -315,7 +316,7 @@ function postTsp(
     .then((data) => data);
 }
 
-function deleteTsp(vanguard_account_id) {
+function deleteTsp(tsp_account_id) {
   return knex("tsp")
     .del("*")
     .where({ tsp_account_id })
@@ -871,9 +872,20 @@ function postMonthlyIncome(category, amount, month, year) {
     .then((data) => data);
 }
 
+function windowsDocsPath(fileName) {
+  const winProfile = process.env.USERPROFILE;
+  if (winProfile) {
+    const wslPath = winProfile
+      .replace(/\\/g, "/")
+      .replace(/^([A-Za-z]):/, (_, d) => `/mnt/${d.toLowerCase()}`);
+    return path.join(wslPath, "Documents", fileName);
+  }
+  return path.join(require("os").homedir(), fileName);
+}
+
 function exportCSV(month, year) {
   let fileName = `Budget-${month}-${year}.csv`;
-  const ws = fs.createWriteStream(`/var/Users/aaron/${fileName}`);
+  const ws = fs.createWriteStream(windowsDocsPath(fileName));
   return knex("monthly_expenses")
     .select("*")
     .where({ month, year })
