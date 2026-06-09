@@ -1,86 +1,121 @@
-# Finance App
+# Segla — Personal Finance Dashboard
 
-A robust finance application designed to track, analyze, and manage financial data. This application integrates with a database and third-party APIs to provide dynamic and insightful financial tools.
-
-## Table of Contents
-
-1. [Features](#features)
-2. [Technologies Used](#technologies-used)
-3. [Getting Started](#getting-started)
-4. [Setting Up the Environment Variables](#setting-up-the-environment-variables)
-5. [Running the Application](#running-the-application)
-6. [Contributing](#contributing)
-7. [License](#license)
+A full-stack personal finance application for tracking investments, managing monthly budgets, monitoring loans and equity, and generating spending reports. Built for local deployment using Docker.
 
 ## Features
 
-- **Database Integration**: Seamlessly connects to a PostgreSQL database.
-- **API Integration**: Fetch live financial data using CoinGecko.
-- **Scalable Environment**: Optimized for local environments.
+### Investments
+- Track traditional and crypto investment portfolios with live price data via Yahoo Finance API
+- Log buy/sell transactions per ticker with cost basis tracking
+- Manage discrete investment accounts: Vanguard retirement, Vanguard brokerage, TSP, PA 529, Bask savings, and crypto
+- Track loans (balance, rate, payoff date, monthly payment) and home equity
 
-## Technologies Used
+### Budget
+- Define fixed income sources and fixed monthly expenses
+- Create and manage monthly budgets with custom spending categories and per-category limits
+- Log varied (discretionary) expenses against budget categories
+- Record month-end distributions (e.g. savings transfers)
+- Export monthly budget data to CSV
+- Add notes to any budget month for context
 
-- **Node.js**
-- **Express.js**
-- **PostgreSQL**
-- **Knex.js**
-- **CoinGecko API**
-- **Docker**
+### Reporting
+- Generate spending reports across configurable date ranges
+- View total spending trends and category breakdowns
+- Surface budget warnings and over-limit categories
+
+### Crypto
+- Fetch live crypto market data via CoinGecko API
+- Track coin holdings, cost basis, and current value
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React |
+| Backend | Node.js, Express.js |
+| Database | PostgreSQL |
+| ORM / Migrations | Knex.js |
+| External APIs | Yahoo Finance, CoinGecko |
+| Containerization | Docker, Docker Compose |
+| Utilities | Lodash, Morgan |
+
+## Project Structure
+
+```
+segla/
+├── ui/                  # React frontend
+├── server/              # Express backend
+│   ├── app.js           # Route definitions
+│   ├── controllers/     # Database and API logic
+│   ├── migrations/      # Knex DB migrations
+│   └── seeds/           # Seed data
+├── docker-compose.yaml
+└── segla.sh             # One-command startup script
+```
 
 ## Getting Started
 
-Follow these steps to set up the project on local machine:
-
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/)
-- [PostgreSQL](https://www.postgresql.org/)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [Git](https://git-scm.com/)
-- A CoinGecko API key (available at [CoinGecko Developer Portal](https://www.coingecko.com/en/api))
+- A [CoinGecko API key](https://www.coingecko.com/en/api)
 
 ### Installation
 
 1. Clone the repository:
 
-   ```bash
-   git clone git@github.com:your-username/your-repo.git
-   cd your-repo
-   ```
+```bash
+git clone https://github.com/ag1320/segla.git
+cd segla
+```
 
-2. Set up the database:
-
-   - Ensure PostgreSQL is installed and running.
-
-3. Set up your `.env` file as described below.
-
-## Setting Up the Environment Variables
-
-Create a `.env` file in the root directory of the project. Populate it with the following variables:
+2. Create a `.env` file in the root directory:
 
 ```env
-# Database Configuration
+# Database
 DB_USER=your_database_username
 DB_PASSWORD=your_database_password
 DB_NAME=your_database_name
-DB_PORT=your_database_port
+DB_PORT=5432
 DB_CONNECTION_STRING=postgres://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_NAME}
 
 # Environment
 NODE_ENV=development
 
-# API Key
-COIN_GECKO_API_KEY=your_coin_gecko_api_key
+# APIs
+COIN_GECKO_API_KEY=your_coingecko_api_key
 ```
 
-### Notes:
+### Running the Application
 
-- Replace `your_database_username`, `your_database_password`, `your_database_name`, and `your_database_port` with your PostgreSQL configuration.
-- Replace `your_coin_gecko_api_key` with the API key obtained from CoinGecko.
+```bash
+bash segla.sh
+```
 
-## Running the Application
+The app will be available at `http://localhost:3000`. The backend runs on port `3001`.
 
-1. Start the application:
+## API Overview
 
-   run the segla.sh script
+The Express server exposes REST endpoints organized around the app's core domains:
 
-2. Access the application at `http://localhost:3000`.
+| Domain | Endpoints |
+|---|---|
+| Investments (legacy) | `GET/POST/DELETE /transaction`, `GET /data`, `PATCH /shares` |
+| Vanguard Retirement | `GET/POST/PATCH/DELETE /vanguardRetirement` |
+| TSP | `GET/POST/PATCH/DELETE /tsp` |
+| Vanguard Brokerage | `GET/POST/PATCH/DELETE /vanguardBrokerage` |
+| PA 529 | `GET/POST/PATCH/DELETE /pa529` |
+| Crypto | `GET/POST/PATCH/DELETE /crypto`, `GET /crypto-market` |
+| Bask Savings | `GET/POST/PATCH/DELETE /bask` |
+| Loans | `GET/POST/PATCH/DELETE /loans` |
+| Equity | `GET/POST/PATCH/DELETE /equity` |
+| Budget | `POST /budget`, `DELETE /budget`, `POST /budget/check` |
+| Fixed Expenses | `GET/POST/PATCH/DELETE /fixedExpenses` |
+| Fixed Income | `GET/POST/PATCH/DELETE /fixedIncome` |
+| Monthly Expenses | `GET/POST/DELETE /monthlyExpenses` |
+| Budget Categories | `GET/POST/PATCH/DELETE /budgetCategories` |
+| Month-End Distributions | `GET/POST/DELETE /monthEndDistributions` |
+| Reports | `GET /reportData` |
+| Notes | `GET/POST/DELETE /notes` |
+| CSV Export | `GET /exportCSV` |
