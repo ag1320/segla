@@ -1,8 +1,6 @@
-import { useContext, useEffect } from "react";
-import { AppContext } from "../../AppContext";
+import { useSelector, useDispatch } from "react-redux";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import "./GenerateReportModal.css";
-import axios from "axios";
 import {
   Modal,
   Box,
@@ -15,6 +13,16 @@ import {
 import AdapterDateFns from "@mui/lab/AdapterDateFns";
 import LocalizationProvider from "@mui/lab/LocalizationProvider";
 import DatePicker from "@mui/lab/DatePicker";
+import {
+  loadReportData,
+  loadReportDataTotal,
+  loadReportDataWarningsAndLimits,
+  setReportStartDate,
+  setReportEndDate,
+  setReportSelectedCategories,
+  setReportSelectedTypeCategories,
+} from "../../state/reportsSlice";
+import { setSnackbarError } from "../../state/uiSlice";
 
 export default function GenerateReportModal({ open, setOpen, setViewReport }) {
   const style = {
@@ -57,17 +65,12 @@ export default function GenerateReportModal({ open, setOpen, setViewReport }) {
     },
   });
 
-  let { currentBudgetCategories } = useContext(AppContext);
-  let { setReportData } = useContext(AppContext);
-  let { setReportWarningsAndLimitsData } = useContext(AppContext);
-  let { setReportTotalData } = useContext(AppContext);
-  let { reportStartDate, setReportStartDate } = useContext(AppContext);
-  let { reportEndDate, setReportEndDate } = useContext(AppContext);
-  let { setSnackbarError } = useContext(AppContext);
-  let { reportSelectedCategories, setReportSelectedCategories } =
-    useContext(AppContext);
-  let { reportSelectedTypeCategories, setReportSelectedTypeCategories } =
-    useContext(AppContext);
+  const dispatch = useDispatch();
+  const currentBudgetCategories = useSelector((state) => state.budgetCategories.currentCategories);
+  const reportStartDate = useSelector((state) => state.reports.reportStartDate);
+  const reportEndDate = useSelector((state) => state.reports.reportEndDate);
+  const reportSelectedCategories = useSelector((state) => state.reports.reportSelectedCategories);
+  const reportSelectedTypeCategories = useSelector((state) => state.reports.reportSelectedTypeCategories);
 
   const typeCategories = [
     "Varied Expenses",
@@ -79,37 +82,33 @@ export default function GenerateReportModal({ open, setOpen, setViewReport }) {
 
   const handleChipClick = (category) => {
     if (reportSelectedCategories.includes(category)) {
-      setReportSelectedCategories(
-        reportSelectedCategories.filter((item) => item !== category),
-      );
+      dispatch(setReportSelectedCategories(reportSelectedCategories.filter((item) => item !== category)));
     } else {
-      setReportSelectedCategories([...reportSelectedCategories, category]);
+      dispatch(setReportSelectedCategories([...reportSelectedCategories, category]));
     }
   };
 
   const handleTypeChipClick = (type) => {
     if (reportSelectedTypeCategories.includes(type)) {
-      setReportSelectedTypeCategories(
-        reportSelectedTypeCategories.filter((item) => item !== type),
-      );
+      dispatch(setReportSelectedTypeCategories(reportSelectedTypeCategories.filter((item) => item !== type)));
     } else {
-      setReportSelectedTypeCategories([...reportSelectedTypeCategories, type]);
+      dispatch(setReportSelectedTypeCategories([...reportSelectedTypeCategories, type]));
     }
   };
 
   const handleDateStartChange = (newDate) => {
-    setReportStartDate(newDate);
+    dispatch(setReportStartDate(newDate));
   };
 
   const handleDateEndChange = (newDate) => {
-    setReportEndDate(newDate);
+    dispatch(setReportEndDate(newDate));
   };
 
   const handleModalClose = (event, reason) => {
     if (reason === "backdropClick" || reason === "escapeKeyDown") {
-      setReportStartDate(null);
-      setReportEndDate(null);
-      setReportSelectedCategories([]);
+      dispatch(setReportStartDate(null));
+      dispatch(setReportEndDate(null));
+      dispatch(setReportSelectedCategories([]));
     }
     setOpen(false);
   };
@@ -156,7 +155,7 @@ export default function GenerateReportModal({ open, setOpen, setViewReport }) {
       (reportSelectedCategories.length === 0 &&
         reportSelectedTypeCategories.length === 0)
     ) {
-      setSnackbarError(true);
+      dispatch(setSnackbarError(true));
       return;
     }
 
@@ -164,59 +163,11 @@ export default function GenerateReportModal({ open, setOpen, setViewReport }) {
     const startDateString = reportStartDate.toISOString().slice(0, 7) + "-01";
     const endDateString = reportEndDate.toISOString().slice(0, 7) + "-01";
 
-    async function getReportData() {
-      let payload = {
-        startDateString,
-        endDateString,
-        formattedCategories,
-        reason: "categories",
-      };
-      let res = await axios.get(`http://localhost:3001/reportData`, {
-        params: payload,
-      });
-      return res.data;
-    }
-
-    async function getWarningsAndLimits() {
-      let payload = {
-        startDateString,
-        endDateString,
-        formattedCategories,
-        reason: "warningsAndLimits",
-      };
-      let res = await axios.get(`http://localhost:3001/reportData`, {
-        params: payload,
-      });
-
-      return res.data;
-    }
-
-    async function getTotalData() {
-      let payload = {
-        startDateString,
-        endDateString,
-        formattedCategories: [],
-        reason: "total",
-      };
-      let res = await axios.get(`http://localhost:3001/reportData`, {
-        params: payload,
-      });
-      return res.data;
-    }
-
     if (reportSelectedTypeCategories.length > 0) {
-      getTotalData().then((items) => {
-        setReportTotalData(items);
-      });
-    } else {
-      setReportTotalData([]);
+      dispatch(loadReportDataTotal({ startDateString, endDateString }));
     }
-    getReportData().then((items) => {
-      setReportData(items);
-    });
-    getWarningsAndLimits().then((items) => {
-      setReportWarningsAndLimitsData(items);
-    });
+    dispatch(loadReportData({ startDateString, endDateString, formattedCategories }));
+    dispatch(loadReportDataWarningsAndLimits({ startDateString, endDateString, formattedCategories }));
     setViewReport(true);
     handleModalClose(null, null);
   };

@@ -5,17 +5,18 @@ import {
   DialogContent,
   DialogTitle,
 } from "@mui/material";
-import { useContext } from "react";
-import { AppContext } from "../../AppContext";
+import { useSelector, useDispatch } from "react-redux";
+import { setOpenInstructions } from "../../state/budgetSlice";
 
 export default function InstructionsDialog() {
-  
-  let { openInstructions, setOpenInstructions } = useContext(AppContext)
+
+  const dispatch = useDispatch();
+  const openInstructions = useSelector((state) => state.budget.openInstructions);
 
   return (
     <Dialog
       open={openInstructions}
-      onClose={() => setOpenInstructions(false)}
+      onClose={() => dispatch(setOpenInstructions(false))}
       aria-labelledby="confirm-dialog"
     >
       <DialogTitle id="confirm-dialog">
@@ -26,7 +27,7 @@ export default function InstructionsDialog() {
       <DialogActions>
         <Button
           variant="contained"
-          onClick={() => setOpenInstructions(false)}
+          onClick={() => dispatch(setOpenInstructions(false))}
           sx={{ backgroundColor: "#0f4c75" }}
         >
           Ok

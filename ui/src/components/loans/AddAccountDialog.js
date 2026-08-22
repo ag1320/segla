@@ -1,6 +1,7 @@
-import { useState, useContext, useEffect, useRef } from "react";
-import { AppContext } from "../../AppContext";
-import axios from "axios";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { addLoan } from "../../state/loansSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
 import {
   Modal,
   Typography,
@@ -24,13 +25,8 @@ const style = {
   textAlign: "center",
 };
 
-export default function AddAccountDialog({
-  open,
-  handleClose,
-  endpoint,
-  setAccountsRefresh,
-  accountsRefresh,
-}) {
+export default function AddAccountDialog({ open, handleClose }) {
+  const dispatch = useDispatch();
   let [url, setUrl] = useState("");
   let [holder, setHolder] = useState("");
   let [interestRate, setInterestRate] = useState(0);
@@ -39,8 +35,6 @@ export default function AddAccountDialog({
   let [remainingBalance, setRemainingBalance] = useState(0);
   let [type, setType] = useState("");
   let [error, setError] = useState(false);
-
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
 
   const handleUrlChange = (event) => setUrl(event.target.value);
   const handleHolderChange = (event) => setHolder(event.target.value);
@@ -65,50 +59,23 @@ export default function AddAccountDialog({
 
   const handleSubmit = () => {
     if (!error) {
-      postAccount(
-        url,
-        holder,
-        interestRate,
-        payoffDate,
-        monthlyPayment,
-        remainingBalance,
-        type
-      ).then(() => {
-        handleModalClose();
-      });
+      dispatch(
+        addLoan({
+          url,
+          holder,
+          interestRate,
+          payoffDate,
+          monthlyPayment,
+          remainingBalance,
+          type,
+        })
+      )
+        .unwrap()
+        .then(() => dispatch(setSnackbarSuccess(true)))
+        .catch(() => dispatch(setSnackbarError(true)));
+      handleModalClose();
     }
   };
-
-  function postAccount(
-    url,
-    holder,
-    interestRate,
-    payoffDate,
-    monthlyPayment,
-    remainingBalance,
-    type
-  ) {
-    let payload = {
-      url,
-      holder,
-      interestRate,
-      payoffDate,
-      monthlyPayment,
-      remainingBalance,
-      type,
-    };
-    async function postData(endpoint) {
-      try {
-        let res = await axios.post(endpoint, payload);
-        setSnackbarSuccess(true);
-        setAccountsRefresh(!accountsRefresh);
-        return res.data;
-      } catch (err) {
-        setSnackbarError(true);
-      }
-    }
-    return postData(endpoint);
-  }
 
   //autocomplete stuff
   const [isError, setIsError] = useState(false);

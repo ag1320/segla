@@ -1,6 +1,7 @@
-import { useState, useContext, useEffect} from "react";
-import { AppContext } from "../../../AppContext";
-import axios from "axios";
+import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { updateCrypto } from "../../../state/cryptoSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../../state/uiSlice";
 import {
   Modal,
   Typography,
@@ -23,22 +24,14 @@ const style = {
   textAlign: "center",
 };
 
-export default function EditCryptoDialog({
-  open,
-  handleClose,
-  endpoint,
-  setCryptoRefresh,
-  cryptoRefresh,
-  row
-}) {
+export default function EditCryptoDialog({ open, handleClose, row }) {
+  const dispatch = useDispatch();
 
   let [ticker, setTicker] = useState("");
   let [name, setName] = useState("");
   let [url, setUrl] = useState("");
   let [shares, setShares] = useState(0);
   let [totalSpent, setTotalSpent] = useState(0);
-
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
 
   const handleTickerChange = (event) =>
     setTicker(event.target.value);
@@ -52,27 +45,12 @@ export default function EditCryptoDialog({
   };
 
   const handleSubmit = () => {
-    patchCrypto(ticker, name, url, shares, totalSpent, row.id).then(() => {
-      handleModalClose();
-    });
+    dispatch(updateCrypto({ ticker, name, url, shares, totalSpent, id: row.id }))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
+    handleModalClose();
   };
-
-  function patchCrypto(ticker, name, url, shares, totalSpent, id) {
-    let payload = { ticker, name, url, shares, totalSpent, id };
-    async function patchData(endpoint) {
-      try{
-        let res = await axios.patch(endpoint, payload);
-        setSnackbarSuccess(true)
-        setCryptoRefresh(!cryptoRefresh);
-        return;
-      } catch (err){
-        console.log(err)
-        setSnackbarError(true)
-      }
-    }
-    return patchData(endpoint);
-  }
-
 
   useEffect(() => {
     setTicker(row.ticker)

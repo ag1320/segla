@@ -1,7 +1,9 @@
-import { useContext, useState, useRef, useEffect } from "react";
-import { AppContext } from "../../AppContext";
+import { useState, useRef, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import "./AddDistributionModal.css";
-import axios from "axios";
+import { addMonthEndDistribution } from "../../state/monthEndDistributionsSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
+import { selectBudgetBalance } from "../../utilities/helperFunctions";
 import {
   Modal,
   Box,
@@ -26,11 +28,9 @@ export default function AddDistributionModal({ open, setOpen }) {
     textAlign: "center",
   };
 
-  let { budgetRefresh, setBudgetRefresh } = useContext(AppContext);
-  let { setReason } = useContext(AppContext);
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
-  let { remainingBalance } = useContext(AppContext);
-  let { date } = useContext(AppContext);
+  const dispatch = useDispatch();
+  const date = useSelector((state) => state.budget.date);
+  const { remainingBalance } = useSelector(selectBudgetBalance);
   let [category, setCategory] = useState("");
   let [amount, setAmount] = useState(null);
   const handleCategoryChange = (e, value) =>
@@ -47,27 +47,6 @@ export default function AddDistributionModal({ open, setOpen }) {
     { label: "Crypto" },
   ];
 
-  const postMonthEndDistribution = async () => {
-    let month = date?.toLocaleString("EN-US", { month: "long" });
-    let year = date?.getFullYear();
-    let payload = {
-      category,
-      amount,
-      month,
-      year,
-    };
-    try {
-      let res = await axios.post(
-        "http://localhost:3001/monthEndDistributions",
-        payload
-      );
-      setSnackbarSuccess(true);
-      return res.data;
-    } catch (err) {
-      setSnackbarError(true);
-    }
-  };
-
   const handleModalClose = () => {
     setCategory("");
     setAmount(null);
@@ -75,12 +54,14 @@ export default function AddDistributionModal({ open, setOpen }) {
   };
 
   const handleSubmit = () => {
-    postMonthEndDistribution().then(() => {
-      setReason("distribution");
-      setBudgetRefresh(!budgetRefresh);
-      setCategory("");
-      setAmount("");
-    });
+    let month = date?.toLocaleString("EN-US", { month: "long" });
+    let year = date?.getFullYear();
+    dispatch(addMonthEndDistribution({ category, amount, month, year }))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
+    setCategory("");
+    setAmount("");
   };
 
   const handleCategoryKeyDown = (e) => {
@@ -96,8 +77,8 @@ export default function AddDistributionModal({ open, setOpen }) {
   };
 
   useEffect(() => {
-    inputRef.current?.focus();
-  }, [budgetRefresh]);
+    if (open) inputRef.current?.focus();
+  }, [open]);
 
   return (
     <>

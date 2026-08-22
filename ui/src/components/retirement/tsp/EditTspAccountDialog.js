@@ -1,6 +1,7 @@
-import { useState, useContext, useEffect} from "react";
-import { AppContext } from "../../../AppContext";
-import axios from "axios";
+import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { updateTsp } from "../../../state/tspSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../../state/uiSlice";
 import {
   Modal,
   Typography,
@@ -23,14 +24,8 @@ const style = {
   textAlign: "center",
 };
 
-export default function EditTspAccountDialog({
-  open,
-  handleClose,
-  endpoint,
-  setAccountsRefresh,
-  accountsRefresh,
-  row
-}) {
+export default function EditTspAccountDialog({ open, handleClose, row }) {
+  const dispatch = useDispatch();
 
   let [accountHolder, setAccountHolder] = useState("");
   let [accountType, setAccountType] = useState("");
@@ -39,8 +34,6 @@ export default function EditTspAccountDialog({
   let [contribution, setContribution] = useState(0);
   let [govtContribution, setGovtContribution] = useState(0);
   let [ytdReturnPercentage, setYtdReturnPercentage] = useState(0);
-
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
 
   const handleAccountHolderChange = (event) =>
     setAccountHolder(event.target.value);
@@ -56,27 +49,23 @@ export default function EditTspAccountDialog({
   };
 
   const handleSubmit = () => {
-    patchAccount(accountHolder, accountType, value, totalReturn, contribution, govtContribution, ytdReturnPercentage,  row.id).then(() => {
-      handleModalClose();
-    });
+    dispatch(
+      updateTsp({
+        accountHolder,
+        accountType,
+        value,
+        totalReturn,
+        contribution,
+        govtContribution,
+        ytdReturnPercentage,
+        id: row.id,
+      })
+    )
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
+    handleModalClose();
   };
-
-  function patchAccount(accountHolder, accountType, value, totalReturn, contribution, govtContribution, ytdReturnPercentage, id) {
-    let payload = { accountHolder, accountType, value, totalReturn, contribution, govtContribution, ytdReturnPercentage, id };
-    async function patchData(endpoint) {
-      try{
-        let res = await axios.patch(endpoint, payload);
-        setSnackbarSuccess(true)
-        setAccountsRefresh(!accountsRefresh);
-        return;
-      } catch (err){
-        console.log(err)
-        setSnackbarError(true)
-      }
-    }
-    return patchData(endpoint);
-  }
-
 
   useEffect(() => {
     setAccountHolder(row.holder)

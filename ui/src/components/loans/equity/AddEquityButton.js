@@ -3,7 +3,7 @@ import { Chip, Button } from "@mui/material";
 import { useState } from "react";
 import AddEquityDialog from "./AddEquityDialog.js";
 
-export default function AddEquityButton({endpoint, setEquityRefresh, equityRefresh}) {
+export default function AddEquityButton() {
   let [open, setOpen] = useState(false);
 
   const handleOpen = () => setOpen(true);
@@ -11,13 +11,7 @@ export default function AddEquityButton({endpoint, setEquityRefresh, equityRefre
 
   return (
     <>
-      <AddEquityDialog
-        open={open}
-        handleClose={handleClose}
-        endpoint = {endpoint}
-        setEquityRefresh = {setEquityRefresh}
-        equityRefresh = {equityRefresh}
-      />
+      <AddEquityDialog open={open} handleClose={handleClose} />
         <Button
           onClick={handleOpen}
           style={{ paddingLeft: 40 }}

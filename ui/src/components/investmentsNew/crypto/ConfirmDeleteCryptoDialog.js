@@ -1,44 +1,23 @@
 import { Button, Dialog, DialogActions, DialogTitle } from "@mui/material";
-import { useContext } from "react";
-import { AppContext } from "../../../AppContext";
-import axios from "axios";
-
+import { useDispatch } from "react-redux";
+import { removeCrypto } from "../../../state/cryptoSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../../state/uiSlice";
 
 export default function ConfirmDeleteCryptoDialog({
   open,
   setOpen,
   row,
-  setCryptoRefresh,
-  cryptoRefresh,
-  setCurrentRow
+  setCurrentRow,
 }) {
+  const dispatch = useDispatch();
 
-
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
-
-  const onConfirm = () =>{
-    async function deleteAccount(id) {
-      let payload = {
-        params: {
-          id,
-        },
-      };
-      try{
-        let res = await axios.delete(
-          `http://localhost:3001/crypto`,
-          payload
-          );
-          setSnackbarSuccess(true)
-          setCryptoRefresh(!cryptoRefresh)
-          setCurrentRow({})
-          return res.data;
-      } catch (err){
-        setSnackbarError(true)
-        setCurrentRow({})
-      }
-    }
-    deleteAccount(row.id);
-  }
+  const onConfirm = () => {
+    dispatch(removeCrypto(row.id))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)))
+      .finally(() => setCurrentRow({}));
+  };
 
   return (
     <Dialog

@@ -1,10 +1,15 @@
-import { useContext, useState, useEffect } from "react";
-import { AppContext } from "../../AppContext";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import AddDistributionModal from "./AddDistributionModal";
 import ClearIcon from "@mui/icons-material/Clear";
 import "./MonthEndDistributions.css";
 import AddCircleOutline from "@mui/icons-material/AddCircleOutline";
-import axios from "axios";
+import {
+  loadMonthEndDistributions,
+  removeMonthEndDistribution,
+} from "../../state/monthEndDistributionsSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
+import { selectBudgetBalance } from "../../utilities/helperFunctions";
 import {
   Button,
   Grid,
@@ -17,72 +22,29 @@ import {
 } from "@mui/material";
 
 export default function MonthEndDistributions() {
-  let { date } = useContext(AppContext);
-  let { budgetRefresh, setBudgetRefresh } = useContext(AppContext);
-  let { totalDistributions } = useContext(AppContext);
-  let { setReason } = useContext(AppContext);
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
-  let { monthEndDistributions, setMonthEndDistributions } =
-    useContext(AppContext);
-  let [openAddDistribution, setOpenAddDistribution] = useState(true);
+  const dispatch = useDispatch();
+  const date = useSelector((state) => state.budget.date);
+  const monthEndDistributions = useSelector((state) => state.monthEndDistributions.items);
+  const { totalDistributions } = useSelector(selectBudgetBalance);
+  let [openAddDistribution, setOpenAddDistribution] = useState(false);
 
   const handleAddDistribution = () => setOpenAddDistribution(true);
 
-  async function getMonthEndDistributions() {
-    let month = date?.toLocaleString("EN-US", { month: "long" });
-    let year = date?.getFullYear();
-    let payload = {
-      month,
-      year,
-    };
-      let res = await axios.get(`http://localhost:3001/monthEndDistributions`, {
-        params: payload,
-      });
-      return res.data;
-  }
-
-  async function deleteMonthlyDistribution(id) {
-    let month = date?.toLocaleString("EN-US", { month: "long" });
-    let year = date?.getFullYear();
-    let payload = {
-      params: {
-        month,
-        year,
-        id,
-      },
-    };
-    try{
-      let res = await axios.delete(
-        `http://localhost:3001/monthEndDistributions`,
-        payload
-      );
-      setSnackbarSuccess(true)
-      return res.data;
-    } catch (err) {
-      setSnackbarError(true)
-    }
-  }
-
   useEffect(() => {
-    let mounted = true;
-    if (!date){
-      setMonthEndDistributions([]);
+    if (date) {
+      let month = date.toLocaleString("EN-US", { month: "long" });
+      let year = date.getFullYear();
+      dispatch(loadMonthEndDistributions({ month, year }));
     }
-    if (mounted && date) {
-      getMonthEndDistributions()
-        .then((items) => {
-          setMonthEndDistributions(items);
-        })
-    }
-    return () => (mounted = false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date, budgetRefresh]);
+  }, [date, dispatch]);
 
   const handleDeleteMonthlyDistribution = (id) => {
-    deleteMonthlyDistribution(id).then(() => {
-      setReason('distribution')
-      setBudgetRefresh(!budgetRefresh)
-    });
+    let month = date?.toLocaleString("EN-US", { month: "long" });
+    let year = date?.getFullYear();
+    dispatch(removeMonthEndDistribution({ id, month, year }))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
   };
 
   monthEndDistributions.sort((a,b)=>{

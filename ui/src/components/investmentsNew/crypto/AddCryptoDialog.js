@@ -1,6 +1,7 @@
-import { useState, useContext } from "react";
-import { AppContext } from "../../../AppContext";
-import axios from "axios";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { addCrypto } from "../../../state/cryptoSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../../state/uiSlice";
 import { Modal, Typography, Box, Grid, TextField, Button } from "@mui/material";
 
 const style = {
@@ -16,20 +17,13 @@ const style = {
   textAlign: "center",
 };
 
-export default function AddCryptoDialog({
-  open,
-  handleClose,
-  endpoint,
-  setCryptoRefresh,
-  cryptoRefresh,
-}) {
+export default function AddCryptoDialog({ open, handleClose }) {
+  const dispatch = useDispatch();
   let [ticker, setTicker] = useState("");
   let [name, setName] = useState("");
   let [url, setUrl] = useState("");
   let [shares, setShares] = useState(0);
   let [totalSpent, setTotalSpent] = useState(0);
-
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
 
   const handleTickerChange = (event) => setTicker(event.target.value);
   const handleNameChange = (event) => setName(event.target.value);
@@ -47,25 +41,12 @@ export default function AddCryptoDialog({
   };
 
   const handleSubmit = () => {
-    postCrypto(ticker, name, url, shares, totalSpent).then(() => {
-      handleModalClose();
-    });
+    dispatch(addCrypto({ ticker, name, url, shares, totalSpent }))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
+    handleModalClose();
   };
-
-  function postCrypto(ticker, name, url, shares, totalSpent) {
-    let payload = { ticker, name, url, shares, totalSpent };
-    async function postData(endpoint) {
-      try {
-        let res = await axios.post(endpoint, payload);
-        setSnackbarSuccess(true);
-        setCryptoRefresh(!cryptoRefresh);
-        return res.data;
-      } catch (err) {
-        setSnackbarError(true);
-      }
-    }
-    return postData(endpoint);
-  }
 
   return (
     <>

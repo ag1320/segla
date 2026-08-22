@@ -1,7 +1,8 @@
-import { useContext, useState, useEffect, useRef } from "react";
-import { AppContext } from "../../AppContext";
+import { useState, useEffect, useRef } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import './AddExpenseModal.css'
-import axios from "axios";
+import { addMonthlyVariedExpense } from "../../state/monthlyExpensesSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
 import {
   Modal,
   Box,
@@ -12,7 +13,7 @@ import {
   Autocomplete,
 } from "@mui/material";
 
-export default function AddExpenseModal() {
+export default function AddExpenseModal({ open, setOpen }) {
   const style = {
     position: "absolute",
     top: "50%",
@@ -59,14 +60,9 @@ export default function AddExpenseModal() {
     return formattedCategories;
   };
 
-  let { openAddExpense, setOpenAddExpense } = useContext(AppContext);
-  let { date } = useContext(AppContext);
-  let { setReason } = useContext(AppContext);
-  let { budgetCategories } = useContext(AppContext);
-  let { monthlyExpensesRefresh, setMonthlyExpensesRefresh } =
-    useContext(AppContext);
-  let { budgetRefresh, setBudgetRefresh } = useContext(AppContext);
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
+  const dispatch = useDispatch();
+  const date = useSelector((state) => state.budget.date);
+  const budgetCategories = useSelector((state) => state.budgetCategories.snapshotCategories);
   let [selectedCategory, setSelectedCategory] = useState("");
   let [selectedSubcategory, setSelectedSubcategory] = useState("");
   let [amount, setAmount] = useState(null);
@@ -78,7 +74,7 @@ export default function AddExpenseModal() {
     setAmount(null);
     setSelectedCategory("");
     setSelectedSubcategory("");
-    setOpenAddExpense(false);
+    setOpen(false);
   };
   const handleCategoryChange = (e, value) => {
     if (value !== null) {
@@ -125,48 +121,37 @@ export default function AddExpenseModal() {
     }
   };
 
-  const postMonthlyExpense = async (category, subcategory, amount) => {
-    let month = date.toLocaleString("EN-US", { month: "long" });
-    let year = date.getFullYear();
-    let payload = {
-      category,
-      subcategory,
-      amount,
-      month,
-      year,
-    };
-    try {
-      let res = await axios.post(
-        "http://localhost:3001/monthlyExpenses",
-        payload
-      );
-      setSnackbarSuccess(true);
-      return res.data;
-    } catch (err) {
-      setSnackbarError(true);
-    }
-  };
-
   const handleAmountChange = (e) => setAmount(e.target.value);
   const handleSubmit = () => {
-    postMonthlyExpense(selectedCategory, selectedSubcategory, amount).then(
-      () => {
-        setReason("monthlyVaried");
-        setBudgetRefresh(!budgetRefresh);
-        setMonthlyExpensesRefresh(!monthlyExpensesRefresh);
-        setSelectedCategory("");
-        setSelectedSubcategory("");
-        setAmount(0);
-      }
-    );
+    let month = date.toLocaleString("EN-US", { month: "long" });
+    let year = date.getFullYear();
+    dispatch(
+      addMonthlyVariedExpense({
+        category: selectedCategory,
+        subcategory: selectedSubcategory,
+        amount,
+        month,
+        year,
+      })
+    )
+      .unwrap()
+      .then(() => {
+        dispatch(setSnackbarSuccess(true));
+        inputRef.current?.focus();
+      })
+      .catch(() => dispatch(setSnackbarError(true)));
+    setSelectedCategory("");
+    setSelectedSubcategory("");
+    setAmount(0);
   };
+
   useEffect(() => {
-    inputRef.current?.focus();
-  }, [monthlyExpensesRefresh]);
+    if (open) inputRef.current?.focus();
+  }, [open]);
 
   return (
     <Modal
-      open={openAddExpense}
+      open={open}
       onClose={handleModalClose}
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"

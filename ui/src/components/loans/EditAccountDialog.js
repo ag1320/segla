@@ -1,6 +1,7 @@
-import { useState, useContext, useEffect} from "react";
-import { AppContext } from "../../AppContext";
-import axios from "axios";
+import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { updateLoan } from "../../state/loansSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
 import {
   Modal,
   Typography,
@@ -23,14 +24,8 @@ const style = {
   textAlign: "center",
 };
 
-export default function EditAccountDialog({
-  open,
-  handleClose,
-  endpoint,
-  setAccountsRefresh,
-  accountsRefresh,
-  row
-}) {
+export default function EditAccountDialog({ open, handleClose, row }) {
+  const dispatch = useDispatch();
 
   let [url, setUrl] = useState("");
   let [holder, setHolder] = useState("");
@@ -38,8 +33,6 @@ export default function EditAccountDialog({
   let [payoffDate, setPayoffDate] = useState("");
   let [monthlyPayment, setMonthlyPayment] = useState(0);
   let [remainingBalance, setRemainingBalance] = useState(0);
-
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
 
   const handleUrlChange = (event) => setUrl(event.target.value);
   const handleHolderChange = (event) => setHolder(event.target.value);
@@ -53,27 +46,14 @@ export default function EditAccountDialog({
   };
 
   const handleSubmit = () => {
-    patchAccount(url, holder, interestRate, payoffDate, monthlyPayment, remainingBalance, row.id).then(() => {
-      handleModalClose();
-    });
+    dispatch(
+      updateLoan({ url, holder, interestRate, payoffDate, monthlyPayment, remainingBalance, id: row.id })
+    )
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
+    handleModalClose();
   };
-
-  function patchAccount(url, holder, interestRate, payoffDate, monthlyPayment, remainingBalance, id) {
-    let payload = { url, holder, interestRate, payoffDate, monthlyPayment, remainingBalance, id };
-    async function patchData(endpoint) {
-      try{
-        let res = await axios.patch(endpoint, payload);
-        setSnackbarSuccess(true)
-        setAccountsRefresh(!accountsRefresh);
-        return;
-      } catch (err){
-        console.log(err)
-        setSnackbarError(true)
-      }
-    }
-    return patchData(endpoint);
-  }
-
 
   useEffect(() => {
     setHolder(row.holder)

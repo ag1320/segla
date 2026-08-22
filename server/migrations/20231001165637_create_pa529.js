@@ -1,4 +1,4 @@
-exports.up = function (knex) {
+export async function up(knex) {
   return knex.schema.createTable("pa529", async (table) => {
     table.increments("pa529_account_id");
     table.string("beneficiary")
@@ -7,8 +7,8 @@ exports.up = function (knex) {
     table.string("projected_college_year");
     table.timestamps(true, true);
   });
-};
+}
 
-exports.down = function (knex) {
+export async function down(knex) {
   return knex.schema.dropTableIfExists("pa529");
-};
+}

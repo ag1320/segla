@@ -3,7 +3,7 @@ import { Chip, Button } from "@mui/material";
 import { useState } from "react";
 import AddAccountDialog from "./AddAccountDialog.js";
 
-export default function AddAccountButton({endpoint, setAccountsRefresh, accountsRefresh}) {
+export default function AddAccountButton() {
   let [open, setOpen] = useState(false);
 
   const handleOpen = () => setOpen(true);
@@ -11,13 +11,7 @@ export default function AddAccountButton({endpoint, setAccountsRefresh, accounts
 
   return (
     <>
-      <AddAccountDialog
-        open={open}
-        handleClose={handleClose}
-        endpoint = {endpoint}
-        setAccountsRefresh = {setAccountsRefresh}
-        accountsRefresh = {accountsRefresh}
-      />
+      <AddAccountDialog open={open} handleClose={handleClose} />
         <Button
           onClick={handleOpen}
           style={{ paddingLeft: 40 }}

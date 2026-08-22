@@ -1,23 +1,21 @@
 import { Grid } from "@mui/material";
-import { useContext } from "react";
+import { useSelector } from "react-redux";
 import Donut from "./Donut";
-import { AppContext } from "../AppContext";
+import { selectInvestmentTotals, selectLoanTotals } from "../utilities/helperFunctions";
 
 export default function HomeSummary({ composition, title }) {
 
+  const {
+    vanguardRetirementTotal,
+    tspTotal,
+    vanguardBrokerageTotal,
+    pa529Total,
+    cryptoTotal,
+    baskTotal,
+    houseValuationTotal,
+  } = useSelector(selectInvestmentTotals);
 
-  let {vanguardRetirementTotal} = useContext(AppContext);
-  let {tspTotal} = useContext(AppContext);
-  let {vanguardBrokerageTotal} = useContext(AppContext);
-  let {pa529Total} = useContext(AppContext);
-  let {cryptoTotal} = useContext(AppContext);
-  let {baskTotal} = useContext(AppContext);
-  let {equityTotal} = useContext(AppContext);
-
-  let {mortgageTotal} = useContext(AppContext);
-  let {studentLoanTotal} = useContext(AppContext);
-  let {autoLoanTotal} = useContext(AppContext);
-
+  const { mortgageTotal, studentLoanTotal, autoLoanTotal } = useSelector(selectLoanTotals);
 
   let investmentSummary = {
     retirement: vanguardRetirementTotal + tspTotal,
@@ -25,7 +23,7 @@ export default function HomeSummary({ composition, title }) {
     college: pa529Total,
     cryptoTotal: cryptoTotal,
     emergency: baskTotal,
-    equity: equityTotal
+    house: houseValuationTotal
   };
 
   let loanSummary = {

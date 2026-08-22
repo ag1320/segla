@@ -1,22 +1,21 @@
 import React, { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import { Collapse, Typography, IconButton, Grid } from "@mui/material";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Summary from "./LoanSummary.js";
 import Loan from "./loan/Loan.js";
 import AddAccountButton from "./AddAccountButton.js";
-import axios from "axios";
 import Equity from "./equity/Equity.js";
+import { loadLoans } from "../../state/loansSlice";
 
 export default function Loans() {
+  const dispatch = useDispatch();
   //if you add a type of loan, make sure to update the loan categories in addaccountdialog
   const [studentLoanExpanded, setStudentLoanExpanded] = useState(true);
   const [mortgageExpanded, setMortgageExpanded] = useState(true);
   const [autoLoanExpanded, setAutoLoanExpanded] = useState(true);
-  let [accountsRefresh, setAccountsRefresh] = useState(false);
-  let [rows, setRows] = useState([]);
   let [currentRow, setCurrentRow] = useState({});
-  let endpoint = `http://localhost:3001/loans`;
 
   const handleStudentLoanToggle = () => {
     setStudentLoanExpanded(!studentLoanExpanded);
@@ -30,36 +29,10 @@ export default function Loans() {
     setAutoLoanExpanded(!autoLoanExpanded);
   };
 
-  //async call to backend
-  async function getData(endpoint) {
-    try {
-      let res = await axios.get(endpoint);
-      return res.data;
-    } catch (err) {
-      console.log(err);
-      return;
-    }
-  }
-
   //on page load, get data
   useEffect(() => {
-    getData(endpoint).then((items) => {
-      if (items) {
-        const transformedData = items.map((item) => ({
-          url: item.url,
-          id: item.loan_account_id,
-          holder: item.account_holder,
-          type: item.type,
-          interestRate: item.interest_rate,
-          payoffDate: item.payoff_date,
-          monthlyPayment: item.monthly_payment,
-          remainingBalance: item.remaining_balance,
-        }));
-        setRows(transformedData);
-      }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accountsRefresh]);
+    dispatch(loadLoans());
+  }, [dispatch]);
 
   return (
     <>
@@ -69,11 +42,7 @@ export default function Loans() {
         </Grid>
 
         <Grid item xs={12}>
-          <AddAccountButton
-            endpoint={endpoint}
-            accountsRefresh={accountsRefresh}
-            setAccountsRefresh={setAccountsRefresh}
-          />
+          <AddAccountButton />
         </Grid>
 
         <Grid item xs="auto">
@@ -104,10 +73,6 @@ export default function Loans() {
               </Grid>
               <Grid item xs={12} style={{ margin: "10px" }}>
                 <Loan
-                  rows={rows}
-                  endpoint={endpoint}
-                  accountsRefresh={accountsRefresh}
-                  setAccountsRefresh={setAccountsRefresh}
                   currentRow={currentRow}
                   setCurrentRow={setCurrentRow}
                   accountType={"Student Loan"}
@@ -145,10 +110,6 @@ export default function Loans() {
               </Grid>
               <Grid item xs={12} style={{ margin: "10px" }}>
                 <Loan
-                  rows={rows}
-                  endpoint={endpoint}
-                  accountsRefresh={accountsRefresh}
-                  setAccountsRefresh={setAccountsRefresh}
                   currentRow={currentRow}
                   setCurrentRow={setCurrentRow}
                   accountType={"Mortgage"}
@@ -189,10 +150,6 @@ export default function Loans() {
               </Grid>
               <Grid item xs={12} style={{ margin: "10px" }}>
                 <Loan
-                  rows={rows}
-                  endpoint={endpoint}
-                  accountsRefresh={accountsRefresh}
-                  setAccountsRefresh={setAccountsRefresh}
                   currentRow={currentRow}
                   setCurrentRow={setCurrentRow}
                   accountType={"Auto Loan"}

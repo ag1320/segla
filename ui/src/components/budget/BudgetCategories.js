@@ -1,10 +1,14 @@
-import { useContext, useState, useEffect } from "react";
-import { AppContext } from "../../AppContext";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import AddCircleOutline from "@mui/icons-material/AddCircleOutline";
 import ConfirmDeleteBudgetCategoryDialog from "./ConfirmDeleteBudgetCategoryDialog";
 import AddBudgetCategoryModal from "./AddBudgetCategoryModal";
 import DeleteIcon from "@mui/icons-material/Delete";
-import axios from "axios";
+import {
+  updateBudgetCategoriesRange,
+  removeBudgetCategory,
+} from "../../state/budgetCategoriesSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
 import {
   Table,
   TableBody,
@@ -22,49 +26,12 @@ import {
 } from "@mui/material";
 
 export default function BudgetCategories({ setViewCategories }) {
-  let { setBudgetRefresh, budgetRefresh } = useContext(AppContext);
-  let { currentBudgetCategories } = useContext(AppContext);
-  let { setReason } = useContext(AppContext);
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
+  const dispatch = useDispatch();
+  const currentBudgetCategories = useSelector((state) => state.budgetCategories.currentCategories);
   let [openAddCategory, setOpenAddCategory] = useState(false);
   let [currentRow, setCurrentRow] = useState({});
   let [deleteCategory, setDeleteCategory] = useState(false);
   let [budgetRange, setBudgetRange] = useState([]);
-
-  const patchBudgetRange = async () => {
-    let payload = {
-      budgetRange,
-    };
-    try {
-      let res = await axios.patch(
-        "http://localhost:3001/budgetCategories",
-        payload
-      );
-      setSnackbarSuccess(true);
-      return res.data;
-    } catch (err) {
-      setSnackbarError(true);
-    }
-  };
-
-  async function deleteBudgetCategory() {
-    let id = currentRow.budget_categories_id;
-    let payload = {
-      params: {
-        id,
-      },
-    };
-    try {
-      let res = await axios.delete(
-        `http://localhost:3001/budgetCategories`,
-        payload
-      );
-      setSnackbarSuccess(true);
-      return res.data;
-    } catch {
-      setSnackbarError(true);
-    }
-  }
 
   const handleClose = () => setViewCategories(false);
 
@@ -78,17 +45,18 @@ export default function BudgetCategories({ setViewCategories }) {
   }
 
   function handleDeleteConfirm() {
-    deleteBudgetCategory().then(() => {
-      setReason("budgetCategory");
-      setBudgetRefresh(!budgetRefresh);
-    });
+    let id = currentRow.budget_categories_id;
+    dispatch(removeBudgetCategory(id))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
   }
 
   function handleSubmit() {
-    patchBudgetRange().then(() => {
-      setReason("budgetCategory");
-      setBudgetRefresh(!budgetRefresh);
-    });
+    dispatch(updateBudgetCategoriesRange(budgetRange))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
   }
 
   const handleSliderChange = (e, newValue, index) => {

@@ -1,10 +1,12 @@
-import { useContext, useState, Fragment } from "react";
+import { useState, Fragment } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import ClearIcon from "@mui/icons-material/Clear";
 import { styled } from "@mui/material/styles";
-import { AppContext } from "../../AppContext";
 import AddCircleOutline from "@mui/icons-material/AddCircleOutline";
 import AddExpenseModal from "./AddExpenseModal";
-import axios from "axios";
+import { removeMonthlyVariedExpense } from "../../state/monthlyExpensesSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
+import { selectBudgetBalance, selectBudgetComparison } from "../../utilities/helperFunctions";
 import "./MonthlyVariedExpenses.css";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
@@ -51,30 +53,13 @@ const getProgressColor = (pct) => {
 };
 
 export default function MonthlyVariedExpenses() {
-  let { date } = useContext(AppContext);
-  let { setOpenAddExpense } = useContext(AppContext);
-  let { monthlyVariedExpenses } = useContext(AppContext);
-  let { budgetRefresh, setBudgetRefresh } = useContext(AppContext);
-  let { setReason } = useContext(AppContext);
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
-  let { budgetComparison } = useContext(AppContext);
-  let { displayBudgetCategories } = useContext(AppContext);
-  let { totalSpent } = useContext(AppContext);
+  const dispatch = useDispatch();
+  const date = useSelector((state) => state.budget.date);
+  const monthlyVariedExpenses = useSelector((state) => state.monthlyExpenses.variedExpenses);
+  const { totalSpent } = useSelector(selectBudgetBalance);
+  const budgetComparison = useSelector(selectBudgetComparison);
   let [expandedId, setExpandedId] = useState(false);
-
-  async function deleteExpense(id) {
-    let payload = { params: { id } };
-    try {
-      let res = await axios.delete(
-        `http://localhost:3001/monthlyVariedExpenses`,
-        payload,
-      );
-      setSnackbarSuccess(true);
-      return res.data;
-    } catch (err) {
-      setSnackbarError(true);
-    }
-  }
+  let [openAddExpense, setOpenAddExpense] = useState(false);
 
   const handleExpandClick = (index) => {
     setExpandedId(expandedId === index ? -1 : index);
@@ -85,19 +70,15 @@ export default function MonthlyVariedExpenses() {
   };
 
   const handleExpenseDelete = (id) => {
-    deleteExpense(id).then(() => {
-      setReason("monthlyVaried");
-      setBudgetRefresh(!budgetRefresh);
-    });
+    let month = date?.toLocaleString("EN-US", { month: "long" });
+    let year = date?.getFullYear();
+    dispatch(removeMonthlyVariedExpense({ id, month, year }))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
   };
 
-  displayBudgetCategories.sort((a, b) => {
-    let textA = a.toLowerCase();
-    let textB = b.toLowerCase();
-    return textA < textB ? -1 : textA > textB ? 1 : 0;
-  });
-
-  budgetComparison.sort((a, b) => {
+  const sortedComparison = [...budgetComparison].sort((a, b) => {
     let textA = a.category.toLowerCase();
     let textB = b.category.toLowerCase();
     return textA < textB ? -1 : textA > textB ? 1 : 0;
@@ -107,7 +88,7 @@ export default function MonthlyVariedExpenses() {
     <>
       {date ? (
         <>
-          <AddExpenseModal />
+          <AddExpenseModal open={openAddExpense} setOpen={setOpenAddExpense} />
           <Grid container alignItems="center" sx={{ mb: 3 }}>
             <Grid item xs={2}>
               <Button
@@ -133,8 +114,8 @@ export default function MonthlyVariedExpenses() {
             </Grid>
           </Grid>
           <Grid container spacing={3} justifyContent="flex-start">
-            {displayBudgetCategories.map((category, index) => {
-              const comparison = budgetComparison[index];
+            {sortedComparison.map((comparison, index) => {
+              const category = comparison.category;
               const statusColor = getStatusColor(comparison);
               const pct = comparison?.limitAmount
                 ? Math.min(

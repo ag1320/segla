@@ -1,4 +1,4 @@
-exports.up = function (knex) {
+export async function up(knex) {
   return knex.schema.createTable("notes", async (table) => {
     table.increments("note_id");
     table.string("title")
@@ -7,8 +7,8 @@ exports.up = function (knex) {
     table.string('year')
     table.timestamps(true, true);
   });
-};
+}
 
-exports.down = function (knex) {
+export async function down(knex) {
   return knex.schema.dropTableIfExists("notes");
-};
+}

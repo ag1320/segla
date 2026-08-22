@@ -1,7 +1,9 @@
-import { useContext, useState } from "react";
+import { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { formatFixedExpenses } from "./FixedExpensesFuncs";
-import { AppContext } from "../../AppContext";
-import axios from "axios";
+import { removeFixedExpense } from "../../state/fixedExpensesSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
+import { selectBudgetBalance } from "../../utilities/helperFunctions";
 import EditFixedExpense from "./EditFixedExpense.js";
 import ConfirmDeleteFixedExpenseDialog from "./ConfirmDeleteFixedExpenseDialog.js";
 import AddCircleOutline from "@mui/icons-material/AddCircleOutline";
@@ -23,10 +25,8 @@ import {
 } from "@mui/material";
 
 export default function FixedIncome({ setViewExpenses, fixedExpenses }) {
-  let { setBudgetRefresh, budgetRefresh } = useContext(AppContext);
-  let { totalFixedExpenses } = useContext(AppContext);
-  let { setReason } = useContext(AppContext);
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
+  const dispatch = useDispatch();
+  const { totalFixedExpenses } = useSelector(selectBudgetBalance);
   let [editFixedExpense, setEditFixedExpense] = useState(false);
   let [addFixedExpense, setAddFixedExpense] = useState(false);
   let [currentRow, setCurrentRow] = useState({});
@@ -64,25 +64,6 @@ export default function FixedIncome({ setViewExpenses, fixedExpenses }) {
     return border;
   });
 
-  function deleteExpense(category) {
-    let payload = {
-      params: {
-        category,
-      },
-    };
-    let url = `http://localhost:3001/fixedExpenses`;
-    async function deleteData(url, payload) {
-      try {
-        let res = await axios.delete(url, payload);
-        setSnackbarSuccess(true);
-        return res.data;
-      } catch (err) {
-        setSnackbarError(true);
-      }
-    }
-    return deleteData(url, payload);
-  }
-
   const handleClose = () => setViewExpenses(false);
 
   function handleAdd() {
@@ -100,11 +81,11 @@ export default function FixedIncome({ setViewExpenses, fixedExpenses }) {
 
   function handleConfirm() {
     let category = currentRow.category;
-    deleteExpense(category).then(() => {
-      setReason("fixedExpense");
-      setBudgetRefresh(!budgetRefresh);
-      setCurrentRow({});
-    });
+    dispatch(removeFixedExpense(category))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)))
+      .finally(() => setCurrentRow({}));
   }
 
   return (

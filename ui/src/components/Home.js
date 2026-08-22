@@ -1,6 +1,6 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { AppContext } from "../AppContext";
+import { useSelector, useDispatch } from "react-redux";
 import {
   Typography,
   Card,
@@ -23,12 +23,17 @@ import house from "../images/house.png";
 import stock from "../images/stock.png";
 import netWorth from "../images/net-worth.png";
 import "./Home.css";
-import Budget from "./budget/Budget";
-import Retirement from "./retirement/Retirement";
-import Investments from "./investmentsNew/Investments";
-import Reserve from "./reserve/Reserve";
-import Loans from "./loans/Loans";
 import HomeSummary from "./HomeSummary";
+import { selectInvestmentTotals, selectLoanTotals } from "../utilities/helperFunctions";
+import { loadVanguardRetirement } from "../state/vanguardRetirementSlice";
+import { loadTsp } from "../state/tspSlice";
+import { loadVanguardBrokerage } from "../state/vanguardBrokerageSlice";
+import { loadPa529 } from "../state/pa529Slice";
+import { loadBask } from "../state/baskSlice";
+import { loadLoans } from "../state/loansSlice";
+import { loadEquity } from "../state/equitySlice";
+import { loadFixedIncome } from "../state/fixedIncomeSlice";
+import { loadFixedExpenses } from "../state/fixedExpensesSlice";
 
 const StyledCard = styled(Card)(({ theme }) => ({
   backgroundColor: "#616161",
@@ -56,7 +61,8 @@ const StyledDivider = styled(Divider)(({ theme }) => ({
 
 export default function Home() {
   const theme = useTheme();
-  const [showComponents, setShowComponents] = useState(true);
+  const dispatch = useDispatch();
+
   const {
     vanguardRetirementTotal,
     tspTotal,
@@ -64,14 +70,12 @@ export default function Home() {
     pa529Total,
     cryptoTotal,
     baskTotal,
-    fixedIncome,
-    fixedExpenses,
-    equityTotal,
-    mortgageTotal,
-    studentLoanTotal,
-    autoLoanTotal,
-  } = useContext(AppContext);
-  const { cryptoData } = useContext(AppContext);
+    houseValuationTotal,
+  } = useSelector(selectInvestmentTotals);
+  const { mortgageTotal, studentLoanTotal, autoLoanTotal, equityTotal } = useSelector(selectLoanTotals);
+  const fixedIncome = useSelector((state) => state.fixedIncome.items);
+  const fixedExpenses = useSelector((state) => state.fixedExpenses.items);
+  const cryptoData = useSelector((state) => state.crypto.items);
 
   const formatCurrency = (value) => {
     return `$${value.toLocaleString(undefined, {
@@ -93,14 +97,25 @@ export default function Home() {
     0
   );
   const totalLoan = mortgageTotal + studentLoanTotal + autoLoanTotal;
-  const totalAssets = totalRetirement + totalOther + totalReserve + equityTotal;
+  const totalAssets = totalRetirement + totalOther + totalReserve + houseValuationTotal;
   const netWorthTotal = totalAssets - totalLoan;
 
+  // Loads every domain Home.js's totals depend on directly - replaces the
+  // old approach of force-mounting <Retirement/><Budget/><Investments/>
+  // <Reserve/><Loans/> off-screen just to trigger each one's own fetch
+  // effect. Crypto is loaded globally already (see GetCryptoData in App.js).
   useEffect(() => {
-    setShowComponents(false);
-  }, []);
+    dispatch(loadVanguardRetirement());
+    dispatch(loadTsp());
+    dispatch(loadVanguardBrokerage());
+    dispatch(loadPa529());
+    dispatch(loadBask());
+    dispatch(loadLoans());
+    dispatch(loadEquity());
+    dispatch(loadFixedIncome());
+    dispatch(loadFixedExpenses());
+  }, [dispatch]);
 
-  console.log(cryptoData);
   return (
     <>
       <Box className="content-box">
@@ -673,13 +688,6 @@ export default function Home() {
           </Grid>
         </Grid>
       </Box>
-      <div className="hidden-container">
-        <Retirement />
-        <Budget />
-        <Investments />
-        <Reserve />
-        <Loans />
-      </div>
     </>
   );
 }

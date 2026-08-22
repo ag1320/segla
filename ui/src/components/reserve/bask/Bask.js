@@ -10,8 +10,8 @@ import {
   TableBody,
   IconButton,
 } from "@mui/material";
-import {  useState, useEffect, useContext } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import "./Bask.css";
 import { withStyles } from "@mui/styles";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -19,8 +19,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import ConfrirmDeleteAccountDialog from "./ConfirmDeleteAccountDialog.js";
 import EditBaskAccountDialog from "./EditBaskAccountDialog";
 import { getColumns } from "./BaskTableData";
-import { AppContext } from "../../../AppContext";
-
+import { loadBask } from "../../../state/baskSlice";
 
 const StyledTableCell = withStyles({
   root: {
@@ -31,15 +30,14 @@ const StyledTableCell = withStyles({
 const columns = getColumns();
 
 export default function Bask() {
+  const dispatch = useDispatch();
+  const rows = useSelector((state) => state.bask.items);
+
   //initialize vars
   let [openConfirmDeleteAccount, setOpenConfirmDeleteAccount] = useState(false);
   let [openEditAccountDialog, setOpenEditAccountDialog] = useState(false);
-  let [accountsRefresh, setAccountsRefresh] = useState(false);
   let [currentRow, setCurrentRow] = useState({});
-  let [rows, setRows] = useState([]);
   let height = window.innerHeight * 0.89;
-  let endpoint = `http://localhost:3001/bask`;
-  let { setBaskTotal  } = useContext(AppContext);
 
   // Calculate total value and total return
   const totalValue = rows.reduce((total, row) => total + row.value, 0);
@@ -76,66 +74,28 @@ export default function Bask() {
     setOpenConfirmDeleteAccount(true);
   };
 
-  //async call to backend
-  async function getData(endpoint) {
-    try {
-      let res = await axios.get(endpoint);
-      return res.data;
-    } catch (err) {
-      console.log(err);
-      return;
-    }
-  }
-
   //on page load, get data
   useEffect(() => {
-    getData(endpoint).then((items) => {
-      if (items) {
-        const transformedData = items.map((item) => ({
-          id: item.bask_account_id,
-          interestRate: item.interest_rate,
-          value: item.current_value,
-          return: item.total_return,
-          ytdReturn: item.ytd_return,
-        }));
-        setRows(transformedData);
-      }
-    });
-    //setUrl(endpoint);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accountsRefresh]);
-
-  useEffect(() => {
-    setBaskTotal(totalValue)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalValue]);
+    dispatch(loadBask());
+  }, [dispatch]);
 
   return (
     <>
       <ConfrirmDeleteAccountDialog
         open={openConfirmDeleteAccount}
         setOpen={setOpenConfirmDeleteAccount}
-        setAccountsRefresh={setAccountsRefresh}
-        accountsRefresh={accountsRefresh}
         row={currentRow}
         setCurrentRow={setCurrentRow}
       />
       <EditBaskAccountDialog
         open={openEditAccountDialog}
         handleClose={handleEditClose}
-        endpoint={endpoint}
-        setAccountsRefresh={setAccountsRefresh}
-        accountsRefresh={accountsRefresh}
         row={currentRow}
       />
 
       <Grid container style={{ height: "100%" }}>
         <Grid item xs={12}>
-          <AddAccountButton
-            endpoint={endpoint}
-            setAccountsRefresh={setAccountsRefresh}
-            accountsRefresh={accountsRefresh}
-          />
+          <AddAccountButton />
         </Grid>
 
         <Grid item xs={12}>

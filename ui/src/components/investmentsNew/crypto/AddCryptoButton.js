@@ -3,7 +3,7 @@ import { Chip, Button } from "@mui/material";
 import { useState } from "react";
 import AddCryptoDialog from "./AddCryptoDialog.js";
 
-export default function AddCryptoButton({endpoint, setCryptoRefresh, cryptoRefresh}) {
+export default function AddCryptoButton() {
   let [open, setOpen] = useState(false);
 
   const handleOpen = () => setOpen(true);
@@ -11,13 +11,7 @@ export default function AddCryptoButton({endpoint, setCryptoRefresh, cryptoRefre
 
   return (
     <>
-      <AddCryptoDialog
-        open={open}
-        handleClose={handleClose}
-        endpoint = {endpoint}
-        setCryptoRefresh = {setCryptoRefresh}
-        cryptoRefresh = {cryptoRefresh}
-      />
+      <AddCryptoDialog open={open} handleClose={handleClose} />
         <Button
           onClick={handleOpen}
           style={{ paddingLeft: 40 }}

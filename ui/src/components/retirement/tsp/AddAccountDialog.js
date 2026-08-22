@@ -1,6 +1,7 @@
-import { useState, useContext} from "react";
-import { AppContext } from "../../../AppContext";
-import axios from "axios";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { addTsp } from "../../../state/tspSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../../state/uiSlice";
 import {
   Modal,
   Typography,
@@ -23,13 +24,8 @@ const style = {
   textAlign: "center",
 };
 
-export default function AddAccountDialog({
-  open,
-  handleClose,
-  endpoint,
-  setAccountsRefresh,
-  accountsRefresh,
-}) {
+export default function AddAccountDialog({ open, handleClose }) {
+  const dispatch = useDispatch();
   let [accountHolder, setAccountHolder] = useState("");
   let [accountType, setAccountType] = useState("");
   let [value, setValue] = useState(0);
@@ -37,7 +33,6 @@ export default function AddAccountDialog({
   let [contribution, setContribution] = useState(0);
   let [govtContribution, setGovtContribution] = useState(0);
   let [ytdReturnPercentage, setYtdReturnPercentage] = useState(0);
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
 
   const handleAccountHolderChange = (event) =>
     setAccountHolder(event.target.value);
@@ -60,25 +55,14 @@ export default function AddAccountDialog({
   };
 
   const handleSubmit = () => {
-    postAccount(accountHolder, accountType, value, totalReturn, contribution, govtContribution, ytdReturnPercentage).then(() => {
-      handleModalClose();
-    });
+    dispatch(
+      addTsp({ accountHolder, accountType, value, totalReturn, contribution, govtContribution, ytdReturnPercentage })
+    )
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
+    handleModalClose();
   };
-
-  function postAccount(accountHolder, accountType, value, totalReturn, contribution, govtContribution, ytdReturnPercentage) {
-    let payload = { accountHolder, accountType, value, totalReturn, contribution, govtContribution, ytdReturnPercentage };
-    async function postData(endpoint) {
-      try{
-        let res = await axios.post(endpoint, payload);
-        setSnackbarSuccess(true)
-        setAccountsRefresh(!accountsRefresh);
-        return res.data;
-      } catch (err){
-        setSnackbarError(true)
-      }
-    }
-    return postData(endpoint);
-  }
 
   return (
     <>

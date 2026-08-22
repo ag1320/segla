@@ -1,7 +1,8 @@
-import { useState, useContext, useEffect, forwardRef } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import { Modal, Box, Typography, TextField, Grid, Button } from "@mui/material";
-import { AppContext } from "../../AppContext";
-import axios from "axios";
+import { useDispatch } from "react-redux";
+import { addFixedIncome, updateFixedIncome } from "../../state/fixedIncomeSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
 import "./EditFixedIncome.css";
 
 function EditFixedIncomeComponent(
@@ -21,51 +22,12 @@ function EditFixedIncomeComponent(
     textAlign: "center",
   };
 
+  const dispatch = useDispatch();
   let [source, setSource] = useState(null);
   let [amount, setAmount] = useState(null);
-  let { setBudgetRefresh, budgetRefresh } = useContext(AppContext);
-  let { error, setError } = useContext(AppContext);
-  let { setReason } = useContext(AppContext);
-  let { setSnackbarError, setSnackbarSuccess } = useContext(AppContext);
+  let [error] = useState(false);
   const handleSourceChange = (e) => setSource(e.target.value);
   const handleAmountChange = (e) => setAmount(e.target.value);
-
-  function editIncome(source, id, amount) {
-    let payload = {
-      source,
-      id,
-      amount,
-    };
-    let url = `http://localhost:3001/fixedIncome`;
-    async function patchData(url, payload) {
-      try {
-        let res = await axios.patch(url, payload);
-        setSnackbarSuccess(true);
-        return res.data;
-      } catch (err) {
-        setSnackbarError(true);
-      }
-    }
-    return patchData(url, payload);
-  }
-
-  function addIncome(source, amount) {
-    let payload = {
-      source,
-      amount,
-    };
-    let url = `http://localhost:3001/fixedIncome`;
-    async function postData(url, payload) {
-      try {
-        let res = await axios.post(url, payload);
-        setSnackbarSuccess(true);
-        return res.data;
-      } catch (err) {
-        setSnackbarError(true);
-      }
-    }
-    return postData(url, payload);
-  }
 
   const handleModalClose = () => {
     setCurrentRow({});
@@ -76,11 +38,11 @@ function EditFixedIncomeComponent(
   };
 
   const handleAddSubmit = () => {
-    addIncome(source, amount).then(() => {
-      setReason("fixedIncome");
-      setBudgetRefresh(!budgetRefresh);
-      handleModalClose();
-    });
+    dispatch(addFixedIncome({ source, amount }))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
+    handleModalClose();
   };
 
   const handleEditSubmit = () => {
@@ -95,11 +57,11 @@ function EditFixedIncomeComponent(
     if (!amount) {
       amount = currentRow.amount;
     }
-    editIncome(newSource, id, amount).then(() => {
-      setReason("fixedIncome");
-      setBudgetRefresh(!budgetRefresh);
-      handleModalClose();
-    });
+    dispatch(updateFixedIncome({ source: newSource, id, amount }))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
+    handleModalClose();
   };
 
   const handleAmountKeyDown = (e) => {
@@ -123,7 +85,7 @@ function EditFixedIncomeComponent(
 
   useEffect(() => {
     ref?.current?.focus();
-  }, [openEdit, openAdd]);
+  }, [openEdit, openAdd, ref]);
 
   return (
     <>

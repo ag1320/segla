@@ -1,4 +1,5 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import PropTypes from "prop-types";
 import MonthlyIncome from "./MonthlyIncome";
 import MonthlyFixedExpenses from './MonthlyFixedExpenses'
@@ -6,7 +7,6 @@ import MonthlyVariedExpenses from './MonthlyVariedExpenses'
 import MonthEndDistributions from './MonthEndDistributions'
 import Notes from './Notes'
 import { Tabs, Tab, Typography, Box } from "@mui/material";
-import { AppContext } from "../../AppContext";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -44,7 +44,7 @@ function a11yProps(index) {
 export default function TabBar() {
   const [value, setValue] = useState(0);
   const [change, setChange] = useState(false)
-  let { date } = useContext(AppContext)
+  const date = useSelector((state) => state.budget.date)
 
   const handleChange = (event, newValue) => {
     setValue(newValue);

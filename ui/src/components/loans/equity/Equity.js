@@ -1,13 +1,13 @@
 import AddEquityButton from "./AddEquityButton";
-import { useState, useEffect, useContext } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { withStyles } from "@mui/styles";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ConfrirmDeleteEquityDialog from "./ConfirmDeleteEquityDialog.js";
 import EditIcon from "@mui/icons-material/Edit";
 import EditEquityDialog from "./EditEquityDialog";
 import { getColumns } from "./EquityTableData";
-import { AppContext } from "../../../AppContext";
+import { loadEquity } from "../../../state/equitySlice";
 import {
   Grid,
   TableCell,
@@ -29,18 +29,18 @@ const StyledTableCell = withStyles({
 const columns = getColumns();
 
 export default function Equity() {
+  const dispatch = useDispatch();
+  const rows = useSelector((state) => state.equity.items);
+
   //initialize vars
   let [openConfirmDeleteEquity, setOpenConfirmDeleteEquity] = useState(false);
   let [openEditEquityDialog, setOpenEditEquityDialog] = useState(false);
-  let [equityRefresh, setEquityRefresh] = useState({});
   let [currentRow, setCurrentRow] = useState({});
-  let [rows, setRows] = useState([]);
   let height = window.innerHeight * 0.89;
-  let endpoint = `http://localhost:3001/equity`;
-  let { setEquityTotal } = useContext(AppContext);
 
   // Calculate total value and total return
   const totalEquity = rows.reduce((total, row) => total + row.equity, 0);
+  const totalValuation = rows.reduce((total, row) => total + row.valuation, 0);
   // Format totalValue and totalReturn as currency (US format)
   const formattedTotalEquity = totalEquity.toLocaleString("en-US", {
     style: "currency",
@@ -62,65 +62,28 @@ export default function Equity() {
     setOpenConfirmDeleteEquity(true);
   };
 
-  //async call to backend
-  async function getData(endpoint) {
-    try {
-      let res = await axios.get(endpoint);
-      return res.data;
-    } catch (err) {
-      console.log(err);
-      return;
-    }
-  }
-
   //on page load, get data
   useEffect(() => {
-    getData(endpoint).then((items) => {
-      if (items) {
-        const transformedData = items.map((item) => ({
-          id: item.equity_id,
-          address: item.address,
-          valuation: item.valuation,
-          remainingBalance: item.remaining_balance,
-          equity: item.valuation - item.remaining_balance
-        }));
-        setRows(transformedData);
-      }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [equityRefresh]);
-
-  useEffect(() => {
-    setEquityTotal(totalEquity);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalEquity]);
+    dispatch(loadEquity());
+  }, [dispatch]);
 
   return (
     <>
       <EditEquityDialog
         open={openEditEquityDialog}
         handleClose={handleEditClose}
-        endpoint={endpoint}
-        setEquityRefresh={setEquityRefresh}
-        equityRefresh={equityRefresh}
         row={currentRow}
       />
       <ConfrirmDeleteEquityDialog
         open={openConfirmDeleteEquity}
         setOpen={setOpenConfirmDeleteEquity}
-        setEquityRefresh={setEquityRefresh}
-        equityRefresh={equityRefresh}
         row={currentRow}
         setCurrentRow={setCurrentRow}
       />
 
       <Grid container style={{ height: "100%" }}>
       <Grid item xs={12}>
-          <AddEquityButton
-            endpoint={endpoint}
-            setEquityRefresh={setEquityRefresh}
-            equityRefresh={equityRefresh}
-          />
+          <AddEquityButton />
         </Grid>
         <Grid item xs={12}>
           <Paper

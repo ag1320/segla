@@ -1,44 +1,23 @@
 import { Button, Dialog, DialogActions, DialogTitle } from "@mui/material";
-import { useContext } from "react";
-import { AppContext } from "../../../AppContext";
-import axios from "axios";
-
+import { useDispatch } from "react-redux";
+import { removePa529 } from "../../../state/pa529Slice";
+import { setSnackbarSuccess, setSnackbarError } from "../../../state/uiSlice";
 
 export default function ConfirmDeleteAccountDialog({
   open,
   setOpen,
   row,
-  setAccountsRefresh,
-  accountsRefresh,
-  setCurrentRow
+  setCurrentRow,
 }) {
+  const dispatch = useDispatch();
 
-
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
-
-  const onConfirm = () =>{
-    async function deleteAccount(id) {
-      let payload = {
-        params: {
-          id,
-        },
-      };
-      try{
-        let res = await axios.delete(
-          `http://localhost:3001/pa529`,
-          payload
-          );
-          setSnackbarSuccess(true)
-          setAccountsRefresh(!accountsRefresh)
-          setCurrentRow({})
-          return res.data;
-      } catch (err){
-        setSnackbarError(true)
-        setCurrentRow({})
-      }
-    }
-    deleteAccount(row.id);
-  }
+  const onConfirm = () => {
+    dispatch(removePa529(row.id))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)))
+      .finally(() => setCurrentRow({}));
+  };
 
   return (
     <Dialog

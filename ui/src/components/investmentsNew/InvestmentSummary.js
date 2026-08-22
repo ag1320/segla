@@ -1,9 +1,9 @@
-import { useContext } from "react";
-import { AppContext } from "../../AppContext";
+import { useSelector } from "react-redux";
+import { selectInvestmentTotals } from "../../utilities/helperFunctions";
 import { Paper, Box, Typography } from "@mui/material";
 
 export default function Summary() {
-  let { vanguardBrokerageTotal, pa529Total, cryptoTotal } = useContext(AppContext);
+  const { vanguardBrokerageTotal, pa529Total, cryptoTotal } = useSelector(selectInvestmentTotals);
   let investmentTotal = (vanguardBrokerageTotal?vanguardBrokerageTotal:0 ) + (pa529Total?pa529Total:0) + (cryptoTotal?cryptoTotal:0);
 
   return (

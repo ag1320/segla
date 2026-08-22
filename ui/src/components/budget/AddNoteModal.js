@@ -1,7 +1,8 @@
-import { useContext, useState, useRef, useEffect } from "react";
-import { AppContext } from "../../AppContext";
+import { useState, useRef, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import './AddNoteModal.css'
-import axios from "axios";
+import { addNote } from "../../state/notesSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
 import { Modal, Box, Typography, Grid, TextField, Button } from "@mui/material";
 
 export default function AddNoteModal({ open, setOpen }) {
@@ -18,33 +19,13 @@ export default function AddNoteModal({ open, setOpen }) {
     textAlign: "center",
   };
 
-  let { budgetRefresh, setBudgetRefresh } = useContext(AppContext);
-  let { date } = useContext(AppContext);
-  let { setReason } = useContext(AppContext);
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
+  const dispatch = useDispatch();
+  const date = useSelector((state) => state.budget.date);
   let [title, setTitle] = useState("");
   let [details, setDetails] = useState("");
   const handleTitleChange = (e, value) => setTitle(e.target.value);
   const handleDetailsChange = (e) => setDetails(e.target.value);
   const inputRef = useRef();
-
-  const postNote = async () => {
-    let month = date?.toLocaleString("EN-US", { month: "long" });
-    let year = date?.getFullYear();
-    let payload = {
-      title,
-      details,
-      month,
-      year,
-    };
-    try {
-      let res = await axios.post("http://localhost:3001/notes", payload);
-      setSnackbarSuccess(true);
-      return res.data;
-    } catch (err) {
-      setSnackbarError(true);
-    }
-  };
 
   const handleModalClose = () => {
     setTitle("");
@@ -53,12 +34,14 @@ export default function AddNoteModal({ open, setOpen }) {
   };
 
   const handleSubmit = () => {
-    postNote().then(() => {
-      setReason("note");
-      setBudgetRefresh(!budgetRefresh);
-      setTitle("");
-      setDetails("");
-    });
+    let month = date?.toLocaleString("EN-US", { month: "long" });
+    let year = date?.getFullYear();
+    dispatch(addNote({ title, details, month, year }))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
+    setTitle("");
+    setDetails("");
   };
 
   const handleDetailsKeyDown = (e) => {
@@ -68,8 +51,8 @@ export default function AddNoteModal({ open, setOpen }) {
   };
 
   useEffect(() => {
-    inputRef.current?.focus();
-  }, [budgetRefresh]);
+    if (open) inputRef.current?.focus();
+  }, [open]);
 
   return (
     <>

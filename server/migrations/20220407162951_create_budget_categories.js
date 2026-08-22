@@ -1,4 +1,4 @@
-exports.up = function (knex) {
+export async function up(knex) {
   return knex.schema.createTable("budget_categories", async (table) => {
     table.increments("budget_categories_id");
     table.string("category")
@@ -7,8 +7,8 @@ exports.up = function (knex) {
     table.decimal("limit", 6, 2);
     table.timestamps(true, true);
   });
-};
+}
 
-exports.down = function (knex) {
+export async function down(knex) {
   return knex.schema.dropTableIfExists("budget_categories");
-};
+}

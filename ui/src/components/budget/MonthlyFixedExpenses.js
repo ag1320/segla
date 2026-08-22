@@ -1,7 +1,7 @@
-import { AppContext } from "../../AppContext";
-import { useContext } from "react";
+import { useSelector } from "react-redux";
 import "./MonthlyFixedExpenses.css";
 import { formatMonthlyFixedExpense } from "./FixedExpensesFuncs";
+import { selectBudgetBalance } from "../../utilities/helperFunctions";
 import {
   Grid,
   Typography,
@@ -15,9 +15,9 @@ import {
 } from "@mui/material";
 
 export default function MonthlyIncome() {
-  let { date } = useContext(AppContext);
-  let { monthlyFixedExpenses } = useContext(AppContext);
-  let { totalMonthlyFixedExpenses } = useContext(AppContext);
+  const date = useSelector((state) => state.budget.date);
+  const monthlyFixedExpenses = useSelector((state) => state.monthlyExpenses.fixedExpenses);
+  const { totalMonthlyFixedExpenses } = useSelector(selectBudgetBalance);
   let formattedExpenses = formatMonthlyFixedExpense(monthlyFixedExpenses);
   let aaronTotal = formattedExpenses.reduce((prevAmount, currentAaron) => {
     return prevAmount + currentAaron.aaron;

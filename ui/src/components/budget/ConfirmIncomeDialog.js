@@ -6,13 +6,11 @@ import {
   DialogTitle,
   Grid,
 } from "@mui/material";
-import { useContext } from "react";
-import { AppContext } from "../../AppContext";
+import { useDispatch } from "react-redux";
+import { setDate, setReason, setOpenInstructions } from "../../state/budgetSlice";
 
 const ConfirmIncomeDialog = ({ open, setOpen, income, onConfirm }) => {
-  let { setDate } = useContext(AppContext);
-  let { setReason } = useContext(AppContext);
-  let { setOpenInstructions } = useContext(AppContext);
+  const dispatch = useDispatch();
 
   return (
     <Dialog
@@ -40,9 +38,9 @@ const ConfirmIncomeDialog = ({ open, setOpen, income, onConfirm }) => {
         <Button
           variant="contained"
           onClick={() => {
-            setReason("Budget");
-            setDate(null);
-            setOpenInstructions(true);
+            dispatch(setReason("Budget"));
+            dispatch(setDate(null));
+            dispatch(setOpenInstructions(true));
             setOpen(false);
           }}
           sx={{ backgroundColor: "#0f4c75" }}

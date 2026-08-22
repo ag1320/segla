@@ -1,4 +1,4 @@
-exports.up = function (knex) {
+export async function up(knex) {
   return knex.schema.createTable("tsp", async (table) => {
     table.increments("tsp_account_id");
     table.string("account_holder")
@@ -10,8 +10,8 @@ exports.up = function (knex) {
     table.decimal("ytd_return_percentage", 5, 2);
     table.timestamps(true, true);
   });
-};
+}
 
-exports.down = function (knex) {
+export async function down(knex) {
   return knex.schema.dropTableIfExists("tsp");
-};
+}

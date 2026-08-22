@@ -8,14 +8,12 @@ import {
   Grid,
   Divider,
 } from "@mui/material";
-import { useContext } from "react";
-import { AppContext } from "../../AppContext";
+import { useDispatch } from "react-redux";
+import { setDate, setReason, setOpenInstructions } from "../../state/budgetSlice";
 
 const ConfirmFixedDialog = ({ open, setOpen, fixedExpenses, onConfirm }) => {
   let formattedExpenses = formatFixedExpenses(fixedExpenses);
-  let { setDate } = useContext(AppContext);
-  let { setReason } = useContext(AppContext);
-  let { setOpenInstructions } = useContext(AppContext);
+  const dispatch = useDispatch();
 
   return (
     <Dialog
@@ -72,9 +70,9 @@ const ConfirmFixedDialog = ({ open, setOpen, fixedExpenses, onConfirm }) => {
         <Button
           variant="contained"
           onClick={() => {
-            setReason("Budget");
-            setDate(null);
-            setOpenInstructions(true);
+            dispatch(setReason("Budget"));
+            dispatch(setDate(null));
+            dispatch(setOpenInstructions(true));
             setOpen(false);
           }}
           sx={{ backgroundColor: "#0f4c75" }}

@@ -1,4 +1,4 @@
-exports.up = function (knex) {
+export async function up(knex) {
   return knex.schema.createTable("cryptocurrency", async (table) => {
     table.increments("crypto_id");
     table.string("ticker")
@@ -8,8 +8,8 @@ exports.up = function (knex) {
     table.decimal("total_spent", 11, 2);
     table.timestamps(true, true);
   });
-};
+}
 
-exports.down = function (knex) {
+export async function down(knex) {
   return knex.schema.dropTableIfExists("cryptocurrency");
-};
+}

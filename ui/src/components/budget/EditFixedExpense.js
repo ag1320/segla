@@ -1,7 +1,8 @@
-import { useContext, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Modal, Box, Typography, TextField, Grid, Button } from "@mui/material";
-import { AppContext } from "../../AppContext";
-import axios from "axios";
+import { useDispatch } from "react-redux";
+import { addFixedExpense, updateFixedExpense } from "../../state/fixedExpensesSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
 import "./EditFixedExpense.css";
 export default function EditFixedExpense({
   openEdit,
@@ -25,55 +26,14 @@ export default function EditFixedExpense({
     textAlign: "center",
   };
 
+  const dispatch = useDispatch();
   let [category, setCategory] = useState(null);
   let [aaron, setAaron] = useState(null);
   let [jen, setJen] = useState(null);
-  let { setBudgetRefresh, budgetRefresh } = useContext(AppContext);
-  let { error, setError } = useContext(AppContext);
-  let { setReason } = useContext(AppContext);
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
+  let [error, setError] = useState(false);
   const handleCategoryChange = (e) => setCategory(e.target.value);
   const handleAaronChange = (e) => setAaron(e.target.value);
   const handleJenChange = (e) => setJen(e.target.value);
-
-  function editExpense(category, oldCategory, aaron, jen) {
-    let payload = {
-      category,
-      oldCategory,
-      aaron,
-      jen,
-    };
-    let url = `http://localhost:3001/fixedExpenses`;
-    async function patchData(url, payload) {
-      try {
-        let res = await axios.patch(url, payload);
-        setSnackbarSuccess(true);
-        return res.data;
-      } catch (err) {
-        setSnackbarError(true);
-      }
-    }
-    return patchData(url, payload);
-  }
-
-  function addExpense(category, aaron, jen) {
-    let payload = {
-      category,
-      aaron,
-      jen,
-    };
-    let url = `http://localhost:3001/fixedExpenses`;
-    async function postData(url, payload) {
-      try {
-        let res = await axios.post(url, payload);
-        setSnackbarSuccess(true);
-        return res.data;
-      } catch (err) {
-        setSnackbarError(true);
-      }
-    }
-    return postData(url, payload);
-  }
 
   const handleModalClose = () => {
     setCurrentRow({});
@@ -91,11 +51,11 @@ export default function EditFixedExpense({
       );
       return;
     }
-    addExpense(category, aaron, jen).then(() => {
-      setReason("fixedExpense");
-      setBudgetRefresh(!budgetRefresh);
-      handleModalClose();
-    });
+    dispatch(addFixedExpense({ category, aaron, jen }))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
+    handleModalClose();
   };
   const handleEditSubmit = () => {
     let oldCategory = currentRow.category;
@@ -111,11 +71,11 @@ export default function EditFixedExpense({
     if (!jen) {
       jen = currentRow.jen;
     }
-    editExpense(newCategory, oldCategory, aaron, jen).then(() => {
-      setReason("fixedExpense");
-      setBudgetRefresh(!budgetRefresh);
-      handleModalClose();
-    });
+    dispatch(updateFixedExpense({ category: newCategory, oldCategory, aaron, jen }))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
+    handleModalClose();
   };
 
   const handleAmountKeyDown = (e) => {

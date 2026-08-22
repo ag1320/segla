@@ -1,10 +1,9 @@
-require('dotenv').config();
+import 'dotenv/config';
 
-
-module.exports = {
+const config = {
   development: {
     client: 'pg',
-    connection: process.env.DB_CONNECTION_STRING, 
+    connection: process.env.DB_CONNECTION_STRING,
     debug: true,
   },
 
@@ -32,3 +31,5 @@ module.exports = {
     },
   },
 };
+
+export default config;

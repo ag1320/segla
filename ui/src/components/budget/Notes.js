@@ -1,10 +1,11 @@
-import { useContext, useState } from "react";
-import { AppContext } from "../../AppContext";
+import { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import AddNoteModal from "./AddNoteModal";
 import ClearIcon from "@mui/icons-material/Clear";
 import "./Notes.css";
 import AddCircleOutline from "@mui/icons-material/AddCircleOutline";
-import axios from "axios";
+import { removeNote } from "../../state/notesSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
 import {
   Button,
   Grid,
@@ -17,39 +18,20 @@ import {
 } from "@mui/material";
 
 export default function Notes() {
-  let { date } = useContext(AppContext);
-  let { budgetRefresh, setBudgetRefresh } = useContext(AppContext);
-  let { setReason } = useContext(AppContext);
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
-  let { notes } = useContext(AppContext);
-  let [openAddNote, setOpenAddNote] = useState(true);
+  const dispatch = useDispatch();
+  const date = useSelector((state) => state.budget.date);
+  const notes = useSelector((state) => state.notes.items);
+  let [openAddNote, setOpenAddNote] = useState(false);
 
   const handleAddNote = () => setOpenAddNote(true);
 
-  async function deleteNote(id) {
+  const handleDeleteNote = (id) => {
     let month = date?.toLocaleString("EN-US", { month: "long" });
     let year = date?.getFullYear();
-    let payload = {
-      params: {
-        month,
-        year,
-        id,
-      },
-    };
-    try{
-      let res = await axios.delete(`http://localhost:3001/notes`, payload);
-      setSnackbarSuccess(true)
-      return res.data;
-    } catch (err) {
-      setSnackbarError(true)
-    }
-  }
-
-  const handleDeleteNote = (id) => {
-    deleteNote(id).then(() => {
-      setReason('note')
-      setBudgetRefresh(!budgetRefresh);
-    })
+    dispatch(removeNote({ id, month, year }))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
   };
 
   return (

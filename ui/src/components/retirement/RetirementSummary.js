@@ -1,9 +1,9 @@
-import { useContext } from "react";
-import { AppContext } from "../../AppContext";
+import { useSelector } from "react-redux";
+import { selectInvestmentTotals } from "../../utilities/helperFunctions";
 import { Paper, Box, Typography } from "@mui/material";
 
 export default function Summary() {
-  let { vanguardRetirementTotal, tspTotal } = useContext(AppContext);
+  const { vanguardRetirementTotal, tspTotal } = useSelector(selectInvestmentTotals);
   let retirementTotal = (vanguardRetirementTotal? vanguardRetirementTotal:0) + (tspTotal?tspTotal:0);
 
   return (

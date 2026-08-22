@@ -10,8 +10,8 @@ import {
   TableBody,
   IconButton,
 } from "@mui/material";
-import {  useState, useEffect, useContext } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import "./VanguardBrokerage.css";
 import { withStyles } from "@mui/styles";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -19,8 +19,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import ConfrirmDeleteAccountDialog from "./ConfirmDeleteAccountDialog.js";
 import EditVanguardAccountDialog from "./EditVanguardAccountDialog";
 import { getColumns } from "./VanguardBrokerageTableData";
-import { AppContext } from "../../../AppContext";
-
+import { loadVanguardBrokerage } from "../../../state/vanguardBrokerageSlice";
 
 const StyledTableCell = withStyles({
   root: {
@@ -31,15 +30,14 @@ const StyledTableCell = withStyles({
 const columns = getColumns();
 
 export default function VanguardBrokerage() {
+  const dispatch = useDispatch();
+  const rows = useSelector((state) => state.vanguardBrokerage.items);
+
   //initialize vars
   let [openConfirmDeleteAccount, setOpenConfirmDeleteAccount] = useState(false);
   let [openEditAccountDialog, setOpenEditAccountDialog] = useState(false);
-  let [accountsRefresh, setAccountsRefresh] = useState(false);
   let [currentRow, setCurrentRow] = useState({});
-  let [rows, setRows] = useState([]);
   let height = window.innerHeight * 0.89;
-  let endpoint = `http://localhost:3001/vanguardBrokerage`;
-  let { setVanguardBrokerageTotal  } = useContext(AppContext);
 
   // Calculate total value and total return
   const totalValue = rows.reduce((total, row) => total + row.value, 0);
@@ -70,67 +68,28 @@ export default function VanguardBrokerage() {
     setOpenConfirmDeleteAccount(true);
   };
 
-  //async call to backend
-  async function getData(endpoint) {
-    try {
-      let res = await axios.get(endpoint);
-      return res.data;
-    } catch (err) {
-      console.log(err);
-      return;
-    }
-  }
-
   //on page load, get data
   useEffect(() => {
-    getData(endpoint).then((items) => {
-      if (items) {
-        const transformedData = items.map((item) => ({
-          id: item.vanguard_account_id,
-          holder: item.account_holder,
-          type: item.account_type,
-          value: item.current_value,
-          return: item.total_return,
-          totalReturn: item.total_return_percentage,
-          ytdReturn: item.ytd_return_percentage,
-        }));
-        setRows(transformedData);
-      }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accountsRefresh]);
-
-  useEffect(() => {
-    setVanguardBrokerageTotal(totalValue)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalValue]);
+    dispatch(loadVanguardBrokerage());
+  }, [dispatch]);
 
   return (
     <>
       <ConfrirmDeleteAccountDialog
         open={openConfirmDeleteAccount}
         setOpen={setOpenConfirmDeleteAccount}
-        setAccountsRefresh={setAccountsRefresh}
-        accountsRefresh={accountsRefresh}
         row={currentRow}
         setCurrentRow={setCurrentRow}
       />
       <EditVanguardAccountDialog
         open={openEditAccountDialog}
         handleClose={handleEditClose}
-        endpoint={endpoint}
-        setAccountsRefresh={setAccountsRefresh}
-        accountsRefresh={accountsRefresh}
         row={currentRow}
       />
 
       <Grid container style={{ height: "100%" }}>
         <Grid item xs={12}>
-          <AddAccountButton
-            endpoint={endpoint}
-            setAccountsRefresh={setAccountsRefresh}
-            accountsRefresh={accountsRefresh}
-          />
+          <AddAccountButton />
         </Grid>
 
         <Grid item xs={12}>

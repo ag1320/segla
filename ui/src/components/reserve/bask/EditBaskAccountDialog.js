@@ -1,6 +1,7 @@
-import { useState, useContext, useEffect} from "react";
-import { AppContext } from "../../../AppContext";
-import axios from "axios";
+import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { updateBask } from "../../../state/baskSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../../state/uiSlice";
 import {
   Modal,
   Typography,
@@ -23,22 +24,13 @@ const style = {
   textAlign: "center",
 };
 
-export default function EditBaskAccountDialog({
-  open,
-  handleClose,
-  endpoint,
-  setAccountsRefresh,
-  accountsRefresh,
-  row
-}) {
-
+export default function EditBaskAccountDialog({ open, handleClose, row }) {
+  const dispatch = useDispatch();
 
   let [interestRate, setInterestRate] = useState(0);
   let [value, setValue] = useState(0);
   let [totalReturn, setTotalReturn] = useState(0);
   let [ytdReturn, setYtdReturn] = useState(0);
-
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
 
   const handleInterestRateChange = (event) =>
     setInterestRate(event.target.value);
@@ -51,27 +43,12 @@ export default function EditBaskAccountDialog({
   };
 
   const handleSubmit = () => {
-    patchAccount(interestRate, value, totalReturn, ytdReturn, row.id).then(() => {
-      handleModalClose();
-    });
+    dispatch(updateBask({ interestRate, value, totalReturn, ytdReturn, id: row.id }))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
+    handleModalClose();
   };
-
-  function patchAccount(interestRate, value, totalReturn, ytdReturn, id) {
-    let payload = { interestRate, value, totalReturn, ytdReturn, id };
-    async function patchData(endpoint) {
-      try{
-        let res = await axios.patch(endpoint, payload);
-        setSnackbarSuccess(true)
-        setAccountsRefresh(!accountsRefresh);
-        return;
-      } catch (err){
-        console.log(err)
-        setSnackbarError(true)
-      }
-    }
-    return patchData(endpoint);
-  }
-
 
   useEffect(() => {
     setInterestRate(row.interestRate)

@@ -1,6 +1,7 @@
-import { useState, useContext, useEffect} from "react";
-import { AppContext } from "../../../AppContext";
-import axios from "axios";
+import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { updatePa529 } from "../../../state/pa529Slice";
+import { setSnackbarSuccess, setSnackbarError } from "../../../state/uiSlice";
 import {
   Modal,
   Typography,
@@ -23,22 +24,13 @@ const style = {
   textAlign: "center",
 };
 
-export default function EditPA529AccountDialog({
-  open,
-  handleClose,
-  endpoint,
-  setAccountsRefresh,
-  accountsRefresh,
-  row
-}) {
+export default function EditPA529AccountDialog({ open, handleClose, row }) {
+  const dispatch = useDispatch();
 
-  
   let [beneficiary, setBeneficiary] = useState("");
   let [value, setValue] = useState(0);
   let [totalReturn, setTotalReturn] = useState(0);
   let [year, setYear] = useState("");
-
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
 
   const handleBeneficiaryChange = (event) =>
     setBeneficiary(event.target.value);
@@ -46,33 +38,17 @@ export default function EditPA529AccountDialog({
   const handleTotalReturnChange = (event) => setTotalReturn(event.target.value);
   const handleYearChange = (event) => setYear(event.target.value);
 
-
   const handleModalClose = (event) => {
     handleClose();
   };
 
   const handleSubmit = () => {
-    patchAccount(beneficiary, value, totalReturn, year, row.id).then(() => {
-      handleModalClose();
-    });
+    dispatch(updatePa529({ beneficiary, value, totalReturn, year, id: row.id }))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
+    handleModalClose();
   };
-
-  function patchAccount(beneficiary, value, totalReturn, year, id) {
-    let payload = { beneficiary, value, totalReturn, year, id };
-    async function patchData(endpoint) {
-      try{
-        let res = await axios.patch(endpoint, payload);
-        setSnackbarSuccess(true)
-        setAccountsRefresh(!accountsRefresh);
-        return;
-      } catch (err){
-        console.log(err)
-        setSnackbarError(true)
-      }
-    }
-    return patchData(endpoint);
-  }
-
 
   useEffect(() => {
     setBeneficiary(row.beneficiary)

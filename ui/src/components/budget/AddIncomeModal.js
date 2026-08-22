@@ -1,7 +1,8 @@
-import { useContext, useRef, useState } from "react";
-import { AppContext } from "../../AppContext";
-import axios from "axios";
+import { useRef, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import './AddIncomeModal.css'
+import { addMonthlyIncome } from "../../state/monthlyIncomeSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
 import { Modal, Box, Typography, Grid, TextField, Button } from "@mui/material";
 
 export default function AddDistributionModal({ open, setOpen }) {
@@ -18,36 +19,13 @@ export default function AddDistributionModal({ open, setOpen }) {
     textAlign: "center",
   };
 
-  let { budgetRefresh, setBudgetRefresh } = useContext(AppContext);
-  let { date } = useContext(AppContext);
-  let { setReason } = useContext(AppContext);
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
+  const dispatch = useDispatch();
+  const date = useSelector((state) => state.budget.date);
   let [category, setCategory] = useState("");
   let [amount, setAmount] = useState(null);
   const handleCategoryChange = (e) => setCategory(e.target.value);
   const handleAmountChange = (e) => setAmount(e.target.value);
   let inputRef = useRef();
-
-  const postMonthlyIncome = async () => {
-    let month = date?.toLocaleString("EN-US", { month: "long" });
-    let year = date?.getFullYear();
-    let payload = {
-      category,
-      amount,
-      month,
-      year,
-    };
-    try {
-      let res = await axios.post(
-        "http://localhost:3001/monthlyIncome",
-        payload
-      );
-      setSnackbarSuccess(true);
-      return res.data;
-    } catch (err) {
-      setSnackbarError(true);
-    }
-  };
 
   const handleModalClose = () => {
     setCategory("");
@@ -56,11 +34,13 @@ export default function AddDistributionModal({ open, setOpen }) {
   };
 
   const handleSubmit = () => {
-    postMonthlyIncome().then(() => {
-      setReason("monthlyIncome");
-      setBudgetRefresh(!budgetRefresh);
-      handleModalClose();
-    });
+    let month = date?.toLocaleString("EN-US", { month: "long" });
+    let year = date?.getFullYear();
+    dispatch(addMonthlyIncome({ category, amount, month, year }))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
+    handleModalClose();
   };
 
   const handleAmountKeyDown = (e) => {

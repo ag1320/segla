@@ -1,7 +1,6 @@
 import { Grid, Button, Box, Typography, Divider, Tooltip, Paper } from "@mui/material";
-import { useContext, useState, useEffect } from "react";
-import { AppContext } from "../../AppContext.js";
-import axios from "axios";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import TabBar from "./BudgetTabBar.js";
 import RemainingBalance from "./RemainingBalance.js";
 import ConfrimIncomeDialog from "./ConfirmIncomeDialog.js";
@@ -13,7 +12,6 @@ import ReportModal from "./ReportModal.js";
 import Donut from "../Donut.js";
 import FixedIncome from "./FixedIncome.js";
 import FixedExpenses from "./FixedExpenses.js";
-import { postBudgetSeed } from "./BudgetFunctions";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
@@ -24,40 +22,31 @@ import LeaderboardIcon from "@mui/icons-material/Leaderboard";
 import BudgetCategories from "./BudgetCategories.js";
 import "./Budget.css";
 
+import { loadFixedExpenses } from "../../state/fixedExpensesSlice";
+import { loadFixedIncome } from "../../state/fixedIncomeSlice";
+import { loadCurrentBudgetCategories, loadBudgetCategories, clearSnapshotCategories } from "../../state/budgetCategoriesSlice";
+import { loadMonthlyIncome, clearMonthlyIncome } from "../../state/monthlyIncomeSlice";
+import { loadMonthlyFixedExpenses, loadMonthlyVariedExpenses, clearMonthlyExpenses } from "../../state/monthlyExpensesSlice";
+import { loadNotes, exportBudgetCSV, clearNotes } from "../../state/notesSlice";
+import { clearMonthEndDistributions } from "../../state/monthEndDistributionsSlice";
+import { setReason, setNewBudget, seedBudget, deleteBudgetMonth, toggleBudgetRefresh } from "../../state/budgetSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
+import { selectBudgetBalance } from "../../utilities/helperFunctions";
+
 export default function Budget() {
   //fixedMonthlyExpenses is are fixed expenses for that individual month
   //these are displayed on the budget tab bar item fixed monthly expenses
   //In contrast, fixedExpenses are the master fixed expenses
+  const dispatch = useDispatch();
 
-  let { setDate, date } = useContext(AppContext);
-  let { setTotalSpent } = useContext(AppContext);
-  let { setTotalIncome } = useContext(AppContext);
-  let { notes, setNotes } = useContext(AppContext);
-  let { reason, setReason } = useContext(AppContext);
-  let { remainingBalance, setRemainingBalance } = useContext(AppContext);
-  let { setTotalFixedIncome } = useContext(AppContext);
-  let { setTotalDistributions } = useContext(AppContext);
-  let { setTotalFixedExpenses } = useContext(AppContext);
-  let { monthlyExpensesRefresh } = useContext(AppContext);
-  let { newBudget, setNewBudget } = useContext(AppContext);
-  let { fixedIncome, setFixedIncome } = useContext(AppContext);
-  let { setTotalMonthlyFixedExpenses } = useContext(AppContext);
-  let { monthlyIncome, setMonthlyIncome } = useContext(AppContext);
-  let { fixedExpenses, setFixedExpenses } = useContext(AppContext);
-  let { budgetRefresh, setBudgetRefresh } = useContext(AppContext);
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
-  let { budgetCategories, setBudgetCategories } = useContext(AppContext);
-  let { budgetComparison, setBudgetComparison } = useContext(AppContext);
-  let { monthEndDistributions, setMonthEndDistributions } =
-    useContext(AppContext);
-  let { monthlyFixedExpenses, setMonthlyFixedExpenses } =
-    useContext(AppContext);
-  let { monthlyVariedExpenses, setMonthlyVariedExpenses } =
-    useContext(AppContext);
-  let { currentBudgetCategories, setCurrentBudgetCategories } =
-    useContext(AppContext);
-  let { displayBudgetCategories, setDisplayBudgetCategories } =
-    useContext(AppContext);
+  const date = useSelector((state) => state.budget.date);
+  const newBudget = useSelector((state) => state.budget.newBudget);
+  const budgetRefresh = useSelector((state) => state.budget.budgetRefresh);
+  const notes = useSelector((state) => state.notes.items);
+  const fixedIncome = useSelector((state) => state.fixedIncome.items);
+  const fixedExpenses = useSelector((state) => state.fixedExpenses.items);
+  const currentBudgetCategories = useSelector((state) => state.budgetCategories.currentCategories);
+  const { remainingBalance, budgetSummary } = useSelector(selectBudgetBalance);
 
   const [confirmFixed, setConfirmFixed] = useState(false);
   const [confirmDeleteBudget, setConfirmDeleteBudget] = useState(false);
@@ -66,7 +55,6 @@ export default function Budget() {
   const [viewCategories, setViewCategories] = useState(false);
   const [viewGenerateReport, setViewGenerateReport] = useState(false);
   const [viewReport, setViewReport] = useState(false);
-  const [balance, setBalance] = useState(0);
   const [openConfirmExport, setOpenConfirmExport] = useState(false);
 
   const emptyComposition = {
@@ -76,385 +64,24 @@ export default function Budget() {
   const handleFixedConfirm = () => {
     let month = date.toLocaleString("EN-US", { month: "long" });
     let year = date.getFullYear();
-    postBudgetSeed(
-      fixedExpenses,
-      fixedIncome,
-      month,
-      year,
-      currentBudgetCategories
+    dispatch(
+      seedBudget({ fixedExpenses, fixedIncome, month, year, currentBudgetCategories })
     ).then(() => {
-      setReason("Budget");
-      setBudgetRefresh(!budgetRefresh);
+      dispatch(setReason("Budget"));
+      dispatch(toggleBudgetRefresh());
     });
   };
 
-  async function deleteBudget() {
-    let month = date?.toLocaleString("EN-US", { month: "long" });
-    let year = date?.getFullYear();
-    let payload = {
-      params: {
-        month,
-        year,
-      },
-    };
-    try {
-      let res = await axios.delete(`http://localhost:3001/budget`, payload);
-      setSnackbarSuccess(true);
-      return res.data;
-    } catch (err) {
-      setSnackbarError(true);
-    }
-  }
-
-  async function exportCSV(isExported) {
-    let month = date?.toLocaleString("EN-US", { month: "long" });
-    let year = date?.getFullYear();
-    let payload = {
-      params: {
-        month,
-        year,
-        isExported,
-      },
-    };
-    try {
-      let res = await axios.get(`http://localhost:3001/exportCSV`, payload);
-      setSnackbarSuccess(true);
-      return res.data;
-    } catch (err) {
-      setSnackbarError(true);
-    }
-  }
-
-  useEffect(() => {
-    async function getBudgetCategories() {
-      let month = date?.toLocaleString("EN-US", { month: "long" });
-      let year = date?.getFullYear();
-      let payload = {
-        params: {
-          month,
-          year,
-        },
-      };
-      let res = await axios.get(
-        `http://localhost:3001/budgetCategories`,
-        payload
-      );
-      return res.data;
-    }
-
-    async function getMonthEndDistributions() {
-      let month = date?.toLocaleString("EN-US", { month: "long" });
-      let year = date?.getFullYear();
-      let payload = {
-        month,
-        year,
-      };
-      let res = await axios.get(`http://localhost:3001/monthEndDistributions`, {
-        params: payload,
-      });
-      return res.data;
-    }
-
-    async function getFixedIncome() {
-      let res = await axios.get(`http://localhost:3001/fixedIncome`);
-      return res.data;
-    }
-
-    async function getFixedExpenses() {
-      let res = await axios.get(`http://localhost:3001/fixedExpenses`);
-      return res.data;
-    }
-
-    async function getNotes() {
-      let month = date?.toLocaleString("EN-US", { month: "long" });
-      let year = date?.getFullYear();
-      let payload = {
-        month,
-        year,
-      };
-      let res = await axios.get(`http://localhost:3001/notes`, {
-        params: payload,
-      });
-      return res.data;
-    }
-
-    async function getCurrentBudgetCategories() {
-      let res = await axios.get(
-        `http://localhost:3001/currentBudgetCategories`
-      );
-      return res.data;
-    }
-
-    async function getMonthlyIncome() {
-      let month = date?.toLocaleString("EN-US", { month: "long" });
-      let year = date?.getFullYear();
-      let payload = {
-        month,
-        year,
-      };
-      let res = await axios.get(`http://localhost:3001/monthlyIncome`, {
-        params: payload,
-      });
-      return res.data;
-    }
-
-    async function getMonthlyFixedExpenses() {
-      let month = date?.toLocaleString("EN-US", { month: "long" });
-      let year = date?.getFullYear();
-      let payload = {
-        month,
-        year,
-        type: "fixed expense",
-      };
-      let res = await axios.get(`http://localhost:3001/monthlyExpenses`, {
-        params: payload,
-      });
-      return res.data;
-    }
-
-    async function getMonthlyVariableExpenses() {
-      let month = date?.toLocaleString("EN-US", { month: "long" });
-      let year = date?.getFullYear();
-      let payload = {
-        month,
-        year,
-        type: "varied expense",
-      };
-      let res = await axios.get(`http://localhost:3001/monthlyVariedExpenses`, {
-        params: payload,
-      });
-      return res.data;
-    }
-    let mounted = true;
-    if (mounted) {
-      if (!date) {
-        setMonthlyFixedExpenses([]);
-        setMonthlyIncome([]);
-        setMonthlyVariedExpenses([]);
-        setBudgetCategories([]);
-        setMonthEndDistributions([]);
-        setNotes([]);
-        if (reason === "Budget" || reason === "fixedExpense") {
-          getFixedExpenses().then((items) => {
-            setFixedExpenses(items);
-          });
-        }
-        if (reason === "Budget" || reason === "fixedIncome") {
-          getFixedIncome().then((items) => {
-            setFixedIncome(items);
-          });
-        }
-        if (reason === "Budget" || reason === "budgetCategory") {
-          getCurrentBudgetCategories().then((items) => {
-            setCurrentBudgetCategories(items);
-          });
-        }
-      } else {
-        if (reason === "Budget" || reason === "fixedExpense") {
-          getMonthlyFixedExpenses().then((items) => {
-            setMonthlyFixedExpenses(items);
-          });
-          getFixedExpenses().then((items) => {
-            setFixedExpenses(items);
-          });
-        }
-        if (reason === "Budget" || reason === "monthlyIncome") {
-          getMonthlyIncome().then((items) => {
-            setMonthlyIncome(items);
-          });
-        }
-        if (reason === "Budget" || reason === "monthlyVaried") {
-          getMonthlyVariableExpenses().then((items) => {
-            setMonthlyVariedExpenses(items);
-          });
-        }
-        if (reason === "Budget" || reason === "budgetCategory") {
-          getBudgetCategories().then((items) => {
-            setBudgetCategories(items);
-          });
-          getCurrentBudgetCategories().then((items) => {
-            setCurrentBudgetCategories(items);
-          });
-        }
-        if (reason === "Budget" || reason === "note") {
-          getNotes().then((items) => {
-            setNotes(items);
-          });
-        }
-        if (reason === "Budget" || reason === "fixedIncome") {
-          getFixedIncome().then((items) => {
-            setFixedIncome(items);
-          });
-        }
-        if (reason === "Budget" || reason === "distribution") {
-          getMonthEndDistributions().then((items) => {
-            setMonthEndDistributions(items);
-          });
-        }
-      }
-    }
-    return () => (mounted = false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date, budgetRefresh]);
-
-  useEffect(() => {
-    const filterBudgetCategories = (budgetCategories) => {
-      let filteredBudgetCategories = budgetCategories.map((category) => {
-        return category.category;
-      });
-      let filteredCategoriesSet = new Set(filteredBudgetCategories);
-      let filteredCategories = Array.from(filteredCategoriesSet);
-      setDisplayBudgetCategories(filteredCategories);
-    };
-
-    let mounted = true;
-    if (mounted) {
-      filterBudgetCategories(budgetCategories);
-    }
-    return () => (mounted = false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [budgetCategories]);
-
-  useEffect(() => {
-    const getBalance = () => {
-      let spendTotal = monthlyVariedExpenses
-        .reduce((previousAmount, currentExpense) => {
-          return previousAmount + currentExpense.amount;
-        }, 0)
-        .toFixed(2);
-
-      let incomeTotal = monthlyIncome
-        .reduce((previousAmount, currentIncome) => {
-          return previousAmount + currentIncome.amount;
-        }, 0)
-        .toFixed(2);
-
-      let fixedIncomeTotal = fixedIncome
-        .reduce((previousAmount, currentIncome) => {
-          return previousAmount + currentIncome.amount;
-        }, 0)
-        .toFixed(2);
-
-      let monthEndDistributionsTotal = monthEndDistributions
-        .reduce((previousAmount, currentDistribution) => {
-          return previousAmount + currentDistribution.amount;
-        }, 0)
-        .toFixed(2);
-
-      let fixedExpensesTotal = parseFloat(
-        fixedExpenses
-          .reduce((previousAmount, currentExpense) => {
-            return previousAmount + currentExpense.amount;
-          }, 0)
-          .toFixed(2)
-      );
-
-      let monthlyFixedExpensesTotal = monthlyFixedExpenses
-        .reduce((previousAmount, currentExpense) => {
-          return previousAmount + currentExpense.amount;
-        }, 0)
-        .toFixed(2);
-
-      let remaining = (
-        incomeTotal -
-        monthlyFixedExpensesTotal -
-        spendTotal -
-        monthEndDistributionsTotal
-      ).toFixed(2);
-      let remainingDonut = remaining;
-      if (remainingDonut < 0) {
-        remainingDonut = 0;
-      }
-
-      let budgetSummary = {
-        variable: spendTotal,
-        fixed: monthlyFixedExpensesTotal,
-        distributions: monthEndDistributionsTotal,
-        remaining: remainingDonut,
-      };
-
-      setTotalFixedIncome(parseFloat(fixedIncomeTotal));
-      setTotalIncome(parseFloat(incomeTotal));
-      setTotalSpent(parseFloat(spendTotal));
-      setTotalMonthlyFixedExpenses(parseFloat(monthlyFixedExpensesTotal));
-      setTotalFixedExpenses(parseFloat(fixedExpensesTotal));
-      setRemainingBalance(parseFloat(remaining));
-      setTotalDistributions(parseFloat(monthEndDistributionsTotal));
-      setBalance(budgetSummary);
-    };
-
-    let mounted = true;
-    if (mounted) {
-      getBalance();
-    }
-    return () => (mounted = false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    monthlyVariedExpenses,
-    budgetComparison,
-    budgetRefresh,
-    date,
-    budgetCategories,
-    fixedIncome,
-    monthlyExpensesRefresh,
-    displayBudgetCategories,
-    monthEndDistributions,
-    monthlyIncome,
-    fixedExpenses,
-  ]);
-
-  useEffect(() => {
-    let mounted = true;
-    if (mounted) {
-      let budgetCompare = displayBudgetCategories.map((category) => {
-        let obj = {};
-        obj.category = category;
-        obj.subtotal = monthlyVariedExpenses.reduce(
-          (prevAmount, currentExpense) => {
-            if (currentExpense.category === category) {
-              return currentExpense.amount + prevAmount;
-            } else {
-              return prevAmount;
-            }
-          },
-          0
-        );
-        for (let cat of budgetCategories) {
-          obj.warning = false;
-          obj.limit = false;
-          if (obj.category === cat.category) {
-            obj.warningAmount = cat.warning;
-            obj.limitAmount = cat.limit;
-            if (obj.subtotal > cat.warning) {
-              obj.warning = true;
-              if (obj.subtotal > cat.limit) {
-                obj.limit = true;
-                break;
-              }
-              break;
-            }
-          }
-        }
-        return obj;
-      });
-      setBudgetComparison(budgetCompare);
-    }
-    return () => (mounted = false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    monthlyExpensesRefresh,
-    monthlyVariedExpenses,
-    budgetCategories,
-    displayBudgetCategories,
-    budgetRefresh,
-  ]);
-
   const handleDeleteConfirm = () => {
-    deleteBudget().then(() => {
-      setReason("budget");
-      setBudgetRefresh(!budgetRefresh);
-      setDate(null);
-    });
+    let month = date?.toLocaleString("EN-US", { month: "long" });
+    let year = date?.getFullYear();
+    dispatch(deleteBudgetMonth({ month, year }))
+      .unwrap()
+      .then(() => {
+        dispatch(setSnackbarSuccess(true));
+        dispatch(setReason("budget"));
+      })
+      .catch(() => dispatch(setSnackbarError(true)));
   };
 
   const handleDelete = () => {
@@ -462,10 +89,15 @@ export default function Budget() {
   };
 
   const handleExportCSV = (isExported) => {
-    exportCSV(isExported).then(() => {
-      setReason("note");
-      setBudgetRefresh(!budgetRefresh);
-    });
+    let month = date?.toLocaleString("EN-US", { month: "long" });
+    let year = date?.getFullYear();
+    dispatch(exportBudgetCSV({ month, year, isExported }))
+      .unwrap()
+      .then(() => {
+        dispatch(setSnackbarSuccess(true));
+        dispatch(setReason("note"));
+      })
+      .catch(() => dispatch(setSnackbarError(true)));
   };
 
   const handleExportCSVClick = () => {
@@ -482,6 +114,35 @@ export default function Budget() {
   const handleViewIncome = () => setViewIncome(true);
   const handleGenerateReport = () => setViewGenerateReport(true);
 
+  // Master lists (not month-scoped) - load once on mount.
+  useEffect(() => {
+    dispatch(loadFixedExpenses());
+    dispatch(loadFixedIncome());
+    dispatch(loadCurrentBudgetCategories());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch]);
+
+  // Month-scoped data - load whenever the selected month changes, or a
+  // budget-level action (seed/delete/export) forces a same-month reload.
+  useEffect(() => {
+    if (!date) {
+      dispatch(clearMonthlyIncome());
+      dispatch(clearMonthlyExpenses());
+      dispatch(clearSnapshotCategories());
+      dispatch(clearMonthEndDistributions());
+      dispatch(clearNotes());
+      return;
+    }
+    let month = date.toLocaleString("EN-US", { month: "long" });
+    let year = date.getFullYear();
+    dispatch(loadMonthlyFixedExpenses({ month, year }));
+    dispatch(loadMonthlyIncome({ month, year }));
+    dispatch(loadMonthlyVariedExpenses({ month, year }));
+    dispatch(loadBudgetCategories({ month, year }));
+    dispatch(loadNotes({ month, year }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [date, budgetRefresh, dispatch]);
+
   return (
     <>
       <InstructionsDialog />
@@ -492,7 +153,7 @@ export default function Budget() {
       />
       <ConfrimIncomeDialog
         open={newBudget}
-        setOpen={setNewBudget}
+        setOpen={(value) => dispatch(setNewBudget(value))}
         income={fixedIncome}
         onConfirm={handleIncomeConfirm}
       />
@@ -562,7 +223,7 @@ export default function Budget() {
 
                   <Box sx={{ width: 240, flexShrink: 0 }}>
                     {date ? (
-                      <Donut composition={balance} title="Budget" />
+                      <Donut composition={budgetSummary} title="Budget" />
                     ) : (
                       <Donut composition={emptyComposition} title="" />
                     )}

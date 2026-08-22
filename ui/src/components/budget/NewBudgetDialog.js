@@ -5,12 +5,11 @@ import {
   DialogContent,
   DialogTitle,
 } from "@mui/material";
-import { useContext } from "react";
-import { AppContext } from "../../AppContext";
+import { useDispatch } from "react-redux";
+import { setDate, setReason } from "../../state/budgetSlice";
 
 const NewBudgetDialog = ({ open, setOpen, month, year, onConfirm }) => {
-  let { setDate } = useContext(AppContext);
-  let { setReason } = useContext(AppContext);
+  const dispatch = useDispatch();
 
   return (
     <Dialog
@@ -30,8 +29,8 @@ const NewBudgetDialog = ({ open, setOpen, month, year, onConfirm }) => {
         <Button
           variant="contained"
           onClick={() => {
-            setReason("Budget");
-            setDate(null);
+            dispatch(setReason("Budget"));
+            dispatch(setDate(null));
             setOpen(false);
           }}
           sx={{ backgroundColor: "#0f4c75" }}

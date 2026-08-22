@@ -1,5 +1,4 @@
-
-exports.seed = function(knex) {
+export async function seed(knex) {
   // Deletes ALL existing entries
   return knex('budget_categories').del()
     .then(function () {
@@ -21,4 +20,4 @@ exports.seed = function(knex) {
         {category: 'Emergency', warning: 0, limit: 0},
       ]);
     });
-};
+}

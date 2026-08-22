@@ -1,6 +1,7 @@
-import { useState, useContext } from "react";
-import { AppContext } from "../../../AppContext";
-import axios from "axios";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { addEquity } from "../../../state/equitySlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../../state/uiSlice";
 import { Modal, Typography, Box, Grid, TextField, Button } from "@mui/material";
 
 const style = {
@@ -16,18 +17,11 @@ const style = {
   textAlign: "center",
 };
 
-export default function AddEquityDialog({
-  open,
-  handleClose,
-  endpoint,
-  setEquityRefresh,
-  equityRefresh,
-}) {
+export default function AddEquityDialog({ open, handleClose }) {
+  const dispatch = useDispatch();
   let [address, setAddress] = useState("");
   let [valuation, setValuation] = useState(0);
   let [remainingBalance, setRemainingBalance] = useState(0);
-
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
 
   const handleAddressChange = (event) => setAddress(event.target.value);
   const handleValuationChange = (event) => setValuation(event.target.value);
@@ -41,25 +35,12 @@ export default function AddEquityDialog({
   };
 
   const handleSubmit = () => {
-    postAccount(address, valuation, remainingBalance).then(() => {
-      handleModalClose();
-    });
+    dispatch(addEquity({ address, valuation, remainingBalance }))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
+    handleModalClose();
   };
-
-  function postAccount(address, valuation, remainingBalance) {
-    let payload = { address, valuation, remainingBalance };
-    async function postData(endpoint) {
-      try {
-        let res = await axios.post(endpoint, payload);
-        setSnackbarSuccess(true);
-        setEquityRefresh(!equityRefresh);
-        return res.data;
-      } catch (err) {
-        setSnackbarError(true);
-      }
-    }
-    return postData(endpoint);
-  }
 
   return (
     <>

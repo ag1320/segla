@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useContext } from "react";
-import { AppContext } from "../../../AppContext";
+import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import "./Loan.css";
 import { withStyles } from "@mui/styles";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -29,21 +29,17 @@ const StyledTableCell = withStyles({
 const columns = getColumns();
 
 export default function Loan({
-  rows,
-  endpoint,
-  accountsRefresh,
-  setAccountsRefresh,
   currentRow,
   setCurrentRow,
   accountType,
 }) {
+  const rows = useSelector((state) => state.loans.items);
+
   //initialize vars
   let [openConfirmDeleteAccount, setOpenConfirmDeleteAccount] = useState(false);
   let [openEditAccountDialog, setOpenEditAccountDialog] = useState(false);
   let [filteredRows, setFilteredRows] = useState([]);
   let height = window.innerHeight * 0.89;
-
-  let { setMortgageTotal, setStudentLoanTotal, setAutoLoanTotal } = useContext(AppContext);
 
   function filterRowsByType(typeToFilter) {
     filteredRows = rows.filter((row) => {
@@ -63,24 +59,7 @@ export default function Loan({
   useEffect(() => {
     setFilteredRows(filterRowsByType(accountType));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accountsRefresh, rows]);
-
-  useEffect(() => {
-    switch (accountType) {
-      case "Mortgage":
-        setMortgageTotal(total);
-        break;
-      case "Student Loan":
-        setStudentLoanTotal(total);
-        break;
-      case "Auto Loan":
-        setAutoLoanTotal(total);
-        break;
-      default:
-        break;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [total]);
+  }, [rows]);
 
   const handleEdit = (row) => {
     setCurrentRow(row);
@@ -102,17 +81,12 @@ export default function Loan({
       <ConfrirmDeleteAccountDialog
         open={openConfirmDeleteAccount}
         setOpen={setOpenConfirmDeleteAccount}
-        setAccountsRefresh={setAccountsRefresh}
-        accountsRefresh={accountsRefresh}
         row={currentRow}
         setCurrentRow={setCurrentRow}
       />
       <EditAccountDialog
         open={openEditAccountDialog}
         handleClose={handleEditClose}
-        endpoint={endpoint}
-        setAccountsRefresh={setAccountsRefresh}
-        accountsRefresh={accountsRefresh}
         row={currentRow}
       />
 

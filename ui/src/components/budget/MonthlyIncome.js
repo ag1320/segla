@@ -1,10 +1,12 @@
-import { AppContext } from "../../AppContext";
-import { useContext, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useState } from "react";
 import ClearIcon from "@mui/icons-material/Clear";
-import axios from "axios";
 import './MonthlyIncome.css'
 import AddIncomeModal from './AddIncomeModal'
 import AddCircleOutline from "@mui/icons-material/AddCircleOutline";
+import { removeMonthlyIncome } from "../../state/monthlyIncomeSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
+import { selectBudgetBalance } from "../../utilities/helperFunctions";
 import {
   Grid,
   Card,
@@ -17,41 +19,19 @@ import {
 } from "@mui/material";
 
 export default function MonthlyIncome() {
-  let { monthlyIncome } = useContext(AppContext);
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
-  let { date } = useContext(AppContext);
-  let { setReason } = useContext(AppContext);
-  let { budgetRefresh, setBudgetRefresh } = useContext(AppContext);
-  let { totalIncome } = useContext(AppContext);
+  const dispatch = useDispatch();
+  const monthlyIncome = useSelector((state) => state.monthlyIncome.items);
+  const date = useSelector((state) => state.budget.date);
+  const { totalIncome } = useSelector(selectBudgetBalance);
   let [openAddIncome, setOpenAddIncome] = useState(false);
 
-  async function deleteMonthlyIncome(id) {
+  const handleDeleteMonthlyIncome = (id) => {
     let month = date?.toLocaleString("EN-US", { month: "long" });
     let year = date?.getFullYear();
-    let payload = {
-      params: {
-        month,
-        year,
-        id,
-      },
-    };
-    try{
-      let res = await axios.delete(
-        `http://localhost:3001/monthlyIncome`,
-        payload
-      );
-      setSnackbarSuccess(true)
-      return res.data;
-    } catch (err){
-      setSnackbarError(true)
-    }
-  }
-
-  const handleDeleteMonthlyIncome = (id) => {
-    deleteMonthlyIncome(id).then(()=>{
-      setReason('monthlyIncome')
-      setBudgetRefresh(!budgetRefresh);
-    })
+    dispatch(removeMonthlyIncome({ id, month, year }))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
   };
 
   const handleAddIncome = () => setOpenAddIncome(true);
@@ -125,7 +105,7 @@ export default function MonthlyIncome() {
         </>
       ) : (
         <Typography component = {'span'}>
-         Please Select a Budget Month 
+         Please Select a Budget Month
         </Typography>
       )}
     </>

@@ -1,6 +1,7 @@
-import { useState, useContext } from "react";
-import { AppContext } from "../../../AppContext";
-import axios from "axios";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { addPa529 } from "../../../state/pa529Slice";
+import { setSnackbarSuccess, setSnackbarError } from "../../../state/uiSlice";
 import { Modal, Typography, Box, Grid, TextField, Button } from "@mui/material";
 
 const style = {
@@ -16,18 +17,12 @@ const style = {
   textAlign: "center",
 };
 
-export default function AddAccountDialog({
-  open,
-  handleClose,
-  endpoint,
-  setAccountsRefresh,
-  accountsRefresh,
-}) {
+export default function AddAccountDialog({ open, handleClose }) {
+  const dispatch = useDispatch();
   let [beneficiary, setBeneficiary] = useState("");
   let [value, setValue] = useState(0);
   let [totalReturn, setTotalReturn] = useState(0);
   let [year, setYear] = useState("");
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
 
   const handleBeneficiaryChange = (event) => setBeneficiary(event.target.value);
   const handleValueChange = (event) => setValue(event.target.value);
@@ -43,25 +38,12 @@ export default function AddAccountDialog({
   };
 
   const handleSubmit = () => {
-    postAccount(beneficiary, value, totalReturn, year).then(() => {
-      handleModalClose();
-    });
+    dispatch(addPa529({ beneficiary, value, totalReturn, year }))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
+    handleModalClose();
   };
-
-  function postAccount(beneficiary, value, totalReturn, year) {
-    let payload = { beneficiary, value, totalReturn, year };
-    async function postData(endpoint) {
-      try {
-        let res = await axios.post(endpoint, payload);
-        setSnackbarSuccess(true);
-        setAccountsRefresh(!accountsRefresh);
-        return res.data;
-      } catch (err) {
-        setSnackbarError(true);
-      }
-    }
-    return postData(endpoint);
-  }
 
   return (
     <>

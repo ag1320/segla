@@ -1,9 +1,11 @@
-import { useState, useContext, useRef } from "react";
-import { AppContext } from "../../AppContext";
+import { useState, useRef } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { removeFixedIncome } from "../../state/fixedIncomeSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
+import { selectBudgetBalance } from "../../utilities/helperFunctions";
 import EditFixedIncome from "./EditFixedIncome";
 import AddCircleOutline from "@mui/icons-material/AddCircleOutline";
 import EditIcon from "@mui/icons-material/Edit";
-import axios from "axios";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ConfirmDeleteFixedIncomeDialog from "./ConfirmDeleteFixedIncomeDialog";
 import {
@@ -22,10 +24,8 @@ import {
 } from "@mui/material";
 
 export default function FixedIncome({ setViewIncome, fixedIncome }) {
-  let { setBudgetRefresh, budgetRefresh } = useContext(AppContext);
-  let { totalFixedIncome } = useContext(AppContext);
-  let { setReason } = useContext(AppContext);
-  let { setSnackbarError, setSnackbarSuccess } = useContext(AppContext);
+  const dispatch = useDispatch();
+  const { totalFixedIncome } = useSelector(selectBudgetBalance);
   let [editIncome, setEditIncome] = useState(false);
   let [deleteIncome, setDeleteIncome] = useState(false);
   let [addIncome, setAddIncome] = useState(false);
@@ -64,25 +64,6 @@ export default function FixedIncome({ setViewIncome, fixedIncome }) {
     return border;
   });
 
-  function deleteIncomeSource(source) {
-    let payload = {
-      params: {
-        source,
-      },
-    };
-    let url = `http://localhost:3001/fixedIncome`;
-    async function deleteData(url, payload) {
-      try {
-        let res = await axios.delete(url, payload);
-        setSnackbarSuccess(true);
-        return res.data;
-      } catch (err) {
-        setSnackbarError(true);
-      }
-    }
-    return deleteData(url, payload);
-  }
-
   const handleClose = () => setViewIncome(false);
   const handleAdd = () => {
     setAddIncome(true);
@@ -98,11 +79,11 @@ export default function FixedIncome({ setViewIncome, fixedIncome }) {
 
   const handleConfirm = () => {
     let source = currentRow.source;
-    deleteIncomeSource(source).then(() => {
-      setReason("fixedIncome");
-      setBudgetRefresh(!budgetRefresh);
-      setCurrentRow({});
-    });
+    dispatch(removeFixedIncome(source))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)))
+      .finally(() => setCurrentRow({}));
   };
 
   return (

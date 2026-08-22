@@ -10,8 +10,8 @@ import {
   TableBody,
   IconButton,
 } from "@mui/material";
-import {  useState, useEffect, useContext } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import "./PA529.css";
 import { withStyles } from "@mui/styles";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -19,8 +19,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import ConfrirmDeleteAccountDialog from "./ConfirmDeleteAccountDialog.js";
 import EditPA529AccountDialog from "./EditPA529AccountDialog";
 import { getColumns } from "./PA529TableData";
-import { AppContext } from "../../../AppContext";
-
+import { loadPa529 } from "../../../state/pa529Slice";
 
 const StyledTableCell = withStyles({
   root: {
@@ -31,15 +30,14 @@ const StyledTableCell = withStyles({
 const columns = getColumns();
 
 export default function PA529() {
+  const dispatch = useDispatch();
+  const rows = useSelector((state) => state.pa529.items);
+
   //initialize vars
   let [openConfirmDeleteAccount, setOpenConfirmDeleteAccount] = useState(false);
   let [openEditAccountDialog, setOpenEditAccountDialog] = useState(false);
-  let [accountsRefresh, setAccountsRefresh] = useState(false);
   let [currentRow, setCurrentRow] = useState({});
-  let [rows, setRows] = useState([]);
   let height = window.innerHeight * 0.89;
-  let endpoint = `http://localhost:3001/pa529`;
-  let { setPa529Total  } = useContext(AppContext);
 
   // Calculate total value and total return
   const totalValue = rows.reduce((total, row) => total + row.value, 0);
@@ -70,65 +68,28 @@ export default function PA529() {
     setOpenConfirmDeleteAccount(true);
   };
 
-  //async call to backend
-  async function getData(endpoint) {
-    try {
-      let res = await axios.get(endpoint);
-      return res.data;
-    } catch (err) {
-      console.log(err);
-      return;
-    }
-  }
-
   //on page load, get data
   useEffect(() => {
-    getData(endpoint).then((items) => {
-      if (items) {
-        const transformedData = items.map((item) => ({
-          id: item.pa529_account_id,
-          beneficiary: item.beneficiary,
-          value: item.current_value,
-          return: item.total_return,
-          year: item.projected_college_year
-        }));
-        setRows(transformedData);
-      }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accountsRefresh]);
-
-  useEffect(() => {
-    setPa529Total(totalValue)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalValue]);
+    dispatch(loadPa529());
+  }, [dispatch]);
 
   return (
     <>
       <ConfrirmDeleteAccountDialog
         open={openConfirmDeleteAccount}
         setOpen={setOpenConfirmDeleteAccount}
-        setAccountsRefresh={setAccountsRefresh}
-        accountsRefresh={accountsRefresh}
         row={currentRow}
         setCurrentRow={setCurrentRow}
       />
       <EditPA529AccountDialog
         open={openEditAccountDialog}
         handleClose={handleEditClose}
-        endpoint={endpoint}
-        setAccountsRefresh={setAccountsRefresh}
-        accountsRefresh={accountsRefresh}
         row={currentRow}
       />
 
       <Grid container style={{ height: "100%" }}>
         <Grid item xs={12}>
-          <AddAccountButton
-            endpoint={endpoint}
-            setAccountsRefresh={setAccountsRefresh}
-            accountsRefresh={accountsRefresh}
-          />
+          <AddAccountButton />
         </Grid>
 
         <Grid item xs={12}>
@@ -209,7 +170,6 @@ export default function PA529() {
                     );
                   })}
                   <TableRow>
-                    <StyledTableCell />
                     <StyledTableCell />
                     <StyledTableCell style = {{textAlign: "center"}}>Total:</StyledTableCell>
                     <StyledTableCell style = {{textAlign: "center"}}>{formattedTotalValue}</StyledTableCell>

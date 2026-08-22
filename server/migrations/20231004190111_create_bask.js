@@ -1,4 +1,4 @@
-exports.up = function (knex) {
+export async function up(knex) {
   return knex.schema.createTable("bask", async (table) => {
     table.increments("bask_account_id");
     table.decimal("interest_rate", 5, 2);
@@ -7,8 +7,8 @@ exports.up = function (knex) {
     table.decimal("ytd_return", 11, 2);
     table.timestamps(true, true);
   });
-};
+}
 
-exports.down = function (knex) {
+export async function down(knex) {
   return knex.schema.dropTableIfExists("bask");
-};
+}

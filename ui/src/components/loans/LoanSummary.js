@@ -1,11 +1,9 @@
-import { useContext } from "react";
-import { AppContext } from "../../AppContext";
+import { useSelector } from "react-redux";
+import { selectLoanTotals } from "../../utilities/helperFunctions";
 import { Paper, Box, Typography, Grid } from "@mui/material";
 
 export default function Summary() {
-  let { mortgageTotal, studentLoanTotal, autoLoanTotal } =
-    useContext(AppContext);
-  let { equityTotal } = useContext(AppContext);
+  const { mortgageTotal, studentLoanTotal, autoLoanTotal, equityTotal } = useSelector(selectLoanTotals);
   let loanTotal =
     (mortgageTotal ? mortgageTotal : 0) +
     (studentLoanTotal ? studentLoanTotal : 0) +

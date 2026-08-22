@@ -1,43 +1,23 @@
 import { Button, Dialog, DialogActions, DialogTitle } from "@mui/material";
-import { useContext } from "react";
-import { AppContext } from "../../../AppContext";
-import axios from "axios";
+import { useDispatch } from "react-redux";
+import { removeEquity } from "../../../state/equitySlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../../state/uiSlice";
 
 export default function ConfirmDeleteEquityDialog({
   open,
   setOpen,
   row,
-  setEquityRefresh,
-  equityRefresh,
-  setCurrentRow
+  setCurrentRow,
 }) {
+  const dispatch = useDispatch();
 
-
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
-
-  const onConfirm = () =>{
-    async function deleteAccount(id) {
-      let payload = {
-        params: {
-          id,
-        },
-      };
-      try{
-        let res = await axios.delete(
-          `http://localhost:3001/equity`,
-          payload
-          );
-          setSnackbarSuccess(true)
-          setEquityRefresh(!equityRefresh)
-          setCurrentRow({})
-          return res.data;
-      } catch (err){
-        setSnackbarError(true)
-        setCurrentRow({})
-      }
-    }
-    deleteAccount(row.id);
-  }
+  const onConfirm = () => {
+    dispatch(removeEquity(row.id))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)))
+      .finally(() => setCurrentRow({}));
+  };
 
   return (
     <Dialog

@@ -1,6 +1,7 @@
-import { useState, useContext} from "react";
-import { AppContext } from "../../../AppContext";
-import axios from "axios";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { addBask } from "../../../state/baskSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../../state/uiSlice";
 import {
   Modal,
   Typography,
@@ -23,19 +24,12 @@ const style = {
   textAlign: "center",
 };
 
-export default function AddAccountDialog({
-  open,
-  handleClose,
-  endpoint,
-  setAccountsRefresh,
-  accountsRefresh,
-}) {
+export default function AddAccountDialog({ open, handleClose }) {
+  const dispatch = useDispatch();
   let [interestRate, setInterestRate] = useState(0);
   let [value, setValue] = useState(0);
   let [totalReturn, setTotalReturn] = useState(0);
   let [ytdReturn, setYtdReturn] = useState(0);
-
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
 
   const handleInterestRateChange = (event) =>
     setInterestRate(event.target.value);
@@ -52,25 +46,12 @@ export default function AddAccountDialog({
   };
 
   const handleSubmit = () => {
-    postAccount(interestRate, value, totalReturn, ytdReturn).then(() => {
-      handleModalClose();
-    });
+    dispatch(addBask({ interestRate, value, totalReturn, ytdReturn }))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
+    handleModalClose();
   };
-
-  function postAccount(interestRate, value, totalReturn, ytdReturn) {
-    let payload = { interestRate, value, totalReturn, ytdReturn };
-    async function postData(endpoint) {
-      try{
-        let res = await axios.post(endpoint, payload);
-        setSnackbarSuccess(true)
-        setAccountsRefresh(!accountsRefresh);
-        return res.data;
-      } catch (err){
-        setSnackbarError(true)
-      }
-    }
-    return postData(endpoint);
-  }
 
   return (
     <>

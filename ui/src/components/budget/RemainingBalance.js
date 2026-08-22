@@ -1,11 +1,11 @@
 import { Box, TextField, Typography } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { useState, useContext } from "react";
-import { AppContext } from "../../AppContext.js";
+import { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import AdapterDateFns from "@mui/lab/AdapterDateFns";
 import LocalizationProvider from "@mui/lab/LocalizationProvider";
 import DatePicker from "@mui/lab/DatePicker";
-import { checkBudget } from "./BudgetFunctions.js";
+import { checkExistingBudget, setDate, setReason, setNewBudget } from "../../state/budgetSlice";
 import NewBudgetDialog from "./NewBudgetDialog.js";
 
 const pickerTheme = createTheme({
@@ -25,27 +25,26 @@ const pickerTheme = createTheme({
 });
 
 export default function RemainingBalance() {
-  let { setBudgetData } = useContext(AppContext);
-  let { setNewBudget } = useContext(AppContext);
-  let { date, setDate } = useContext(AppContext);
-  let { setReason } = useContext(AppContext);
+  const dispatch = useDispatch();
+  const date = useSelector((state) => state.budget.date);
   const [isEmpty, setIsEmpty] = useState(false);
 
   const handleDateChange = (event) => {
-    setReason("Budget");
-    setDate(event);
+    dispatch(setReason("Budget"));
+    dispatch(setDate(event));
   };
 
   const handleBlur = () => {
     let month = date.toLocaleString("EN-US", { month: "long" });
     let year = date.getFullYear();
-    checkBudget(month, year).then((data) => {
-      setBudgetData(data);
-      setIsEmpty(!Object.keys(data).length);
-    });
+    dispatch(checkExistingBudget({ month, year }))
+      .unwrap()
+      .then((data) => {
+        setIsEmpty(!data.length);
+      });
   };
 
-  const handleConfirm = () => setNewBudget(true);
+  const handleConfirm = () => dispatch(setNewBudget(true));
 
   return (
     <>

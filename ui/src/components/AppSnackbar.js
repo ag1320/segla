@@ -1,22 +1,24 @@
-import { forwardRef, useContext } from 'react';
+import { forwardRef } from 'react';
 import { Snackbar } from "@mui/material"
 import MuiAlert from '@mui/material/Alert';
-import { AppContext } from '../AppContext';
+import { useSelector, useDispatch } from "react-redux";
+import { setSnackbarSuccess, setSnackbarError } from "../state/uiSlice";
 
 const Alert = forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
 export default function AppSnackbar() {
-  let { setSnackbarSuccess, snackbarSuccess } = useContext(AppContext)
-  let { setSnackbarError, snackbarError } = useContext(AppContext)
+  const dispatch = useDispatch();
+  const snackbarSuccess = useSelector((state) => state.ui.snackbarSuccess);
+  const snackbarError = useSelector((state) => state.ui.snackbarError);
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
       return;
     }
-    setSnackbarSuccess(false);
-    setSnackbarError(false)
+    dispatch(setSnackbarSuccess(false));
+    dispatch(setSnackbarError(false));
   };
 
   return (

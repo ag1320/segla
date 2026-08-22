@@ -41,6 +41,7 @@ services:
       - server
     volumes:
       - ./ui:/app
+      - /app/node_modules
 
 networks:
   network1:

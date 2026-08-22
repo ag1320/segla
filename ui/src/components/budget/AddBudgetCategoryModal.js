@@ -1,5 +1,5 @@
-import { useContext, useState } from "react";
-import { AppContext } from "../../AppContext";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
 import {
   Modal,
   Box,
@@ -9,7 +9,8 @@ import {
   Button,
   Slider,
 } from "@mui/material";
-import axios from "axios";
+import { addBudgetCategory } from "../../state/budgetCategoriesSlice";
+import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
 
 export default function AddBudgetCategoryModal({ open, setOpen, categories }) {
   const style = {
@@ -25,32 +26,13 @@ export default function AddBudgetCategoryModal({ open, setOpen, categories }) {
     textAlign: "center",
   };
 
-  let { budgetRefresh, setBudgetRefresh } = useContext(AppContext);
-  let { setReason } = useContext(AppContext);
-  let { error, setError } = useContext(AppContext);
-  let { setSnackbarSuccess, setSnackbarError } = useContext(AppContext);
+  const dispatch = useDispatch();
   let [category, setCategory] = useState("");
   let [range, setRange] = useState([50, 200]);
+  let [error, setError] = useState(false);
 
   const handleCategoryChange = (e) => setCategory(e.target.value);
   const handleSliderChange = (e, newValue, index) => setRange(newValue);
-
-  const postBudgetCategory = async () => {
-    let payload = {
-      category,
-      range,
-    };
-    try{
-      let res = await axios.post(
-        "http://localhost:3001/budgetCategories",
-        payload
-      );
-      setSnackbarSuccess(true)
-      return res.data;
-    } catch (err) {
-      setSnackbarError(true)
-    }
-  };
 
   const handleModalClose = () => {
     setCategory("");
@@ -81,11 +63,11 @@ export default function AddBudgetCategoryModal({ open, setOpen, categories }) {
       alert('Category Already Exists. Either Edit the Existing Category or Create a New One.')
       return
     }
-    postBudgetCategory().then(()=>{
-      setReason('budgetCategory')
-      setBudgetRefresh(!budgetRefresh);
-      handleModalClose();
-    })
+    dispatch(addBudgetCategory({ category, range }))
+      .unwrap()
+      .then(() => dispatch(setSnackbarSuccess(true)))
+      .catch(() => dispatch(setSnackbarError(true)));
+    handleModalClose();
   };
 
   return (

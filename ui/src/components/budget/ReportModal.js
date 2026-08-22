@@ -1,5 +1,5 @@
-import { useContext, useEffect, useState } from "react";
-import { AppContext } from "../../AppContext";
+import { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { Bar } from "react-chartjs-2";
 import { Chart as ChartJS, registerables } from "chart.js";
 import "./ReportModal.css";
@@ -14,6 +14,13 @@ import {
 import ReportStats from "./ReportStats";
 import EditIcon from "@mui/icons-material/Edit";
 import { constructReportData } from "../../Calculations";
+import {
+  setReportStartDate,
+  setReportEndDate,
+  setReportSelectedCategories,
+  setReportSelectedTypeCategories,
+  clearReportData,
+} from "../../state/reportsSlice";
 
 ChartJS.register(...registerables);
 
@@ -33,16 +40,14 @@ export default function ReportModal({ open, setOpen, setOpenGenerateReport }) {
     overflowY: "auto",
   };
 
-  let { reportData, setReportData } = useContext(AppContext);
-  let { reportStartDate, setReportStartDate } = useContext(AppContext);
-  let { reportEndDate, setReportEndDate } = useContext(AppContext);
-  let { reportSelectedCategories, setReportSelectedCategories } =
-    useContext(AppContext);
-  let { reportWarningsAndLimitsData } = useContext(AppContext);
-  let { reportSelectedTypeCategories, setReportSelectedTypeCategories } =
-    useContext(AppContext);
-  let { setReportTotalData } = useContext(AppContext);
-  let { reportTotalData } = useContext(AppContext);
+  const dispatch = useDispatch();
+  const reportData = useSelector((state) => state.reports.data);
+  const reportTotalData = useSelector((state) => state.reports.totalData);
+  const reportWarningsAndLimitsData = useSelector((state) => state.reports.warningsAndLimitsData);
+  const reportStartDate = useSelector((state) => state.reports.reportStartDate);
+  const reportEndDate = useSelector((state) => state.reports.reportEndDate);
+  const reportSelectedCategories = useSelector((state) => state.reports.reportSelectedCategories);
+  const reportSelectedTypeCategories = useSelector((state) => state.reports.reportSelectedTypeCategories);
 
   let [data, setData] = useState({});
 
@@ -52,14 +57,13 @@ export default function ReportModal({ open, setOpen, setOpenGenerateReport }) {
 
   const handleModalClose = (event, reason) => {
     if (!(reason && reason === "editReportCriteria")) {
-      setReportStartDate(null);
-      setReportEndDate(null);
-      setReportSelectedCategories([]);
-      setReportSelectedTypeCategories([]);
+      dispatch(setReportStartDate(null));
+      dispatch(setReportEndDate(null));
+      dispatch(setReportSelectedCategories([]));
+      dispatch(setReportSelectedTypeCategories([]));
     }
     setOpenGenerateReport(true);
-    setReportData([]);
-    setReportTotalData([]);
+    dispatch(clearReportData());
     setOpen(false);
   };
 
