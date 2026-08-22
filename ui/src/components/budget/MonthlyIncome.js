@@ -36,7 +36,10 @@ export default function MonthlyIncome() {
 
   const handleAddIncome = () => setOpenAddIncome(true);
 
-  monthlyIncome.sort((a,b)=>{
+  // useSelector returns the Redux state array by reference, which Immer
+  // freezes in development - sorting it in place throws "Cannot assign to
+  // read only property". Sort a copy instead.
+  const sortedMonthlyIncome = [...monthlyIncome].sort((a,b)=>{
     let textA = a.category.toLowerCase()
     let textB = b.category.toLowerCase()
     return (textA < textB ) ? -1: (textA> textB) ? 1: 0;
@@ -67,7 +70,7 @@ export default function MonthlyIncome() {
             </Grid>
             <Grid item xs={12}>
               <Grid container justifyContent="center" spacing={4}>
-                {monthlyIncome.map((income, id) => {
+                {sortedMonthlyIncome.map((income, id) => {
                   return (
                     <Grid item xs={3} key = {id}>
                       <Card style={{ marginTop: "50px" }}>

@@ -47,7 +47,10 @@ export default function MonthEndDistributions() {
       .catch(() => dispatch(setSnackbarError(true)));
   };
 
-  monthEndDistributions.sort((a,b)=>{
+  // useSelector returns the Redux state array by reference, which Immer
+  // freezes in development - sorting it in place throws "Cannot assign to
+  // read only property". Sort a copy instead.
+  const sortedMonthEndDistributions = [...monthEndDistributions].sort((a,b)=>{
     let textA = a.category.toLowerCase()
     let textB = b.category.toLowerCase()
     return (textA < textB ) ? -1: (textA> textB) ? 1: 0;
@@ -78,7 +81,7 @@ export default function MonthEndDistributions() {
             </Grid>
             <Grid item xs={12}>
               <Grid container justifyContent="center" spacing={4}>
-                {monthEndDistributions.map((distribution) => {
+                {sortedMonthEndDistributions.map((distribution) => {
                   return (
                     <Grid item xs={3}>
                       <Card style={{ marginTop: "50px" }}>

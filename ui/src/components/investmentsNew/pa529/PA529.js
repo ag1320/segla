@@ -171,6 +171,7 @@ export default function PA529() {
                   })}
                   <TableRow>
                     <StyledTableCell />
+                    <StyledTableCell />
                     <StyledTableCell style = {{textAlign: "center"}}>Total:</StyledTableCell>
                     <StyledTableCell style = {{textAlign: "center"}}>{formattedTotalValue}</StyledTableCell>
                     <StyledTableCell style = {{textAlign: "center"}}>{formattedTotalReturn}</StyledTableCell>

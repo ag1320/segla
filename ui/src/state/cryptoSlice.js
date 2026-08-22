@@ -22,7 +22,12 @@ export const loadCrypto = createAsyncThunk(
         totalSpent: item.total_spent,
         costBasis: (item.total_spent / item.shares).toFixed(2),
       }));
-      dispatch(loadCryptoMarketData());
+      // Pass the just-fetched items directly rather than dispatching and
+      // letting loadCryptoMarketData re-read them from state - state hasn't
+      // been updated with `transformed` yet at this point (this thunk hasn't
+      // returned/fulfilled), so reading getState().crypto.items here would
+      // race and see the stale (often empty) list.
+      dispatch(loadCryptoMarketData(transformed));
       return transformed;
     } catch (err) {
       return rejectWithValue(err.message);
@@ -33,9 +38,9 @@ export const loadCrypto = createAsyncThunk(
 // Merges in live market prices (CoinGecko) for the currently-loaded holdings.
 export const loadCryptoMarketData = createAsyncThunk(
   "crypto/loadCryptoMarketData",
-  async (_, { getState, rejectWithValue }) => {
+  async (itemsArg, { getState, rejectWithValue }) => {
     try {
-      const { items } = getState().crypto;
+      const items = itemsArg ?? getState().crypto.items;
       if (items.length === 0) return items;
       const idTags = items.map((crypto) =>
         crypto.name.replace(/\s+/g, "-").toLowerCase()

@@ -229,3 +229,64 @@ repo from Windows/Git-Bash against the WSL-mounted path. This is the piece that 
 ## Known risk spots to watch during verification
 - `notesController.js`'s `windowsDocsPath` (CSV export) reads `process.env.USERPROFILE` — Windows-host-specific path logic, unchanged from original, but worth an explicit check since it's the one function with host-filesystem side effects outside the DB.
 - `monthlyExpensesController.js`'s `deleteMonthlyExpenses` migration note: original `20220109173748_create_monthly_expenses.js`'s `down()` drops the wrong table (`"income"` instead of `"monthly_expenses"`) — this is a **pre-existing bug in the original migration file**, preserved verbatim during the ESM conversion per "no behavior changes". Flagging here so it's not mistaken for something introduced during this restructure.
+
+## Post-migration bug fixes (found by user testing, fixed in a follow-up session)
+
+The migration itself (tasks #1-#7 above) was functionally complete, but a fresh
+`npm install` run while adding `@reduxjs/toolkit`/`react-redux` silently let
+**every caret-range dependency in `ui/package.json` re-resolve to latest**
+instead of respecting what was actually locked before (the old `package-lock.json`
+got deleted/regenerated along the way). This wasn't one or two stray version
+bumps - it was near-total drift: `@mui/material`/`@mui/icons-material`/`@mui/styles`
+5.1.1→5.18.0, `date-fns` 2.26.0→2.30.0, `react-router`/`react-router-dom`
+6.0.2→6.30.6, `chart.js`, `csv-parse`, `csv-parser`, `@emotion/*`, all bumped too.
+Three separate-looking user-reported bugs all traced back to this one root cause
+plus two real code bugs the drift happened to unmask:
+
+1. **Crypto summary tile showed "undefined"** - real bug in `cryptoSlice.js`:
+   `loadCryptoMarketData` was dispatched with no args right after `loadCrypto`,
+   so it read `getState().crypto.items` before `loadCrypto.fulfilled` had
+   updated the store - a race, not a dependency issue. Fixed by passing the
+   just-fetched items directly as the thunk argument instead of re-reading
+   state.
+
+2. **PA529 table footer misaligned** - real bug, pre-existing even before the
+   Redux migration (copied verbatim from the original `PA529.js`): the footer
+   row had 4 `<TableCell>`s for a 5-column table. Fixed by adding the missing
+   empty cell so `Total:`/value/return land under the right columns.
+
+3. **Month selector "not working"** - this was actually two stacked bugs:
+   - The `@mui/lab` DatePicker's calendar-grid year/month click crashed the
+     whole app with `ReferenceError: process is not defined`, coming from a
+     dynamically-loaded webpack chunk. Root cause was the `date-fns` drift
+     (2.26.0 → 2.30.0) - not a version anyone touched on purpose, just
+     collateral damage from the npm install above.
+   - Once the picker didn't crash, `MonthlyIncome.js` and
+     `MonthEndDistributions.js` both called `.sort()` directly on the array
+     returned by `useSelector`. Redux Toolkit freezes state via Immer in dev
+     mode, so mutating it in place (`.sort()` sorts in place) threw
+     `TypeError: Cannot assign to read only property '0' of object
+     '[object Array]'`, crashing those components - this is why income showed
+     $0 even for a month with real data. This exact anti-pattern (mutating a
+     selector's return value) doesn't error against plain `useState`/Context,
+     which is why it never surfaced before the Redux migration. Fixed both by
+     sorting a copy (`[...selectorResult].sort(...)`) instead of the frozen
+     array itself. Swept the rest of the app for the same `.sort()`/`.push()`/
+     `.splice()`/`.reverse()` pattern against `useSelector` output - no other
+     instances found; every other `.sort()` call in the codebase runs on a
+     freshly-built local array, which is safe.
+
+**The dependency-drift fix**: rather than pinning each drifted package one at
+a time, restored the original pre-migration `ui/package-lock.json` (from the
+commit right before the migration, `708d4f0`) into place, then ran
+`docker compose build frontend` so `npm install` reused every already-locked
+version and only resolved the two genuinely new packages
+(`@reduxjs/toolkit`, `react-redux`) against it. Confirmed post-fix that every
+previously-drifted package matches the original exactly.
+`ui/package.json`'s `@mui/lab` and `date-fns` entries were also changed from
+caret (`^`) to exact pins, matching what's now locked, as a safety net against
+this happening again on some future `npm install` in this project.
+
+Reminder for next time a new npm package needs adding to `ui/`: never let
+`package-lock.json` get deleted/regenerated from scratch - always install
+with the existing lockfile in place so npm only resolves what's actually new.
