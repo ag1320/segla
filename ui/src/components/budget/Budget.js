@@ -28,7 +28,7 @@ import { loadCurrentBudgetCategories, loadBudgetCategories, clearSnapshotCategor
 import { loadMonthlyIncome, clearMonthlyIncome } from "../../state/monthlyIncomeSlice";
 import { loadMonthlyFixedExpenses, loadMonthlyVariedExpenses, clearMonthlyExpenses } from "../../state/monthlyExpensesSlice";
 import { loadNotes, exportBudgetCSV, clearNotes } from "../../state/notesSlice";
-import { clearMonthEndDistributions } from "../../state/monthEndDistributionsSlice";
+import { loadMonthEndDistributions, clearMonthEndDistributions } from "../../state/monthEndDistributionsSlice";
 import { setReason, setNewBudget, seedBudget, deleteBudgetMonth, toggleBudgetRefresh } from "../../state/budgetSlice";
 import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
 import { selectBudgetBalance } from "../../utilities/helperFunctions";
@@ -140,6 +140,7 @@ export default function Budget() {
     dispatch(loadMonthlyVariedExpenses({ month, year }));
     dispatch(loadBudgetCategories({ month, year }));
     dispatch(loadNotes({ month, year }));
+    dispatch(loadMonthEndDistributions({ month, year }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date, budgetRefresh, dispatch]);
 
