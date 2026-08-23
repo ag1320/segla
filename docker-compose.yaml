@@ -11,20 +11,24 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
-    ports:
-      - "${DB_PORT}:5432"
+    # Not exposed to the host - server/frontend reach it over the Docker
+    # network at hostname "database", and each app on the homelab server gets
+    # its own Postgres container, so there's nothing host-side to collide on.
+    # To connect an external tool (psql/pgAdmin) instead, temporarily add
+    # back `ports: ["${DB_PORT}:5432"]` or use `docker exec -it database psql -U postgres`.
 
   server:
     networks:
       - network1
     build: ./server
     ports:
-      - "3001:3001"
+      - "4001:4001"
     container_name: server
     depends_on:
       - database
     environment:
       DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
+      PORT: ${PORT}
     volumes:
       - ./server:/app
       - /mnt/c/Users/aaron/OneDrive/Documents/Family/Financial/Budget:/var/Users/aaron
@@ -35,10 +39,13 @@ services:
       - network1
     build: ./ui
     ports:
-      - "3000:3000"
+      - "4000:4000"
     container_name: frontend
     depends_on:
       - server
+    environment:
+      PORT: 4000
+    env_file: ".env"
     volumes:
       - ./ui:/app
       - /app/node_modules

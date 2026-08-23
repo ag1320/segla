@@ -50,7 +50,7 @@ app.use(monthEndDistributionsRoutes);
 app.use(notesRoutes);
 app.use(reportsRoutes);
 
-const port = 3001;
+const port = process.env.PORT || 4001;
 app.listen(port, () =>
   console.log(`Backend listening at http://localhost:${port}`),
 );

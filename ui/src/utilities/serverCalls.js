@@ -1,6 +1,10 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:3001";
+// Set via REACT_APP_API_BASE_URL in .env - CRA inlines REACT_APP_* vars at
+// build/dev-server-start time. Defaults to local dev. Once the backend moves
+// off this machine (e.g. the homelab server), this is the one line that has
+// to change - see SERVER_MIGRATION.md.
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:4001";
 
 // VANGUARD RETIREMENT
 async function fetchVanguardRetirement() {
