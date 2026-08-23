@@ -20,7 +20,14 @@ router.get("/exportCSV", (req, res) => {
     exportPromises.push(notePromise);
   }
   Promise.all(exportPromises)
-    .then((data) => res.status(200).send(data))
+    .then(([csvString]) => {
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="Budget-${month}-${year}.csv"`
+      );
+      res.status(200).send(csvString);
+    })
     .catch((err) => res.status(403).send(err));
 });
 

@@ -292,8 +292,22 @@ async function deleteNote(id) {
   return res.data;
 }
 async function exportCSV(month, year, isExported) {
-  const res = await axios.get(`${BASE_URL}/exportCSV`, { params: { month, year, isExported } });
-  return res.data;
+  // Backend streams the CSV back as the response body rather than writing a
+  // file server-side (that used to depend on a Windows-only path - see
+  // SERVER_MIGRATION.md). Trigger a normal browser download from the blob.
+  const res = await axios.get(`${BASE_URL}/exportCSV`, {
+    params: { month, year, isExported },
+    responseType: "blob",
+  });
+  const url = window.URL.createObjectURL(new Blob([res.data]));
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", `Budget-${month}-${year}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+  return true;
 }
 
 // REPORTS

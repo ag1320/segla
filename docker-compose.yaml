@@ -31,7 +31,6 @@ services:
       PORT: ${PORT}
     volumes:
       - ./server:/app
-      - /mnt/c/Users/aaron/OneDrive/Documents/Family/Financial/Budget:/var/Users/aaron
     env_file: ".env"
 
   frontend:

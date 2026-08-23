@@ -5,12 +5,11 @@ once VM1/Docker/Tailscale are ready. Companion to the homelab vault's
 `Software Stack.md` and `homelab_charter.md` (Segla + Strata Games section) -
 read those for the *why*, this file is the *how*, specific to this repo.
 
-Three code/config changes have already been made and committed so the app is
+Four code/config changes have already been made and committed so the app is
 ready for this move without further edits (details below): the backend port,
-the frontend's hardcoded API URL, and the database's host port exposure.
-Everything else in this doc is what **you** do at deploy time - none of it
-needs another code change unless you decide to change the CSV export design
-(see that section).
+the frontend's hardcoded API URL, the database's host port exposure, and the
+CSV export rewrite. Everything else in this doc is what **you** do at deploy
+time - no further code changes needed for the move itself.
 
 ---
 
@@ -201,51 +200,28 @@ it there by hand. Full picture:
 
 ## 7. Things that WILL break or need a decision - the real risk list
 
-### 7a. CSV export writes to a Windows-only path - this needs a decision before the move
+### 7a. CSV export writes to a Windows-only path - FIXED
 
-`server/src/controllers/notesController.js`'s `exportCSV` writes budget CSVs
-to a path built from `process.env.USERPROFILE` (a Windows environment
-variable) with a fallback to `os.homedir()`, and `docker-compose.yaml` bind-
-mounts your Windows OneDrive folder in specifically to catch that write:
+`server/src/controllers/notesController.js`'s `exportCSV` used to write
+budget CSVs to a path built from `process.env.USERPROFILE` (a Windows
+environment variable), with `docker-compose.yaml` bind-mounting the Windows
+OneDrive folder specifically to catch that write. **Confirmed while writing
+this doc, not just theoretical:** I triggered a live export against the
+running container and checked where the file landed - `USERPROFILE` was
+never actually reaching the container (never listed in `docker-compose.yaml`'s
+`environment:` block), so the code fell to its `os.homedir()` fallback and
+the export landed in `/root/` *inside the container*, not the OneDrive
+folder. This was already silently broken today, before any server move -
+not something the move would have introduced.
 
-```yaml
-- /mnt/c/Users/aaron/OneDrive/Documents/Family/Financial/Budget:/var/Users/aaron
-```
-
-**None of this has any equivalent on Ubuntu Server.** There's no `C:\`, no
-OneDrive sync client, no `USERPROFILE`. This bind-mount line has to be
-deleted for the server (there's nothing on VM1 for it to point at), and the
-export function needs a real destination once it's gone. I did not pick one
-for you since it's a UX decision, not a config value - options, roughly
-cheapest to most involved:
-
-1. **Simplest, most portable, recommended:** change `exportCSV` to stream the
-   CSV back as the HTTP response instead of writing a server-side file at
-   all (`res.attachment(fileName)` + pipe `fastcsv`'s output into `res`
-   instead of a `fs.createWriteStream`). The browser downloads it like any
-   other file download, works identically regardless of where the backend
-   runs, and removes this entire class of path problem permanently.
-2. Write to a directory on VM1 that Nextcloud syncs (once Nextcloud is
-   deployed in the same phase per the charter) - keeps the "lands in a
-   synced folder automatically" behavior you have today, at the cost of
-   depending on Nextcloud being up first.
-3. Just write to a plain directory in the container, bind-mounted to
-   somewhere on VM1's disk, and `scp`/Nextcloud-app it off manually when you
-   want a copy - lowest effort, least automatic.
-
-**Confirmed while writing this doc, not just theoretical:** I triggered a
-live export against the running container (`GET /exportCSV`) and checked
-where the file landed. `USERPROFILE` is not present in the container's
-environment at all (it's never listed in `docker-compose.yaml`'s
-`environment:` block for `server`, so nothing passes it through), so the code
-falls to its `os.homedir()` fallback - the export landed in `/root/` *inside
-the container*, not the OneDrive-mounted folder. That means **this feature is
-already silently broken today**, on this machine, before any server move:
-exports currently vanish into the container's own filesystem and are lost
-the moment the container is recreated. This isn't something the move
-introduces - it's a pre-existing bug this exercise surfaced. Worth fixing
-regardless of the server move, and option 1 above (stream the CSV as an HTTP
-download) fixes both problems at once.
+Fixed: `exportCSV` now returns the CSV as a string instead of writing a file,
+the `/exportCSV` route sends it as the HTTP response body with
+`Content-Disposition: attachment`, and the frontend
+(`ui/src/utilities/serverCalls.js`) turns that into a normal browser
+download via a Blob URL. No server-side file, no path resolution, works
+identically regardless of where the backend runs - the OneDrive bind-mount
+line and the `windowsDocsPath()`/`fs`/`path`/`os` code are gone entirely.
+Verified locally: an export now downloads a real CSV through the browser.
 
 ### 7b. Directory/volume permissions
 
@@ -286,13 +262,6 @@ it, tends to get ownership right automatically).
 - [ ] Create `/opt/segla/.env` by hand (§5 table) - copy secrets from this
       machine's `.env` via a secure channel (NordPass note, not Slack/email),
       don't commit it
-- [ ] Decide and implement the CSV export fix (§7a) - do this *before* the
-      move if you want the feature working immediately after, or explicitly
-      accept it'll be broken until you get to it
-- [ ] Remove the OneDrive bind-mount line from `docker-compose.yaml` once
-      7a is decided (leaving it in with no matching path on VM1 will just
-      fail the container start - Docker can't bind-mount a path that
-      doesn't exist)
 - [ ] `docker compose up -d` on VM1 - confirm all three containers start,
       confirm `knex migrate:latest` runs cleanly against the fresh DB
 - [ ] Run the `pg_dump`/`pg_restore` steps from §4
