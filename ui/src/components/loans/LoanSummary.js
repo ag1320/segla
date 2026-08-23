@@ -1,6 +1,6 @@
 import { useSelector } from "react-redux";
 import { selectLoanTotals } from "../../utilities/helperFunctions";
-import { Paper, Box, Typography, Grid } from "@mui/material";
+import { Paper, Typography, Grid } from "@mui/material";
 
 export default function Summary() {
   const { mortgageTotal, studentLoanTotal, autoLoanTotal, equityTotal } = useSelector(selectLoanTotals);

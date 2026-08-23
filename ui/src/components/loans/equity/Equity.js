@@ -40,7 +40,6 @@ export default function Equity() {
 
   // Calculate total value and total return
   const totalEquity = rows.reduce((total, row) => total + row.equity, 0);
-  const totalValuation = rows.reduce((total, row) => total + row.valuation, 0);
   // Format totalValue and totalReturn as currency (US format)
   const formattedTotalEquity = totalEquity.toLocaleString("en-US", {
     style: "currency",

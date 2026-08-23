@@ -14,7 +14,7 @@ import {
   CardHeader,
   Paper,
 } from "@mui/material";
-import { styled, useTheme } from "@mui/material/styles";
+import { styled } from "@mui/material/styles";
 import vanguard from "../images/vanguard.png";
 import bitcoin from "../images/bitcoin.png";
 import dollars from "../images/dollars.png";
@@ -46,11 +46,6 @@ const StyledCard = styled(Card)(({ theme }) => ({
   variant: "outlined",
 }));
 
-const StyledCardContent = styled(CardContent)({
-  padding: "16px",
-  flexGrow: 1,
-});
-
 const StyledButton = styled(Button)(({ theme }) => ({
   color: "#BBE1FA",
 }));
@@ -60,7 +55,6 @@ const StyledDivider = styled(Divider)(({ theme }) => ({
 }));
 
 export default function Home() {
-  const theme = useTheme();
   const dispatch = useDispatch();
 
   const {

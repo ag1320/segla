@@ -2,7 +2,6 @@
 import express from "express";
 import morgan from "morgan";
 import cors from "cors";
-import investmentsLegacyRoutes from "./routes/investmentsLegacyRoutes.js";
 import vanguardRetirementRoutes from "./routes/vanguardRetirementRoutes.js";
 import tspRoutes from "./routes/tspRoutes.js";
 import vanguardBrokerageRoutes from "./routes/vanguardBrokerageRoutes.js";
@@ -33,7 +32,6 @@ app.use(
 );
 
 // Routes
-app.use(investmentsLegacyRoutes);
 app.use(vanguardRetirementRoutes);
 app.use(tspRoutes);
 app.use(vanguardBrokerageRoutes);
