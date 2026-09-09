@@ -19,7 +19,7 @@ echo "Waiting for the application to fully initialize..."
 sleep 3
 
 # Open the web page in the default web browser
-cmd.exe /C start http://localhost:3000
+cmd.exe /C start http://localhost:4000
 
 # Prompt the user to finish using the application
 echo ""

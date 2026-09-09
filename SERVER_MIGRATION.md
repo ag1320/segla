@@ -1,14 +1,18 @@
 # Migrating Segla to the homelab server (VM1)
 
-Written 2026-08-23, ahead of the actual move, so this can be followed step-by-step
-once VM1/Docker/Tailscale are ready. Companion to the homelab vault's
+Written 2026-08-23, revised 2026-09-08 to make Caddy the *only* access path
+(no Tailscale-address fallback — this app is reached exclusively at
+`segla.keylimedesigns.dev`). Companion to the homelab vault's
 `Software Stack.md` and `homelab_charter.md` (Segla + Strata Games section) -
 read those for the *why*, this file is the *how*, specific to this repo.
 
-Four code/config changes have already been made and committed so the app is
-ready for this move without further edits (details below): the backend port,
-the frontend's hardcoded API URL, the database's host port exposure, and the
-CSV export rewrite. Everything else in this doc is what **you** do at deploy
+Code/config changes already made and committed so the app is ready for this
+move without further edits (details below): the backend port, the
+frontend's hardcoded API URL, the database's host port exposure, the CSV
+export rewrite, and — new as of this revision — dropping host port
+publishing entirely for `frontend`/`server` (Caddy reaches both over the
+Docker network) and switching the frontend from CRA's dev server to a
+production build. Everything else in this doc is what **you** do at deploy
 time - no further code changes needed for the move itself.
 
 ---
@@ -22,14 +26,17 @@ have defaulted to the *same* 3000/3001 pair if deployed as-is - a collision
 with Segla itself, not just Kuma. Both are fixed now by moving Segla off the
 stack's default ports entirely:
 
-| Service | Old (WSL/laptop) | New | Notes |
+| Service | Old (WSL/laptop) | New | Host-exposed? |
 |---|---|---|---|
-| Frontend | 3000 | **4000** | `docker-compose.yaml` + `PORT` env var |
-| Backend/API | 3001 | **4001** | `docker-compose.yaml` + `PORT` env var |
-| Postgres | 5432 (host-exposed) | *(not host-exposed)* | Internal Docker network only now - see §3 |
+| Frontend | 3000 | **4000** | **No** - Caddy-only, see §8 |
+| Backend/API | 3001 | **4001** | **No** - Caddy-only, see §8 |
+| Postgres | 5432 (host-exposed) | *(not host-exposed)* | No - internal Docker network only, see §3 |
 
-This local dev environment already runs on these new ports - verified working
-end to end before writing this doc.
+Neither app container publishes a `ports:` entry in `docker-compose.yaml`
+any more - this app has zero access paths other than through Caddy (no
+Tailscale-IP fallback, unlike some other services in this stack). Caddy
+reaches both containers by joining this app's Docker network and proxying
+by container name (`frontend:4000`, `server:4001`) - see §8.
 
 **Reserve 4010/4011 for Strata Games** when that migration happens, so the
 two apps never collide with each other or with anything else in
@@ -48,30 +55,29 @@ truth for what's taken.
 `const BASE_URL = "http://localhost:3001"`. That only ever worked because the
 browser and the backend were on the same machine. Once the backend moves to
 VM1, the browser (still running on your laptop/phone) needs a different
-address entirely.
+address entirely - and since access is Caddy-only, that address is Segla's
+own Caddy-fronted hostname, not a Tailscale address.
 
 Fixed: `BASE_URL` now reads `process.env.REACT_APP_API_BASE_URL`, set in
-`.env`. **This is the one setting you must change on the server:**
+`.env`:
 
 ```
-# .env on VM1
-REACT_APP_API_BASE_URL=http://<vm1-tailscale-hostname-or-IP>:4001
+# .env
+REACT_APP_API_BASE_URL=https://segla-api.keylimedesigns.dev
 ```
 
-Use whatever `tailscale status` / `New Laptop Initialization.md` shows as
-VM1's stable Tailscale address (the vault's convention is an alias like
-`vm1`). Don't use VM1's local LAN IP - per `Server Move Reconfiguration.md`,
-that changes on every physical move and isn't the documented access pattern
-for this stack anyway.
-
-CRA inlines `REACT_APP_*` vars when the dev server starts (this app runs
-`react-scripts start` in Docker, not a production build - see §6), so this
-takes effect on container start, no rebuild needed if you only change `.env`.
-
-If Phase 3's Caddy reverse proxy later fronts this app for phone access,
-`REACT_APP_API_BASE_URL` will need to change again to whatever public/proxied
-URL Caddy exposes for the backend - treat that as a follow-up when Phase 3
-actually happens, not now.
+**This value is baked into the JS bundle at Docker *build* time, not
+container start.** The frontend now runs a production build (`ui/Dockerfile`
+is a two-stage build: `npm run build`, then serve the static output via
+`serve` — see §7a for why the dev server had to go). CRA still inlines
+`REACT_APP_*` vars at the moment `npm run build` runs, but that moment is
+now inside the image build, not `react-scripts start` on container launch.
+Practically: **if you ever change `REACT_APP_API_BASE_URL`, you must rebuild
+the image** (`docker compose build frontend && docker compose up -d
+frontend`) - editing `.env` and restarting the container alone will not
+pick it up, because `docker-compose.yaml` passes it through as a `build:
+args:` value, not a runtime `environment:` value. This is the one thing
+that behaves differently from typical `.env`-driven config in this stack.
 
 ---
 
@@ -173,34 +179,56 @@ it there by hand. Full picture:
 | `DB_NAME` | Yes | |
 | `DB_PORT` | Yes (`5432`) | Still used internally for `DB_CONNECTION_STRING` even though it's no longer host-exposed - don't delete it |
 | `DB_CONNECTION_STRING` | Yes, unchanged format | Uses hostname `database`, not `localhost` - already correct for Docker networking, nothing to change here |
-| `NODE_ENV` | Yes (`development`) | See §6 - only revisit if you decide to switch to a production build |
+| `NODE_ENV` | Yes (`development`) | Only revisit if that ever meaningfully affects the backend's runtime behavior - unrelated to the frontend's dev-server-vs-production-build change in §7a, which is a separate `ui/Dockerfile` concern, not a `NODE_ENV` toggle |
 | `COIN_GECKO_API_KEY` | Yes | Copy the same key over |
 | `PORT` | **New** - set to `4001` | Backend's own listen port |
-| `REACT_APP_API_BASE_URL` | **New** - change to VM1's Tailscale address | See §2 - the one value that's genuinely different on the server |
+| `REACT_APP_API_BASE_URL` | **New** - `https://segla-api.keylimedesigns.dev` | See §2 - a build-time value now, not a runtime one. Same value on VM1 as in this repo's own `.env` (already set for Caddy, not Tailscale) |
 
 ---
 
 ## 6. Things that will NOT break (verified or by design) - short version
 
 - **CORS**: `origin: "*"` in `server/src/app.js` already allows any origin, so
-  reaching the backend from a browser on a different machine than the
-  backend itself (the whole point of this move) isn't blocked by CORS. No
-  change needed.
+  the browser calling `segla-api.keylimedesigns.dev` while the page itself
+  is served from `segla.keylimedesigns.dev` (two different origins) isn't
+  blocked by CORS. No change needed.
 - **`DB_CONNECTION_STRING`'s use of the Docker service name `database`**:
   already correct, not a `localhost` reference, works identically on VM1.
 - **`docker-compose.yaml`'s Docker network name** (`finance-app_network1`,
-  auto-prefixed from this directory's name): cosmetic only. If you deploy
-  into a differently-named directory on VM1 (the charter suggests
-  `/opt/segla/`), the network just gets renamed to match - doesn't affect
-  anything since nothing hardcodes the network name.
-- **The dev server running in Docker instead of a production build**: see
-  §7 below - not a migration blocker, just a known inefficiency.
+  auto-prefixed from this directory's name): cosmetic only. Deploying into
+  `/opt/segla` per the charter's convention renames it to
+  `segla_network1` - that's the name you join Caddy to in §8, doesn't
+  affect anything else since nothing hardcodes the network name.
 
 ---
 
 ## 7. Things that WILL break or need a decision - the real risk list
 
-### 7a. CSV export writes to a Windows-only path - FIXED
+### 7a. Frontend dev server behind a real domain - FIXED (switched to production build)
+
+`ui/Dockerfile` used to run `react-scripts start` (CRA's dev server,
+webpack-dev-server underneath) indefinitely in the container. That's fine
+reached at `localhost` or even a Tailscale IP, but webpack-dev-server
+rejects requests carrying an unrecognized `Host` header by default
+("Invalid Host header") - and once this app is reachable *only* through
+Caddy at `segla.keylimedesigns.dev`, every request arrives with exactly
+that kind of Host header. This was optional-to-fix under the original
+Tailscale-address plan; it stopped being optional the moment Caddy-only
+access was decided.
+
+Fixed: `ui/Dockerfile` is now a two-stage build - `npm run build` produces
+a static bundle, then a slim stage serves it with `serve` on port 4000.
+No dev server running in production, no Host-header rejection possible,
+and it's lighter on memory/CPU for an always-on deployment besides. See §2
+for the one behavior change this brings: `REACT_APP_API_BASE_URL` is now
+baked in at build time.
+
+**Verified locally (2026-09-08):** built the image, ran it standalone, and
+confirmed both an HTTP 200 on `/` and that
+`segla-api.keylimedesigns.dev` is actually present in the compiled JS
+bundle (`grep` against `build/static/js/*.js` inside the built image).
+
+### 7b. CSV export writes to a Windows-only path - FIXED
 
 `server/src/controllers/notesController.js`'s `exportCSV` used to write
 budget CSVs to a path built from `process.env.USERPROFILE` (a Windows
@@ -223,7 +251,7 @@ identically regardless of where the backend runs - the OneDrive bind-mount
 line and the `windowsDocsPath()`/`fs`/`path`/`os` code are gone entirely.
 Verified locally: an export now downloads a real CSV through the browser.
 
-### 7b. Directory/volume permissions
+### 7c. Directory/volume permissions
 
 `./database`'s bind-mount needs to exist and be writable by whatever UID the
 `postgres:14` image's container runs as. This "just works" on WSL because
@@ -235,43 +263,168 @@ directory appropriately or let Docker create it fresh (letting the first
 `docker compose up` create `./database` itself, before you `pg_restore` into
 it, tends to get ownership right automatically).
 
+### 7d. Local dev/testing loses its browser-reachable localhost URLs
+
+Because `frontend`/`server` no longer publish `ports:` at all (§1), running
+`docker compose up` on this laptop for local testing no longer gets you
+anything at `localhost:4000`/`localhost:4001` - there's no Caddy in front of
+it here. If you want to keep testing changes locally in a browser before
+deploying: temporarily add the `ports:` lines back (the comments left in
+`docker-compose.yaml` show the exact syntax) - just don't commit that
+change, or use an uncommitted `docker-compose.override.yml` (Compose
+auto-merges it) so it never accidentally ships to VM1. Not a blocker for
+this move, just a workflow change worth knowing about going in.
+
 ---
 
-## 8. Optional, not required for the move
+## 8. Caddy integration (new - required for this migration, not a follow-up)
 
-- **Switch from `react-scripts start` (dev server) to a production build.**
-  Right now the frontend container runs the CRA dev server indefinitely -
-  fine for a single always-on personal app, but heavier (memory, rebuild
-  time) and less optimized than `npm run build` served by something like
-  `serve` or nginx. Worth doing eventually for an always-on deployment, not
-  a blocker for the initial move - the dev server works fine 24/7, just
-  isn't the most efficient choice.
-- **Node 18 base image** (already on `server/Dockerfile` from the earlier
-  Redux migration work) - no action needed, just noting it's already
-  server-ready.
-- **Bump `postgres:14` to a newer tag** if VM1's other apps standardize on a
-  newer Postgres version - only worth doing if there's already a reason to,
-  not something this move requires.
+Segla is Caddy-only from day one on VM1 - no Tailscale-address access path
+exists for this app. Follow `Adding a New Service Behind Caddy.md`'s
+Pattern 1 (no host port publish); the specifics for this app:
+
+**Two hostnames, not one** - unlike single-container services (Nextcloud,
+HA), Segla's browser-side JS calls the backend directly, so both pieces
+need their own Caddy-fronted hostname:
+
+| Hostname | Proxies to | Notes |
+|---|---|---|
+| `segla.keylimedesigns.dev` | `frontend:4000` | What you actually browse to |
+| `segla-api.keylimedesigns.dev` | `server:4001` | What the browser's JS calls - see §2 |
+
+**1. Join Caddy to Segla's network** - in `/opt/caddy/docker-compose.yml`:
+
+```yaml
+services:
+  caddy:
+    networks:
+      - nextcloud_default   # existing
+      - segla_network1      # add this (project name segla + network1, see §6)
+      - caddy_net
+
+networks:
+  segla_network1:
+    external: true
+```
+
+**2. Caddyfile blocks** - append to `/opt/caddy/Caddyfile` (after the global
+options block, if any - see the template's parsing warning):
+
+```
+segla.keylimedesigns.dev {
+    reverse_proxy frontend:4000
+    log {
+        output file /var/log/caddy/segla.access.log
+        format json
+    }
+}
+
+segla-api.keylimedesigns.dev {
+    reverse_proxy server:4001
+    log {
+        output file /var/log/caddy/segla-api.access.log
+        format json
+    }
+}
+```
+
+Add these **only once Segla is actually deployed and running** - a block
+pointing at a container that doesn't exist yet is a live door with none of
+Segla's own protections the moment something with that name does start
+(see the template's warning). Reload after adding:
+
+```bash
+cd /opt/caddy
+sudo docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
+```
+
+**3. DNS - both hostnames, both records:**
+
+- Public A record for `segla` and `segla-api`, both pointed at the same
+  public IPv4 as every other hostname (see `Hardware Stack.md` for the
+  current value - it changes; DDNS keeps it current, next step).
+- Local DNS override on the GL.iNet Flint 2 (LuCI: Network → DHCP and DNS →
+  Resolv and Hosts Files → **Addresses** field, not Hosts):
+  ```
+  /segla.keylimedesigns.dev/10.0.0.45
+  /segla-api.keylimedesigns.dev/10.0.0.45
+  ```
+  (replace `10.0.0.45` with VM1's actual reserved LAN IP.) Without this,
+  every LAN device - including phones on home WiFi - hits a NAT-hairpin
+  failure resolving to the public IP instead. Verify:
+  ```bash
+  dig @10.0.0.1 segla.keylimedesigns.dev
+  dig @10.0.0.1 segla-api.keylimedesigns.dev
+  ```
+
+**4. Add both hostnames to `ddclient`** - `/etc/ddclient.conf` on VM1, same
+comma-separated host list, same Porkbun block, don't create a second block:
+
+```
+nextcloud.keylimedesigns.dev,ha.keylimedesigns.dev,inbox.keylimedesigns.dev,segla.keylimedesigns.dev,segla-api.keylimedesigns.dev
+```
+
+Then verify in the foreground, not a silent restart:
+
+```bash
+sudo systemctl restart ddclient
+sudo ddclient -daemon=0 -verbose -noquiet
+```
+
+Confirm both new hostnames specifically show a successful update (or "no
+update needed").
+
+**5. App-side proxy awareness** - checked, nothing to configure. Segla has
+no trusted-hostname allowlist, no `overwriteprotocol`/`trusted_proxies`
+equivalent, and CORS is already `origin: "*"` (§6). The one thing that
+*did* need proxy-awareness work was the frontend dev server's Host-header
+check - already handled by the production-build switch in §7a, not by
+anything Caddy-side.
+
+**6. fail2ban** - Segla has no authentication (single-user, family-only,
+no login screen) - the template's Step 5 doesn't apply here. Skip it,
+same as it's skipped for anything else in this stack with no auth surface.
+
+**7. External verification** - from cellular data, off home WiFi:
+
+```bash
+curl -I https://segla.keylimedesigns.dev
+curl -I https://segla-api.keylimedesigns.dev
+```
+
+Valid cert, no warnings, `200`/expected response on both.
 
 ---
 
 ## 9. Deployment checklist (do in this order)
 
-- [ ] On VM1: `git clone git@github.com:ag1320/segla.git /opt/segla` (or
-      wherever the charter's directory convention lands)
+- [ ] On VM1: `git clone git@github.com:ag1320/segla.git /opt/segla`
 - [ ] Create `/opt/segla/.env` by hand (§5 table) - copy secrets from this
       machine's `.env` via a secure channel (NordPass note, not Slack/email),
-      don't commit it
+      don't commit it. `REACT_APP_API_BASE_URL` should already read
+      `https://segla-api.keylimedesigns.dev` per §2/§5 - confirm it, don't
+      assume
 - [ ] `docker compose up -d` on VM1 - confirm all three containers start,
-      confirm `knex migrate:latest` runs cleanly against the fresh DB
+      confirm `knex migrate:latest` runs cleanly against the fresh DB, and
+      that `frontend`/`server` came up with **no** `ports:` published
+      (`docker compose ps` should show no host-port mapping for either)
 - [ ] Run the `pg_dump`/`pg_restore` steps from §4
-- [ ] Update `REACT_APP_API_BASE_URL` in `/opt/segla/.env` to VM1's
-      Tailscale address, restart the `frontend` container
-- [ ] From your laptop, over Tailscale: load the frontend URL, confirm real
-      data displays (Home page totals are the fastest sanity check - compare
-      a number or two against what you see on the laptop version right now)
-- [ ] Update `Software Stack.md`'s VM1 Port Map: mark 4000/4001 as Segla,
-      move Segla's row from "Planned" to "Active" with the real ports
+- [ ] From VM1 itself, sanity-check both containers respond over the
+      internal Docker network before involving Caddy/DNS at all:
+      `docker exec caddy wget -qO- http://frontend:4000` and
+      `http://server:4001/<some real route>` (adjust for whatever routes
+      exist) - isolates "the app itself is broken" from "Caddy/DNS is
+      broken" if something doesn't work later
+- [ ] Do §8 in full: join Caddy to `segla_network1`, add both Caddyfile
+      blocks, both DNS records (public + local override), both ddclient
+      entries
+- [ ] From your laptop, over cellular (off home WiFi): load
+      `https://segla.keylimedesigns.dev`, confirm real data displays (Home
+      page totals are the fastest sanity check - compare a number or two
+      against what you see on the laptop version right now)
+- [ ] Update `Software Stack.md`'s VM1 Port Map: mark 4000/4001 as Segla
+      (not host-exposed), move Segla's row from "Planned" to "Active" with
+      the real hostnames
 - [ ] Decommission the laptop/WSL copy once you've confirmed the server
       copy is solid - don't run both against the same restored data
       simultaneously (two backends writing to two different Postgres

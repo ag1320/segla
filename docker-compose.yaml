@@ -21,9 +21,12 @@ services:
     networks:
       - network1
     build: ./server
-    ports:
-      - "4001:4001"
     container_name: server
+    # Not exposed to the host - reachable only via Caddy, which joins this
+    # network (segla_network1 once deployed under /opt/segla) and proxies
+    # segla-api.keylimedesigns.dev to this container's PORT. See
+    # SERVER_MIGRATION.md's Caddy section. To reach it directly for
+    # debugging, temporarily add back `ports: ["${PORT}:${PORT}"]`.
     depends_on:
       - database
     environment:
@@ -36,18 +39,21 @@ services:
   frontend:
     networks:
       - network1
-    build: ./ui
-    ports:
-      - "4000:4000"
+    build:
+      context: ./ui
+      args:
+        # CRA inlines REACT_APP_* vars at build time, not container start,
+        # now that this is a production build (see ui/Dockerfile) - the
+        # value has to reach `npm run build` as a build arg, not just an
+        # environment/env_file entry the running container would see.
+        REACT_APP_API_BASE_URL: ${REACT_APP_API_BASE_URL}
     container_name: frontend
+    # Not exposed to the host - reachable only via Caddy, which joins this
+    # network and proxies segla.keylimedesigns.dev to this container's
+    # port 4000. See SERVER_MIGRATION.md's Caddy section. To reach it
+    # directly for debugging, temporarily add back `ports: ["4000:4000"]`.
     depends_on:
       - server
-    environment:
-      PORT: 4000
-    env_file: ".env"
-    volumes:
-      - ./ui:/app
-      - /app/node_modules
 
 networks:
   network1:
