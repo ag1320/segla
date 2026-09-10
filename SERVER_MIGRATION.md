@@ -6,7 +6,11 @@ Written 2026-08-23, revised 2026-09-08 to make Caddy the *only* access path
 AUTH.md) - §5, §6, and §8 items 5-6 all changed as a result: `NODE_ENV`
 went from cosmetic to load-bearing, CORS went from wildcard to an
 explicit allowlist, and fail2ban's "skip it, no auth surface" note no
-longer applies. Companion to the homelab vault's
+longer applies - and revised a second time the same day to fix both
+Dockerfiles for real production use (new §9): dropped the `server` bind
+mount that was overlaying the image's own install, moved `nodemon` out of
+production, bumped both images off EOL Node versions, and fixed an OpenSSL
+3/webpack incompatibility that bump surfaced. Companion to the homelab vault's
 `Software Stack.md` and `homelab_charter.md` (Segla + Strata Games section) -
 read those for the *why*, this file is the *how*, specific to this repo.
 
@@ -186,7 +190,7 @@ it there by hand. Full picture:
 | `NODE_ENV` | **No - set to `production`** | Revised 2026-09-09: this used to be "leave at development always, revisit only if it meaningfully affects backend behavior." It now does - see AUTH.md. It controls whether the login cookie gets the `Secure` flag (no `Secure` means the browser will refuse to send it back over Caddy's HTTPS, i.e. login silently doesn't work) and knex's debug-logging/pool settings (`server/src/knexfile.js`). Get this wrong and either login breaks or every SQL query gets logged in full. |
 | `COIN_GECKO_API_KEY` | Yes | Copy the same key over |
 | `AUTH_USERNAME` | **New** | See AUTH.md |
-| `AUTH_PASSWORD_HASH` | **New** | See AUTH.md - generate with `npm run hash-password` in `server/`, don't hand-write one |
+| `AUTH_PASSWORD_HASH` | **New** | See AUTH.md - generate with `npm run hash-password` in `server/`, don't hand-write one. **Use the escaped output the script prints, not the raw hash** - unescaped `$` in a bcrypt hash gets silently truncated by Compose's `.env` parsing (confirmed hitting this for real on VM1's first deploy, 2026-09-09) |
 | `JWT_SECRET` | **New - do not reuse this machine's value** | Generate a fresh one for VM1: `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` - see AUTH.md |
 | `CORS_ORIGIN` | **New** - `https://segla.keylimedesigns.dev` | See §6 - replaces the old wildcard CORS now that the API sits behind a login and credentialed requests are involved |
 | `PORT` | **New** - set to `4001` | Backend's own listen port |
@@ -418,8 +422,39 @@ Valid cert, no warnings, `200`/expected response on both.
 
 ---
 
-## 9. Deployment checklist (do in this order)
+## 9. Docker production builds (added 2026-09-09)
 
+`server/Dockerfile` and `ui/Dockerfile` were both dev-shaped until now - fixed as part of the same pass that added auth, since a server reachable at a public domain deserves a real production container, not a dev convenience one.
+
+**`server`:** was a single-stage `RUN npm install` + `CMD npm start` (which ran `nodemon`), combined with a `docker-compose.yaml` bind mount (`./server:/app`) that overlaid the image's own `node_modules` with whatever was on the host disk at container start - meaning the image's own install was close to pointless; what actually ran was whatever the host happened to have. Fixed:
+- Two-stage build: `npm ci --omit=dev` against `package-lock.json` in a `deps` stage, copied into the runtime stage - reproducible, and `nodemon` (moved to `devDependencies`) never ships.
+- **Bind mount removed from `docker-compose.yaml`** - the image's own `COPY`'d code and installed `node_modules` are what run now, matching how `frontend` already worked. **Trade-off:** no more live-reload through Docker. Edit server code, then `docker compose restart server` (or `docker compose up -d --build server` if `package.json` changed). For nodemon-based live-reload, run `npm run dev` directly on the host instead - that script still exists for exactly this.
+- Runs as the built-in non-root `node` user (`USER node`, with `COPY --chown=node:node`).
+- Added `server/.dockerignore` (`node_modules`, `.env`, `.git`) - `COPY . /app` was pulling the host's own `node_modules` into the build context before `npm ci` overwrote it.
+- `node:18-alpine` → `node:24-alpine` - 18 went EOL April 2025, no security patches since.
+- **Verified for real:** built and ran the image standalone (`docker build` + `docker run`, not just `node` on the host) - confirmed non-root (`whoami` → `node`), confirmed a clean, fast failure (not a hang) when the DB is unreachable, confirmed the full login → `/auth/me` → logout flow works inside the actual container. Deliberately did **not** test it against the real `database` service/bind-mounted data - do that yourself when ready, it's real financial data.
+
+**`ui`:** already a proper two-stage production build from the 2026-09-08 revision (§7a) - only change here is `node:14-alpine` → `node:24-alpine` (14 went EOL April 2023, further overdue than the backend's). **This surfaced a real, known incompatibility, not a hypothetical:** `react-scripts`' bundled webpack still hashes with MD4, which OpenSSL 3 (default since Node 17) rejects outright - `error:0308010C:digital envelope routines::unsupported`. Fixed with `ENV NODE_OPTIONS=--openssl-legacy-provider` on the build stage only (does not carry into the runtime `serve` stage - separate `FROM`). **Verified for real:** rebuilt after the fix, `Compiled successfully`, ran the resulting container, confirmed HTTP 200 on `/` and confirmed `segla-api.keylimedesigns.dev` is actually present in the compiled bundle.
+
+If Strata Games' Dockerfiles have the same shape (single-stage `npm install`, a bind mount, `nodemon` in prod dependencies, an old pinned Node version), expect the same three fixes and the same OpenSSL surprise if it also bumps past Node 16. See [[Documentation/Security/Securing a Node-Express-React App Before It Goes Public.md]] for the generalized version of this section.
+
+### 9a. Two things found on VM1's actual first deploy (2026-09-09, same day)
+
+**`AUTH_PASSWORD_HASH` got silently truncated.** bcrypt hashes are full of literal `$` characters (`$2b$12$restofhash...`). Docker Compose parses `.env` files and treats an unescaped `$name` as a variable reference to substitute - `docker compose logs` showed `WARN ... variable is not set. Defaulting to a blank string` for what turned out to be a fragment of the hash, and the value the container actually received was truncated to just `$2b$12` (everything after the second `$` silently stripped). **Confirmed by reproducing it locally** against a minimal `docker-compose.yaml`, not just inferred from the log. Fix: every `$` in `AUTH_PASSWORD_HASH`'s value must be written as `$$` in `.env`. `npm run hash-password` (`server/scripts/hashPassword.js`) now prints the correctly-escaped version directly - use that output, not the raw hash it also prints for reference. See AUTH.md.
+
+**`server` raced Postgres on first boot and stayed dead.** A fresh `database` volume means Postgres runs `initdb` before it's ready to accept connections - a few seconds, but `depends_on: - database` (bare list form) only waits for the *container* to start, not for Postgres inside it to be ready. `server`'s `CMD` (`knex migrate:latest && node src/app.js`) lost that race once and exited on `ECONNREFUSED`, and with no `restart:` policy on any service, it just stayed exited. Fixed: added `restart: unless-stopped` to all three services in `docker-compose.yaml` - Compose now retries automatically instead of requiring someone to notice and run `docker compose up -d` by hand.
+
+---
+
+## 10. Deployment checklist (do in this order)
+
+- [ ] **VM1 needs `docker` and `docker compose` installed - nothing else.**
+      No Node/npm on the host is required for anything in this doc as of §9 -
+      `docker compose build` installs everything inside the image. If you
+      need to generate `AUTH_PASSWORD_HASH` or `JWT_SECRET` and don't want
+      to install Node on VM1 for it, generate both on your laptop (or any
+      machine with Node) and copy just the resulting values into VM1's
+      `.env` - see AUTH.md
 - [ ] On VM1: `git clone git@github.com:ag1320/segla.git /opt/segla`
 - [ ] Create `/opt/segla/.env` by hand (§5 table) - copy secrets from this
       machine's `.env` via a secure channel (NordPass note, not Slack/email),

@@ -35,10 +35,18 @@ close.
    npm run hash-password
    # paste the password when prompted
    ```
-3. Put the output in `.env`:
+3. Put the output in `.env` - **use the script's escaped output, not the
+   raw hash it also prints for reference.** Docker Compose parses `.env`
+   files and treats an unescaped `$name` as a variable reference to
+   substitute - since bcrypt hashes are full of literal `$` characters
+   (`$2b$12$restofhash...`), pasting the raw hash gets it silently
+   truncated with no error, just a `"... variable is not set"` warning in
+   `docker compose logs`. Confirmed by hitting this for real on VM1's first
+   deploy, 2026-09-09 - not a hypothetical. The script (`hash-password`)
+   already prints the correctly-escaped version - use that one:
    ```
    AUTH_USERNAME=whatever-you-picked
-   AUTH_PASSWORD_HASH=<the bcrypt hash from step 2>
+   AUTH_PASSWORD_HASH=<the ESCAPED hash from step 2 - every $ doubled to $$>
    ```
 4. `JWT_SECRET` is already set in this machine's `.env` (a random value was
    generated as part of adding this). **Generate a separate, unique one for
@@ -52,7 +60,8 @@ close.
 
 ## Rotating the password
 
-Same as steps 1-2 above, then update `AUTH_PASSWORD_HASH` in `.env` and
+Same as steps 1-2 above, then update `AUTH_PASSWORD_HASH` in `.env` (again,
+the escaped version - see the `$$` note above) and
 restart the server. Existing sessions (anyone already logged in) stay valid
 until their cookie expires (7 days) or they log out - rotating the password
 doesn't invalidate already-issued tokens. To force everyone out immediately,

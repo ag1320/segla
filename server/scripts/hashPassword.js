@@ -24,5 +24,22 @@ if (!password) {
 }
 
 const hash = await bcrypt.hash(password, 12);
-console.log("\nAdd this to your .env:\n");
-console.log(`AUTH_PASSWORD_HASH=${hash}`);
+
+// bcrypt hashes always contain literal `$` characters (they delimit the
+// version/cost/salt fields: $2b$12$restofhash...). Docker Compose parses
+// .env files and treats an unescaped `$name` as a variable reference to
+// substitute - silently truncating the hash and replacing the removed
+// part with an empty string (confirmed by actually reproducing this
+// against a real docker-compose.yaml on 2026-09-09, not just in theory).
+// A literal `$` in a Compose-read .env file must be written as `$$`.
+const escapedForEnvFile = hash.replaceAll("$", "$$");
+
+console.log("\nAdd this to your .env (this exact line - $ is doubled to $$");
+console.log("on purpose, so Docker Compose doesn't mangle it):\n");
+console.log(`AUTH_PASSWORD_HASH=${escapedForEnvFile}`);
+console.log(
+  "\n(Raw hash, for reference/verification only - do NOT paste this one\n" +
+    "into a Compose-read .env file:\n" +
+    hash +
+    ")",
+);

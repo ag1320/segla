@@ -1,7 +1,7 @@
-version: "3"
 services:
   database:
     image: "postgres:14"
+    restart: unless-stopped
     volumes:
       - ./database:/var/lib/postgresql/data
     networks:
@@ -22,6 +22,17 @@ services:
       - network1
     build: ./server
     container_name: server
+    # `restart: unless-stopped` matters here specifically: on a fresh
+    # `database` volume, Postgres's first-time initdb takes a few seconds,
+    # and `depends_on: - database` (this bare list form) only waits for the
+    # database *container* to start, not for Postgres inside it to actually
+    # be ready to accept connections - so `knex migrate:latest` (this
+    # image's CMD, before `node src/app.js` runs) can lose that race on
+    # first boot and exit with ECONNREFUSED. Without a restart policy that
+    # exit is permanent until someone notices and reruns `docker compose up
+    # -d` by hand. With it, Compose just retries until the DB is actually
+    # ready - confirmed this is a real race, not hypothetical, 2026-09-09.
+    restart: unless-stopped
     # Not exposed to the host - reachable only via Caddy, which joins this
     # network (segla_network1 once deployed under /opt/segla) and proxies
     # segla-api.keylimedesigns.dev to this container's PORT. See
@@ -53,6 +64,7 @@ services:
         # environment/env_file entry the running container would see.
         REACT_APP_API_BASE_URL: ${REACT_APP_API_BASE_URL}
     container_name: frontend
+    restart: unless-stopped
     # Not exposed to the host - reachable only via Caddy, which joins this
     # network and proxies segla.keylimedesigns.dev to this container's
     # port 4000. See SERVER_MIGRATION.md's Caddy section. To reach it
