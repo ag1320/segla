@@ -32,8 +32,13 @@ services:
     environment:
       DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
       PORT: ${PORT}
-    volumes:
-      - ./server:/app
+    # No bind mount (revised 2026-09-09 - see AUTH.md / SERVER_MIGRATION.md):
+    # the image's own COPY'd code and npm-ci'd node_modules are what run
+    # now, matching how the frontend service already works. Editing server
+    # code requires `docker compose restart server` (or `docker compose up
+    # -d --build server` if package.json changed) to pick up the change -
+    # no live-reload. For nodemon-based live-reload, run `npm run dev`
+    # directly on the host instead of through this container.
     env_file: ".env"
 
   frontend:

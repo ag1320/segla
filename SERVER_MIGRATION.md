@@ -2,7 +2,11 @@
 
 Written 2026-08-23, revised 2026-09-08 to make Caddy the *only* access path
 (no Tailscale-address fallback — this app is reached exclusively at
-`segla.keylimedesigns.dev`). Companion to the homelab vault's
+`segla.keylimedesigns.dev`), revised again 2026-09-09 to add auth (see
+AUTH.md) - §5, §6, and §8 items 5-6 all changed as a result: `NODE_ENV`
+went from cosmetic to load-bearing, CORS went from wildcard to an
+explicit allowlist, and fail2ban's "skip it, no auth surface" note no
+longer applies. Companion to the homelab vault's
 `Software Stack.md` and `homelab_charter.md` (Segla + Strata Games section) -
 read those for the *why*, this file is the *how*, specific to this repo.
 
@@ -179,8 +183,12 @@ it there by hand. Full picture:
 | `DB_NAME` | Yes | |
 | `DB_PORT` | Yes (`5432`) | Still used internally for `DB_CONNECTION_STRING` even though it's no longer host-exposed - don't delete it |
 | `DB_CONNECTION_STRING` | Yes, unchanged format | Uses hostname `database`, not `localhost` - already correct for Docker networking, nothing to change here |
-| `NODE_ENV` | Yes (`development`) | Only revisit if that ever meaningfully affects the backend's runtime behavior - unrelated to the frontend's dev-server-vs-production-build change in §7a, which is a separate `ui/Dockerfile` concern, not a `NODE_ENV` toggle |
+| `NODE_ENV` | **No - set to `production`** | Revised 2026-09-09: this used to be "leave at development always, revisit only if it meaningfully affects backend behavior." It now does - see AUTH.md. It controls whether the login cookie gets the `Secure` flag (no `Secure` means the browser will refuse to send it back over Caddy's HTTPS, i.e. login silently doesn't work) and knex's debug-logging/pool settings (`server/src/knexfile.js`). Get this wrong and either login breaks or every SQL query gets logged in full. |
 | `COIN_GECKO_API_KEY` | Yes | Copy the same key over |
+| `AUTH_USERNAME` | **New** | See AUTH.md |
+| `AUTH_PASSWORD_HASH` | **New** | See AUTH.md - generate with `npm run hash-password` in `server/`, don't hand-write one |
+| `JWT_SECRET` | **New - do not reuse this machine's value** | Generate a fresh one for VM1: `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` - see AUTH.md |
+| `CORS_ORIGIN` | **New** - `https://segla.keylimedesigns.dev` | See §6 - replaces the old wildcard CORS now that the API sits behind a login and credentialed requests are involved |
 | `PORT` | **New** - set to `4001` | Backend's own listen port |
 | `REACT_APP_API_BASE_URL` | **New** - `https://segla-api.keylimedesigns.dev` | See §2 - a build-time value now, not a runtime one. Same value on VM1 as in this repo's own `.env` (already set for Caddy, not Tailscale) |
 
@@ -188,10 +196,16 @@ it there by hand. Full picture:
 
 ## 6. Things that will NOT break (verified or by design) - short version
 
-- **CORS**: `origin: "*"` in `server/src/app.js` already allows any origin, so
-  the browser calling `segla-api.keylimedesigns.dev` while the page itself
-  is served from `segla.keylimedesigns.dev` (two different origins) isn't
-  blocked by CORS. No change needed.
+- **CORS**: revised 2026-09-09 - this used to be `origin: "*"`, which was fine
+  for cross-origin `segla-api.keylimedesigns.dev` calls from
+  `segla.keylimedesigns.dev` but can't be combined with the credentialed
+  (cookie-carrying) requests auth now requires - browsers reject
+  `Access-Control-Allow-Origin: *` together with credentials. Now reads
+  `CORS_ORIGIN` from `.env` (comma-separated origin list) and reflects only
+  an allowed origin, with `credentials: true`. **Set
+  `CORS_ORIGIN=https://segla.keylimedesigns.dev` in VM1's `.env`** - the
+  code's own default only covers local dev (`localhost:3000`/`:4000`) and
+  login will fail with a CORS error, not an auth error, if this is missed.
 - **`DB_CONNECTION_STRING`'s use of the Docker service name `database`**:
   already correct, not a `localhost` reference, works identically on VM1.
 - **`docker-compose.yaml`'s Docker network name** (`finance-app_network1`,
@@ -374,16 +388,24 @@ sudo ddclient -daemon=0 -verbose -noquiet
 Confirm both new hostnames specifically show a successful update (or "no
 update needed").
 
-**5. App-side proxy awareness** - checked, nothing to configure. Segla has
-no trusted-hostname allowlist, no `overwriteprotocol`/`trusted_proxies`
-equivalent, and CORS is already `origin: "*"` (§6). The one thing that
-*did* need proxy-awareness work was the frontend dev server's Host-header
-check - already handled by the production-build switch in §7a, not by
-anything Caddy-side.
+**5. App-side proxy awareness** - revised 2026-09-09: the backend now calls
+`app.set("trust proxy", 1)` (`server/src/app.js`), so it reads the real
+client IP from Caddy's `X-Forwarded-For` instead of treating every request
+as coming from Caddy itself - matters for `/auth/login`'s rate limiter,
+which keys on IP. Beyond that, still nothing to configure: no
+trusted-hostname allowlist, no other `trusted_proxies` equivalent. CORS is
+no longer `origin: "*"` - see §6, and confirm `CORS_ORIGIN` is set in VM1's
+`.env` before testing login. The one thing that *did* need proxy-awareness
+work was the frontend dev server's Host-header check - already handled by
+the production-build switch in §7a, not by anything Caddy-side.
 
-**6. fail2ban** - Segla has no authentication (single-user, family-only,
-no login screen) - the template's Step 5 doesn't apply here. Skip it,
-same as it's skipped for anything else in this stack with no auth surface.
+**6. fail2ban** - revised 2026-09-09: Segla now has a login (see AUTH.md).
+The app already rate-limits `/auth/login` itself (5 attempts/15min/IP), which
+covers the brute-force case without needing fail2ban. Wiring fail2ban to
+also watch Caddy's `segla-api.access.log` for repeated `401`s is a
+reasonable optional hardening step (matches the template's Step 5) if you
+want it, but isn't required the way it would be for a service with no
+app-layer rate limiting at all.
 
 **7. External verification** - from cellular data, off home WiFi:
 
@@ -403,7 +425,13 @@ Valid cert, no warnings, `200`/expected response on both.
       machine's `.env` via a secure channel (NordPass note, not Slack/email),
       don't commit it. `REACT_APP_API_BASE_URL` should already read
       `https://segla-api.keylimedesigns.dev` per §2/§5 - confirm it, don't
-      assume
+      assume. **Do not just copy `JWT_SECRET` from this machine's `.env`** -
+      generate a fresh one for VM1 (§5, AUTH.md). Set `NODE_ENV=production`
+      and `CORS_ORIGIN=https://segla.keylimedesigns.dev` (both new
+      requirements, not just copied values - see §5/§6). Set
+      `AUTH_USERNAME`/`AUTH_PASSWORD_HASH` per AUTH.md - the server refuses
+      to boot without all of these set, so a missed one fails loudly at
+      `docker compose up`, not silently at login time
 - [ ] `docker compose up -d` on VM1 - confirm all three containers start,
       confirm `knex migrate:latest` runs cleanly against the fresh DB, and
       that `frontend`/`server` came up with **no** `ports:` published
@@ -419,9 +447,11 @@ Valid cert, no warnings, `200`/expected response on both.
       blocks, both DNS records (public + local override), both ddclient
       entries
 - [ ] From your laptop, over cellular (off home WiFi): load
-      `https://segla.keylimedesigns.dev`, confirm real data displays (Home
-      page totals are the fastest sanity check - compare a number or two
-      against what you see on the laptop version right now)
+      `https://segla.keylimedesigns.dev`, confirm it redirects to `/login`
+      (not the dashboard - if it isn't asking you to log in, stop and figure
+      out why before doing anything else), log in, and confirm real data
+      displays (Home page totals are the fastest sanity check - compare a
+      number or two against what you see on the laptop version right now)
 - [ ] Update `Software Stack.md`'s VM1 Port Map: mark 4000/4001 as Segla
       (not host-exposed), move Segla's row from "Planned" to "Active" with
       the real hostnames

@@ -5,27 +5,28 @@ import {
   deleteVanguardBrokerage,
   patchVanguardBrokerage,
 } from "../controllers/vanguardBrokerageController.js";
+import { sendError } from "../utils/sendError.js";
 
 const router = Router();
 
 router.get("/vanguardBrokerage", (req, res) => {
   getVanguardBrokerage()
     .then((data) => res.status(200).send(data))
-    .catch((err) => res.status(403).send(err));
+    .catch((err) => sendError(res, err));
 });
 
 router.post("/vanguardBrokerage", (req, res) => {
   let { accountHolder, accountType, value } = req.body;
   postVanguardBrokerage(accountHolder, accountType, value)
     .then((data) => res.status(200).send(data))
-    .catch((err) => res.status(403).send(err));
+    .catch((err) => sendError(res, err));
 });
 
 router.delete("/vanguardBrokerage", (req, res) => {
   let { id } = req.query;
   deleteVanguardBrokerage(id)
     .then((data) => res.status(200).send(data))
-    .catch((err) => res.status(403).send(err));
+    .catch((err) => sendError(res, err));
 });
 
 router.patch("/vanguardBrokerage", (req, res) => {
@@ -48,9 +49,7 @@ router.patch("/vanguardBrokerage", (req, res) => {
     id,
   )
     .then((data) => res.sendStatus(201))
-    .catch((err) => {
-      res.status(403).send(err);
-    });
+    .catch((err) => sendError(res, err));
 });
 
 export default router;

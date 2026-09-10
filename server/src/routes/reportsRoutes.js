@@ -4,6 +4,7 @@ import {
   getReportDataTotal,
   getReportDataWarningsAndLimits,
 } from "../controllers/reportsController.js";
+import { sendError } from "../utils/sendError.js";
 
 const router = Router();
 
@@ -13,7 +14,7 @@ router.get("/reportData", (req, res) => {
   if (reason === "total") {
     getReportDataTotal(startDateString, endDateString)
       .then((data) => res.status(200).send(data))
-      .catch((err) => res.status(403).send(err));
+      .catch((err) => sendError(res, err));
   } else if (reason === "warningsAndLimits") {
     getReportDataWarningsAndLimits(
       startDateString,
@@ -21,11 +22,11 @@ router.get("/reportData", (req, res) => {
       formattedCategories,
     )
       .then((data) => res.status(200).send(data))
-      .catch((err) => res.status(403).send(err));
+      .catch((err) => sendError(res, err));
   } else {
     getReportData(startDateString, endDateString, formattedCategories)
       .then((data) => res.status(200).send(data))
-      .catch((err) => res.status(403).send(err));
+      .catch((err) => sendError(res, err));
   }
 });
 

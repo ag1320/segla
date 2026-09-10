@@ -6,6 +6,48 @@ import axios from "axios";
 // to change - see SERVER_MIGRATION.md.
 const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:4001";
 
+// The API now requires a session cookie (see AUTH.md) - the frontend and
+// API live on different origins/ports (segla.* vs segla-api.*, or
+// localhost:3000 vs :4001), so the cookie only gets sent if every request
+// opts in to credentials. This is a global axios default rather than a
+// per-call option because every function below calls bare `axios.*`.
+axios.defaults.withCredentials = true;
+
+// Any *data* API call that comes back 401 means a previously-valid session
+// died mid-use (expired token, logged out in another tab). Bounce to
+// /login with a full reload (not react-router navigate - this file has no
+// router context, and it's the simplest thing that reliably works from a
+// module that plain functions/thunks call into).
+//
+// /auth/me and /auth/login are excluded: RequireAuth and Login already
+// handle their 401s through redux state without a page reload, so letting
+// this interceptor also fire for them would just add a redundant reload.
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const url = error.config?.url || "";
+    const isAuthEndpoint = url.includes("/auth/me") || url.includes("/auth/login");
+    if (error.response?.status === 401 && !isAuthEndpoint && window.location.pathname !== "/login") {
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  },
+);
+
+// AUTH
+async function login(username, password) {
+  const res = await axios.post(`${BASE_URL}/auth/login`, { username, password });
+  return res.data;
+}
+async function logout() {
+  const res = await axios.post(`${BASE_URL}/auth/logout`);
+  return res.data;
+}
+async function fetchCurrentUser() {
+  const res = await axios.get(`${BASE_URL}/auth/me`);
+  return res.data;
+}
+
 // VANGUARD RETIREMENT
 async function fetchVanguardRetirement() {
   const res = await axios.get(`${BASE_URL}/vanguardRetirement`);
@@ -331,6 +373,7 @@ async function fetchReportDataWarningsAndLimits(startDateString, endDateString, 
 }
 
 export {
+  login, logout, fetchCurrentUser,
   fetchVanguardRetirement, postVanguardRetirement, patchVanguardRetirement, deleteVanguardRetirement,
   fetchTsp, postTsp, patchTsp, deleteTsp,
   fetchVanguardBrokerage, postVanguardBrokerage, patchVanguardBrokerage, deleteVanguardBrokerage,

@@ -7,6 +7,7 @@ import {
 } from "../controllers/budgetController.js";
 import { postBudgetCategories, deleteBudgetCategories } from "../controllers/budgetCategoriesController.js";
 import { deleteNotes } from "../controllers/notesController.js";
+import { sendError } from "../utils/sendError.js";
 
 const router = Router();
 
@@ -14,7 +15,7 @@ router.post("/budget/check", (req, res) => {
   let { month, year } = req.body;
   checkBudget(month, year)
     .then((data) => res.status(200).send(data))
-    .catch((err) => res.status(403).send(err));
+    .catch((err) => sendError(res, err));
 });
 
 router.post("/budget", (req, res) => {
@@ -39,7 +40,7 @@ router.post("/budget", (req, res) => {
       }
       Promise.all(promisesBudgetCategories)
         .then((data) => res.status(201).send(data))
-        .catch((err) => res.status(403).send(err));
+        .catch((err) => sendError(res, err));
     });
   });
 });
@@ -53,7 +54,7 @@ router.delete("/budget", (req, res) => {
   budgetPromises.push(expensesPromise, categoriesPromise, notesPromise);
   Promise.all(budgetPromises)
     .then((data) => res.status(200).send(data))
-    .catch((err) => res.status(403).send(err));
+    .catch((err) => sendError(res, err));
 });
 
 export default router;

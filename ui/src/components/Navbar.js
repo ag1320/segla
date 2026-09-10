@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
 import { styled, useTheme } from "@mui/material/styles";
 import MuiAppBar from "@mui/material/AppBar";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -11,7 +12,9 @@ import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import SavingsIcon from '@mui/icons-material/Savings';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import SchoolIcon from '@mui/icons-material/School';
+import LogoutIcon from '@mui/icons-material/Logout';
 import logo from "../images/Segla.ico";
+import { logoutUser } from "../state/authSlice";
 import {
   Box,
   Toolbar,
@@ -76,7 +79,12 @@ const DrawerHeader = styled("div")(({ theme }) => ({
 
 export default function Navbar() {
   const theme = useTheme();
+  const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
+
+  const handleLogout = () => {
+    dispatch(logoutUser());
+  };
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -112,6 +120,15 @@ export default function Navbar() {
           <Typography component={"span"} style={{ marginLeft: 20 }}>
             Hi Gettemys, welcome to Segla!
           </Typography>
+          <IconButton
+            color="inherit"
+            aria-label="log out"
+            onClick={handleLogout}
+            sx={{ marginLeft: "auto" }}
+            title="Log out"
+          >
+            <LogoutIcon />
+          </IconButton>
         </Toolbar>
       </AppBar>
       <Drawer

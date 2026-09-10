@@ -6,6 +6,7 @@ import {
   getMonthlyVariedExpenses,
   deleteMonthlyVariedExpenses,
 } from "../controllers/monthlyExpensesController.js";
+import { sendError } from "../utils/sendError.js";
 
 const router = Router();
 
@@ -13,7 +14,7 @@ router.get("/monthlyExpenses", (req, res) => {
   let { month, year, type } = req.query;
   getMonthlyExpenses(month, year, type)
     .then((data) => res.status(200).send(data))
-    .catch((err) => res.status(403).send(err));
+    .catch((err) => sendError(res, err));
 });
 
 router.post("/monthlyExpenses", (req, res) => {
@@ -22,26 +23,23 @@ router.post("/monthlyExpenses", (req, res) => {
     .then((id) => {
       insertVariedExpense(id, amount, month, year)
         .then((data) => res.sendStatus(202))
-        .catch((err) => res.status(403).send(err));
+        .catch((err) => sendError(res, err));
     })
-    .catch((err) => res.status(403).send(err));
+    .catch((err) => sendError(res, err));
 });
 
 router.get("/monthlyVariedExpenses", (req, res) => {
   let { month, year, type } = req.query;
   getMonthlyVariedExpenses(month, year, type)
     .then((data) => res.status(200).send(data))
-    .catch((err) => {
-      console.log(err);
-      res.status(403).send(err);
-    });
+    .catch((err) => sendError(res, err));
 });
 
 router.delete("/monthlyVariedExpenses", (req, res) => {
   let { id } = req.query;
   deleteMonthlyVariedExpenses(id)
     .then((data) => res.status(200).send(data))
-    .catch((err) => res.status(403).send(err));
+    .catch((err) => sendError(res, err));
 });
 
 export default router;

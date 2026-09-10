@@ -6,13 +6,14 @@ import {
   deleteFixedExpense,
   insertFixedExpense,
 } from "../controllers/fixedExpensesController.js";
+import { sendError } from "../utils/sendError.js";
 
 const router = Router();
 
 router.get("/fixedExpenses", (req, res) => {
   getFixedExpenses()
     .then((data) => res.status(200).send(data))
-    .catch((err) => res.status(403).send(err));
+    .catch((err) => sendError(res, err));
 });
 
 router.patch("/fixedExpenses", (req, res) => {
@@ -22,21 +23,21 @@ router.patch("/fixedExpenses", (req, res) => {
       editFixedExpenseJen(category, oldCategory, jen);
     })
     .then((data) => res.status(200).send(data))
-    .catch((err) => res.status(403).send(err));
+    .catch((err) => sendError(res, err));
 });
 
 router.delete("/fixedExpenses", (req, res) => {
   let { category } = req.query;
   deleteFixedExpense(category)
     .then((data) => res.sendStatus(202))
-    .catch((err) => res.status(403).send(err));
+    .catch((err) => sendError(res, err));
 });
 
 router.post("/fixedExpenses", (req, res) => {
   let { category, aaron, jen } = req.body;
   insertFixedExpense(category, aaron, jen)
     .then((data) => res.sendStatus(202))
-    .catch((err) => res.status(403).send(err));
+    .catch((err) => sendError(res, err));
 });
 
 export default router;

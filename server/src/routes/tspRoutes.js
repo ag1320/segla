@@ -1,12 +1,13 @@
 import { Router } from "express";
 import { getTsp, postTsp, deleteTsp, patchTsp } from "../controllers/tspController.js";
+import { sendError } from "../utils/sendError.js";
 
 const router = Router();
 
 router.get("/tsp", (req, res) => {
   getTsp()
     .then((data) => res.status(200).send(data))
-    .catch((err) => res.status(403).send(err));
+    .catch((err) => sendError(res, err));
 });
 
 router.post("/tsp", (req, res) => {
@@ -29,14 +30,14 @@ router.post("/tsp", (req, res) => {
     ytdReturnPercentage,
   )
     .then((data) => res.status(200).send(data))
-    .catch((err) => res.status(403).send(err));
+    .catch((err) => sendError(res, err));
 });
 
 router.delete("/tsp", (req, res) => {
   let { id } = req.query;
   deleteTsp(id)
     .then((data) => res.status(200).send(data))
-    .catch((err) => res.status(403).send(err));
+    .catch((err) => sendError(res, err));
 });
 
 router.patch("/tsp", (req, res) => {
@@ -72,9 +73,7 @@ router.patch("/tsp", (req, res) => {
     id,
   )
     .then((data) => res.sendStatus(201))
-    .catch((err) => {
-      res.status(403).send(err);
-    });
+    .catch((err) => sendError(res, err));
 });
 
 export default router;

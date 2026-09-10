@@ -85,7 +85,16 @@ NODE_ENV=development
 
 # APIs
 COIN_GECKO_API_KEY=your_coingecko_api_key
+
+# Auth - the app requires login. See AUTH.md before first run.
+AUTH_USERNAME=
+AUTH_PASSWORD_HASH=
+JWT_SECRET=
+CORS_ORIGIN=http://localhost:3000,http://localhost:4000
 ```
+
+See `.env.example` for the full list and `AUTH.md` for how to generate
+`AUTH_PASSWORD_HASH` and `JWT_SECRET` - the server won't start without them.
 
 ### Running the Application
 
