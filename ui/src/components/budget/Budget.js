@@ -6,14 +6,12 @@ import RemainingBalance from "./RemainingBalance.js";
 import ConfrimIncomeDialog from "./ConfirmIncomeDialog.js";
 import ConfirmFixedDialog from "./ConfirmFixedDialog.js";
 import InstructionsDialog from "./InstructionsDialog.js";
-import ConfirmExportDialog from "./ConfirmExportDialog.js";
 import GenerateReportModal from "./GenerateReportModal.js";
 import ReportModal from "./ReportModal.js";
 import Donut from "../Donut.js";
 import FixedIncome from "./FixedIncome.js";
 import FixedExpenses from "./FixedExpenses.js";
 import DeleteIcon from "@mui/icons-material/Delete";
-import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import RemoveIcon from "@mui/icons-material/Remove";
 import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
@@ -27,7 +25,7 @@ import { loadFixedIncome } from "../../state/fixedIncomeSlice";
 import { loadCurrentBudgetCategories, loadBudgetCategories, clearSnapshotCategories } from "../../state/budgetCategoriesSlice";
 import { loadMonthlyIncome, clearMonthlyIncome } from "../../state/monthlyIncomeSlice";
 import { loadMonthlyFixedExpenses, loadMonthlyVariedExpenses, clearMonthlyExpenses } from "../../state/monthlyExpensesSlice";
-import { loadNotes, exportBudgetCSV, clearNotes } from "../../state/notesSlice";
+import { loadNotes, clearNotes } from "../../state/notesSlice";
 import { loadMonthEndDistributions, clearMonthEndDistributions } from "../../state/monthEndDistributionsSlice";
 import { setReason, setNewBudget, seedBudget, deleteBudgetMonth, toggleBudgetRefresh } from "../../state/budgetSlice";
 import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
@@ -42,7 +40,6 @@ export default function Budget() {
   const date = useSelector((state) => state.budget.date);
   const newBudget = useSelector((state) => state.budget.newBudget);
   const budgetRefresh = useSelector((state) => state.budget.budgetRefresh);
-  const notes = useSelector((state) => state.notes.items);
   const fixedIncome = useSelector((state) => state.fixedIncome.items);
   const fixedExpenses = useSelector((state) => state.fixedExpenses.items);
   const currentBudgetCategories = useSelector((state) => state.budgetCategories.currentCategories);
@@ -55,7 +52,6 @@ export default function Budget() {
   const [viewCategories, setViewCategories] = useState(false);
   const [viewGenerateReport, setViewGenerateReport] = useState(false);
   const [viewReport, setViewReport] = useState(false);
-  const [openConfirmExport, setOpenConfirmExport] = useState(false);
 
   const emptyComposition = {
     remaining: 1,
@@ -86,26 +82,6 @@ export default function Budget() {
 
   const handleDelete = () => {
     setConfirmDeleteBudget(true);
-  };
-
-  const handleExportCSV = (isExported) => {
-    let month = date?.toLocaleString("EN-US", { month: "long" });
-    let year = date?.getFullYear();
-    dispatch(exportBudgetCSV({ month, year, isExported }))
-      .unwrap()
-      .then(() => {
-        dispatch(setSnackbarSuccess(true));
-        dispatch(setReason("note"));
-      })
-      .catch(() => dispatch(setSnackbarError(true)));
-  };
-
-  const handleExportCSVClick = () => {
-    if (notes.filter((e) => e.title === "Exported").length > 0) {
-      setOpenConfirmExport(true);
-    } else {
-      handleExportCSV(false);
-    }
   };
 
   const handleViewCategories = () => setViewCategories(true);
@@ -147,11 +123,6 @@ export default function Budget() {
   return (
     <>
       <InstructionsDialog />
-      <ConfirmExportDialog
-        open={openConfirmExport}
-        setOpen={setOpenConfirmExport}
-        onConfirm={handleExportCSV}
-      />
       <ConfrimIncomeDialog
         open={newBudget}
         setOpen={(value) => dispatch(setNewBudget(value))}
@@ -255,26 +226,6 @@ export default function Budget() {
                       </Button>
                     </span>
                   </Tooltip>
-                  <Tooltip title={date ? "Export this month's budget as CSV" : "Select a month first"} arrow>
-                    <span>
-                      <Button
-                        disabled={!date}
-                        onClick={handleExportCSVClick}
-                        variant="outlined"
-                        startIcon={<ArticleOutlinedIcon />}
-                        size="small"
-                        sx={{
-                          color: "rgba(255,255,255,0.7)",
-                          borderColor: "rgba(255,255,255,0.25)",
-                          "&:hover": { borderColor: "rgba(255,255,255,0.6)", backgroundColor: "rgba(255,255,255,0.05)" },
-                          "&.Mui-disabled": { color: "rgba(255,255,255,0.15)", borderColor: "rgba(255,255,255,0.1)" },
-                        }}
-                      >
-                        Export CSV
-                      </Button>
-                    </span>
-                  </Tooltip>
-
                   <Box sx={{ flex: 1 }} />
 
                   <Tooltip title="View/edit income sources" arrow>

@@ -3,7 +3,6 @@ import {
   fetchNotes,
   postNote,
   deleteNote,
-  exportCSV as exportCSVCall,
 } from "../utilities/serverCalls";
 
 export const loadNotes = createAsyncThunk(
@@ -35,20 +34,6 @@ export const removeNote = createAsyncThunk(
   async ({ id, month, year }, { dispatch, rejectWithValue }) => {
     try {
       const data = await deleteNote(id);
-      dispatch(loadNotes({ month, year }));
-      return data;
-    } catch (err) {
-      return rejectWithValue(err.message);
-    }
-  }
-);
-
-// Exports the month's budget to CSV, and (the first time) logs an "Exported" note.
-export const exportBudgetCSV = createAsyncThunk(
-  "notes/exportBudgetCSV",
-  async ({ month, year, isExported }, { dispatch, rejectWithValue }) => {
-    try {
-      const data = await exportCSVCall(month, year, isExported);
       dispatch(loadNotes({ month, year }));
       return data;
     } catch (err) {

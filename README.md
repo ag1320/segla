@@ -15,7 +15,6 @@ A full-stack personal finance application for tracking investments, managing mon
 - Create and manage monthly budgets with custom spending categories and per-category limits
 - Log varied (discretionary) expenses against budget categories
 - Record month-end distributions (e.g. savings transfers)
-- Export monthly budget data to CSV
 - Add notes to any budget month for context
 
 ### Reporting
@@ -127,4 +126,3 @@ The Express server exposes REST endpoints organized around the app's core domain
 | Month-End Distributions | `GET/POST/DELETE /monthEndDistributions` |
 | Reports | `GET /reportData` |
 | Notes | `GET/POST/DELETE /notes` |
-| CSV Export | `GET /exportCSV` |
