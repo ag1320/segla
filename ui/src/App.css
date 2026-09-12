@@ -1,3 +1,23 @@
+/* Without this, any area the app's own boxes don't literally cover (a
+   vh-rounding gap at the bottom, or the horizontal overflow MUI's Grid
+   negative gutters can create) shows the browser's default white through -
+   painting the real theme color here means there's never a wrong color to
+   show through, no matter which box falls short. */
+html, body, #root {
+    background-color: #1B262C;
+    min-height: 100%;
+}
+
+body {
+    /* MUI Grid items apply negative margins to offset their `spacing`
+       gutters (e.g. `Grid container spacing={4}` shifts -16px on every
+       edge) - fine as long as something clips it before it becomes a
+       visible horizontal scrollbar. Without this, that clipped-nowhere
+       overflow is exactly what pushes buttons/cards/charts "off screen"
+       on a narrow viewport. */
+    overflow-x: hidden;
+}
+
 .content{
     background-color: #1B262C;
     min-height: 93vh;

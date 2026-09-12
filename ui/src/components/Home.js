@@ -40,6 +40,11 @@ const StyledCard = styled(Card)(({ theme }) => ({
   borderRadius: theme.spacing(2),
   boxShadow: theme.shadows[3],
   maxWidth: 400,
+  // Its Grid item is full-width below "md" (xs=12), and a block element
+  // narrower than its container sits at the left edge by default - this is
+  // what made every card (and its Grid item's leftover space) look
+  // off-center rather than centered on the screen.
+  margin: "0 auto",
   display: "flex",
   flexDirection: "column",
   height: "100%",

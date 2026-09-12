@@ -72,7 +72,7 @@ export default function MonthlyIncome() {
               <Grid container justifyContent="center" spacing={4}>
                 {sortedMonthlyIncome.map((income, id) => {
                   return (
-                    <Grid item xs={6} sm={4} md={3} key = {id}>
+                    <Grid item xs={12} sm={6} md={4} key = {id}>
                       <Card style={{ marginTop: "50px" }}>
                         <CardHeader
                           title={income.category}

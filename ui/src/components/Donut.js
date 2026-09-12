@@ -111,13 +111,19 @@ export default function Donut({ composition, title }) {
   };
 
   return (
-    <div style={{ position: "relative", height: "100%", width: "100%" }}>
+    // No fixed width/height here - react-chartjs-2 uses those as literal
+    // canvas dimensions, not a hint. With `responsive: true` Chart.js is
+    // supposed to take over sizing after mount, but the un-styled canvas
+    // renders at that literal 300px in the meantime and canvas is an
+    // inline element by default, so it never stretches to fill (or center
+    // in) a wider parent - on the Budget page's 240px-capped container
+    // that's a real overflow ("goes off screen"), and everywhere else it's
+    // a fixed-width block sitting at the left edge instead of centered.
+    <div style={{ position: "relative", height: "100%", width: "100%", maxWidth: "100%" }}>
       <Doughnut
         data={data}
         options={options}
         plugins={[centeredTitlePlugin, centerTotalPlugin, legendSpacingPlugin]}
-        width={300}
-        height={250}
       />
     </div>
   );

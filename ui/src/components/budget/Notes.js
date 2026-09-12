@@ -53,7 +53,7 @@ export default function Notes() {
               <Grid container justifyContent="center" spacing={4}>
                 {notes.map((note) => {
                   return (
-                    <Grid item xs={6} sm={4} md={3}>
+                    <Grid item xs={12} sm={6} md={4}>
                       <Card style={{ marginTop: "50px" }}>
                         <CardHeader
                           title={note.title}
