@@ -18,7 +18,10 @@ import {
   TableBody,
   IconButton,
   Link,
+  useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import AccountCard from "../../AccountCard";
 
 const StyledTableCell = withStyles({
   root: {
@@ -33,6 +36,8 @@ export default function Loan({
   setCurrentRow,
   accountType,
 }) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const rows = useSelector((state) => state.loans.items);
 
   //initialize vars
@@ -92,6 +97,42 @@ export default function Loan({
 
       <Grid container style={{ height: "100%" }}>
         <Grid item xs={12}>
+          {isMobile ? (
+            <>
+              {filteredRows.map((row) => (
+                <AccountCard
+                  key={row.code}
+                  row={row}
+                  columns={columns}
+                  linkAction={
+                    row.url && (
+                      <Link
+                        href={row.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        color="primary"
+                        underline="always"
+                        sx={{ mr: 1 }}
+                      >
+                        Go To
+                      </Link>
+                    )
+                  }
+                  actions={
+                    <>
+                      <IconButton size="small" onClick={() => handleEdit(row)}>
+                        <EditIcon style={{ fill: "white" }} fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => handleDelete(row)}>
+                        <DeleteIcon style={{ fill: "white" }} fontSize="small" />
+                      </IconButton>
+                    </>
+                  }
+                />
+              ))}
+              <AccountCard row={{ remainingBalance: total }} columns={columns} isTotal />
+            </>
+          ) : (
           <Paper
             sx={{
               width: "100%",
@@ -200,6 +241,7 @@ export default function Loan({
               </Table>
             </TableContainer>
           </Paper>
+          )}
         </Grid>
       </Grid>
     </>

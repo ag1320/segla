@@ -10,7 +10,9 @@ import {
   TableBody,
   IconButton,
   Button,
+  useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import "./Crypto.css";
@@ -20,6 +22,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import ConfrirmDeleteCryptoDialog from "./ConfirmDeleteCryptoDialog.js";
 import EditCryptoDialog from "./EditCryptoDialog";
 import { getColumns } from "./CryptoTableData";
+import AccountCard from "../../AccountCard";
 
 const StyledTableCell = withStyles({
   root: {
@@ -30,6 +33,8 @@ const StyledTableCell = withStyles({
 const columns = getColumns();
 
 export default function Crypto() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const cryptoData = useSelector((state) => state.crypto.items);
 
   //initialize vars
@@ -89,6 +94,45 @@ export default function Crypto() {
         </Grid>
 
         <Grid item xs={12}>
+          {isMobile ? (
+            <>
+              {cryptoData.map((row) => (
+                <AccountCard
+                  key={row.code}
+                  row={row}
+                  columns={columns}
+                  linkAction={
+                    row.url && (
+                      <Button
+                        component="a"
+                        href={row.url}
+                        target="_blank"
+                        size="small"
+                        sx={{ color: "#3282B8", textTransform: "none" }}
+                      >
+                        See Chart
+                      </Button>
+                    )
+                  }
+                  actions={
+                    <>
+                      <IconButton size="small" onClick={() => handleEdit(row)}>
+                        <EditIcon style={{ fill: "white" }} fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => handleDelete(row)}>
+                        <DeleteIcon style={{ fill: "white" }} fontSize="small" />
+                      </IconButton>
+                    </>
+                  }
+                />
+              ))}
+              <AccountCard
+                row={{ value: totalValue, gains: totalGains }}
+                columns={columns}
+                isTotal
+              />
+            </>
+          ) : (
           <Paper
             sx={{
               width: "100%",
@@ -223,6 +267,7 @@ export default function Crypto() {
               </Table>
             </TableContainer>
           </Paper>
+          )}
         </Grid>
       </Grid>
     </>

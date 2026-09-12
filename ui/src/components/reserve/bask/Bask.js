@@ -9,7 +9,9 @@ import {
   TableRow,
   TableBody,
   IconButton,
+  useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import "./Bask.css";
@@ -20,6 +22,7 @@ import ConfrirmDeleteAccountDialog from "./ConfirmDeleteAccountDialog.js";
 import EditBaskAccountDialog from "./EditBaskAccountDialog";
 import { getColumns } from "./BaskTableData";
 import { loadBask } from "../../../state/baskSlice";
+import AccountCard from "../../AccountCard";
 
 const StyledTableCell = withStyles({
   root: {
@@ -31,6 +34,8 @@ const columns = getColumns();
 
 export default function Bask() {
   const dispatch = useDispatch();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const rows = useSelector((state) => state.bask.items);
 
   //initialize vars
@@ -99,6 +104,32 @@ export default function Bask() {
         </Grid>
 
         <Grid item xs={12}>
+          {isMobile ? (
+            <>
+              {rows.map((row) => (
+                <AccountCard
+                  key={row.code}
+                  row={row}
+                  columns={columns}
+                  actions={
+                    <>
+                      <IconButton size="small" onClick={() => handleEdit(row)}>
+                        <EditIcon style={{ fill: "white" }} fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => handleDelete(row)}>
+                        <DeleteIcon style={{ fill: "white" }} fontSize="small" />
+                      </IconButton>
+                    </>
+                  }
+                />
+              ))}
+              <AccountCard
+                row={{ value: totalValue, ytdReturn: totalYtdReturn, return: totalReturn }}
+                columns={columns}
+                isTotal
+              />
+            </>
+          ) : (
           <Paper
             sx={{
               width: "100%",
@@ -192,6 +223,7 @@ export default function Bask() {
               </Table>
             </TableContainer>
           </Paper>
+          )}
         </Grid>
       </Grid>
     </>
