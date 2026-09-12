@@ -97,20 +97,26 @@ export default function VanguardBrokerage() {
             sx={{
               width: "100%",
               overflow: "hidden",
-              paddingLeft: 5,
-              paddingRight: 5,
+              px: { xs: 1, sm: 5 },
               backgroundColor: "#1b262c",
             }}
           >
             <TableContainer
-              style={{ maxHeight: height }}
               sx={{
+                // Below "sm" the table only scrolls horizontally, not
+                // vertically too - a box panning in both directions fights
+                // itself on a touch screen (a horizontal swipe can get read
+                // as the vertical scroll instead). The Table's own minWidth
+                // below is what drives the horizontal scroll predictably;
+                // percentage column widths against unbreakable multi-word
+                // headers were making real column proportions erratic.
+                maxHeight: { xs: "none", sm: height },
                 "& .MuiTableRow-root:hover": {
                   backgroundColor: "#333",
                 },
               }}
             >
-              <Table stickyHeader aria-label="sticky table" size="small">
+              <Table stickyHeader aria-label="sticky table" size="small" sx={{ minWidth: 780 }}>
                 <TableHead>
                   <TableRow>
                     {columns.map((column) => (
