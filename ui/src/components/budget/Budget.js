@@ -165,8 +165,19 @@ export default function Budget() {
                   boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
                 }}
               >
-                {/* Top row: date picker, remaining balance, donut */}
-                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, mb: 2.5 }}>
+                {/* Top row: date picker, remaining balance, donut - stacks
+                    to a single column below "sm" (fixed 64px gaps plus a
+                    240px-wide donut don't fit a phone's width side by side) */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: { xs: 3, sm: 8 },
+                    mb: 2.5,
+                  }}
+                >
                   <RemainingBalance />
 
                   {date && (
@@ -193,7 +204,7 @@ export default function Budget() {
                     </Box>
                   )}
 
-                  <Box sx={{ width: 240, flexShrink: 0 }}>
+                  <Box sx={{ width: { xs: "100%", sm: 240 }, maxWidth: 240, flexShrink: 0 }}>
                     {date ? (
                       <Donut composition={budgetSummary} title="Budget" />
                     ) : (
@@ -205,8 +216,9 @@ export default function Budget() {
                 {/* Divider */}
                 <Divider sx={{ borderColor: "rgba(255,255,255,0.08)", mb: 1.5 }} />
 
-                {/* Action row */}
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                {/* Action row - wraps below "sm" rather than overflowing;
+                    5 outlined buttons in one line never fit a phone width */}
+                <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 1, rowGap: 1.5 }}>
                   <Tooltip title={date ? "Delete this month's budget" : "Select a month first"} arrow>
                     <span>
                       <Button

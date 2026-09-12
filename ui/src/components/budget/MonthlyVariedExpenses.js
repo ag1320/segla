@@ -89,8 +89,8 @@ export default function MonthlyVariedExpenses() {
       {date ? (
         <>
           <AddExpenseModal open={openAddExpense} setOpen={setOpenAddExpense} />
-          <Grid container alignItems="center" sx={{ mb: 3 }}>
-            <Grid item xs={2}>
+          <Grid container alignItems="center" spacing={1} sx={{ mb: 3 }}>
+            <Grid item xs={12} sm={3} md={2}>
               <Button
                 onClick={handleAddExpense}
                 startIcon={<AddCircleOutline />}
@@ -107,7 +107,7 @@ export default function MonthlyVariedExpenses() {
                 Add Expense
               </Button>
             </Grid>
-            <Grid item xs={10}>
+            <Grid item xs={12} sm={9} md={10}>
               <Typography variant="h6" sx={{ color: "#fff" }}>
                 Total Monthly Expenses: ${totalSpent}
               </Typography>

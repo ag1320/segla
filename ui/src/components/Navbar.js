@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { styled, useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import MuiAppBar from "@mui/material/AppBar";
 import MenuIcon from "@mui/icons-material/Menu";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
@@ -81,6 +82,14 @@ export default function Navbar() {
   const theme = useTheme();
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
+  // Below "sm", the drawer overlays content with a backdrop (dismissable by
+  // tapping outside or picking a link) instead of pushing it - a persistent
+  // drawer at a fixed 240px on a ~360-400px phone viewport left almost no
+  // room for actual content once opened.
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  // Only push/shrink the AppBar and content on desktop - on mobile the
+  // drawer floats above everything, so nothing else should shift for it.
+  const desktopOpen = open && !isMobile;
 
   const handleLogout = () => {
     dispatch(logoutUser());
@@ -99,7 +108,7 @@ export default function Navbar() {
       <CssBaseline />
       <AppBar
         position="fixed"
-        open={open}
+        open={desktopOpen}
         style={{ backgroundColor: "#0F4C75", height: "7vh" }}
       >
         <Toolbar>
@@ -113,11 +122,22 @@ export default function Navbar() {
             <MenuIcon />
           </IconButton>
           <Link to="/">
-            <Button color="inherit">
-              <img src={logo} alt="" style={{maxHeight: 50}} />
+            <Button color="inherit" sx={{ minWidth: 0, px: { xs: 1, sm: 2 } }}>
+              <img src={logo} alt="" style={{ maxHeight: 50 }} />
             </Button>
           </Link>
-          <Typography component={"span"} style={{ marginLeft: 20 }}>
+          <Typography
+            component={"span"}
+            noWrap
+            sx={{
+              marginLeft: { xs: 1, sm: "20px" },
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              // Full greeting only where there's room to spare; a phone's
+              // width is better spent on the logo/menu/logout controls.
+              display: { xs: "none", sm: "block" },
+            }}
+          >
             Hi Gettemys, welcome to Segla!
           </Typography>
           <IconButton
@@ -140,9 +160,11 @@ export default function Navbar() {
             boxSizing: "border-box",
           },
         }}
-        variant="persistent"
+        variant={isMobile ? "temporary" : "persistent"}
+        ModalProps={{ keepMounted: true }}
         anchor="left"
         open={open}
+        onClose={handleDrawerClose}
       >
         <DrawerHeader>
           <IconButton onClick={handleDrawerClose}>
@@ -242,7 +264,7 @@ export default function Navbar() {
         </p>
         <p style={{ textAlign: "center" }}>God's people or wealth</p>
       </Drawer>
-      <Main open={open}></Main>
+      <Main open={desktopOpen}></Main>
     </Box>
   );
 }

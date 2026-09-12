@@ -54,7 +54,7 @@ export default function MonthlyIncome() {
             setOpen={setOpenAddIncome}
           />
           <Grid container>
-            <Grid item xs={2}>
+            <Grid item xs={12} sm={4} md={3}>
               <Button
                 onClick={handleAddIncome}
                 className="add-income-button"
@@ -63,7 +63,7 @@ export default function MonthlyIncome() {
                 <Typography component = {'span'}>Add Income Source</Typography>
               </Button>
             </Grid>
-            <Grid item xs={10}>
+            <Grid item xs={12} sm={8} md={9}>
               <Typography component = {'span'} className = 'income-total' variant = 'h6'>
                 Total Income: $ {totalIncome}
               </Typography>
@@ -72,7 +72,7 @@ export default function MonthlyIncome() {
               <Grid container justifyContent="center" spacing={4}>
                 {sortedMonthlyIncome.map((income, id) => {
                   return (
-                    <Grid item xs={3} key = {id}>
+                    <Grid item xs={6} sm={4} md={3} key = {id}>
                       <Card style={{ marginTop: "50px" }}>
                         <CardHeader
                           title={income.category}

@@ -68,6 +68,9 @@ export default function TabBar() {
           onChange={handleChange}
           aria-label="basic tabs example"
           textColor="primary"
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
         >
           <Tab
             label={<span style={{ color: "white" }}>Income</span>}

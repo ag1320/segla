@@ -65,7 +65,7 @@ export default function MonthEndDistributions() {
             setOpen={setOpenAddDistribution}
           />
           <Grid container>
-            <Grid item xs={2}>
+            <Grid item xs={12} sm={4} md={3}>
               <Button
                 onClick={handleAddDistribution}
                 className="add-distribution-button"
@@ -74,7 +74,7 @@ export default function MonthEndDistributions() {
                 <Typography component = {'span'}>Add Distribution</Typography>
               </Button>
             </Grid>
-            <Grid item xs={10}>
+            <Grid item xs={12} sm={8} md={9}>
               <Typography component = {'span'} className="monthly-distributions-total" variant="h6">
                 Total Month End Distributions: $ {totalDistributions}
               </Typography>
@@ -83,7 +83,7 @@ export default function MonthEndDistributions() {
               <Grid container justifyContent="center" spacing={4}>
                 {sortedMonthEndDistributions.map((distribution) => {
                   return (
-                    <Grid item xs={3}>
+                    <Grid item xs={6} sm={4} md={3}>
                       <Card style={{ marginTop: "50px" }}>
                         <CardHeader
                           title={distribution.category}
