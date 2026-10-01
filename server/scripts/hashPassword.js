@@ -32,7 +32,19 @@ const hash = await bcrypt.hash(password, 12);
 // part with an empty string (confirmed by actually reproducing this
 // against a real docker-compose.yaml on 2026-09-09, not just in theory).
 // A literal `$` in a Compose-read .env file must be written as `$$`.
-const escapedForEnvFile = hash.replaceAll("$", "$$");
+//
+// NOTE (2026-10-01): `hash.replaceAll("$", "$$")` looks right but is a
+// no-op - "$$" in the *replacement string* of String.replace/replaceAll is
+// itself a special pattern meaning "insert one literal $", so this was
+// silently producing the exact same (unescaped) string back out the whole
+// time. Confirmed directly: `"a$b".replaceAll("$", "$$")` -> `"a$b"`,
+// unchanged. A function replacer isn't subject to that special-pattern
+// substitution, so it actually doubles the $ now. If `AUTH_PASSWORD_HASH`
+// in any already-deployed `.env` was generated with the old version of
+// this script, regenerate and redeploy it - the old "escaped" output was
+// identical to the raw hash and may have hit the exact truncation bug this
+// script exists to prevent.
+const escapedForEnvFile = hash.replaceAll("$", () => "$$");
 
 console.log("\nAdd this to your .env (this exact line - $ is doubled to $$");
 console.log("on purpose, so Docker Compose doesn't mangle it):\n");
