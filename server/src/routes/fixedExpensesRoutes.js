@@ -21,7 +21,7 @@ router.patch("/fixedExpenses", (req, res) => {
   isDiscretionary = Boolean(isDiscretionary);
   editFixedExpenseAaron(category, oldCategory, aaron, isDiscretionary)
     .then(() => editFixedExpenseJen(category, oldCategory, jen, isDiscretionary))
-    .then((data) => res.status(200).send(data))
+    .then(() => res.sendStatus(200))
     .catch((err) => sendError(res, err));
 });
 
