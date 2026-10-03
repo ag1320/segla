@@ -19,6 +19,9 @@ export function formatFixedExpenses(fixedExpenses) {
         return expense.name === category && expense.owner === "Jen";
       })[0]?.amount || 0;
     result.subtotal = result.aaron + result.jen;
+    result.isDiscretionary = fixedExpenses.some(
+      (expense) => expense.name === category && expense.is_discretionary
+    );
     return result;
   }
   for (let category of categories) {

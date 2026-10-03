@@ -17,11 +17,10 @@ router.get("/fixedExpenses", (req, res) => {
 });
 
 router.patch("/fixedExpenses", (req, res) => {
-  let { category, aaron, oldCategory, jen } = req.body;
-  editFixedExpenseAaron(category, oldCategory, aaron)
-    .then((data) => {
-      editFixedExpenseJen(category, oldCategory, jen);
-    })
+  let { category, aaron, oldCategory, jen, isDiscretionary } = req.body;
+  isDiscretionary = Boolean(isDiscretionary);
+  editFixedExpenseAaron(category, oldCategory, aaron, isDiscretionary)
+    .then(() => editFixedExpenseJen(category, oldCategory, jen, isDiscretionary))
     .then((data) => res.status(200).send(data))
     .catch((err) => sendError(res, err));
 });
@@ -34,8 +33,8 @@ router.delete("/fixedExpenses", (req, res) => {
 });
 
 router.post("/fixedExpenses", (req, res) => {
-  let { category, aaron, jen } = req.body;
-  insertFixedExpense(category, aaron, jen)
+  let { category, aaron, jen, isDiscretionary } = req.body;
+  insertFixedExpense(category, aaron, jen, Boolean(isDiscretionary))
     .then((data) => res.sendStatus(202))
     .catch((err) => sendError(res, err));
 });

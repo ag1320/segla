@@ -6,7 +6,7 @@ function getFixedExpenses() {
     .then((data) => data);
 }
 
-function editFixedExpenseAaron(category, oldCategory, aaron) {
+function editFixedExpenseAaron(category, oldCategory, aaron, isDiscretionary) {
   let name = category;
   let owner = "Aaron";
   let amount = aaron;
@@ -14,12 +14,13 @@ function editFixedExpenseAaron(category, oldCategory, aaron) {
     .update({
       name,
       amount,
+      is_discretionary: isDiscretionary,
     })
     .where({ name: oldCategory, owner })
     .then((data) => data);
 }
 
-function editFixedExpenseJen(category, oldCategory, jen) {
+function editFixedExpenseJen(category, oldCategory, jen, isDiscretionary) {
   let name = category;
   let owner = "Jen";
   let amount = jen;
@@ -27,6 +28,7 @@ function editFixedExpenseJen(category, oldCategory, jen) {
     .update({
       name,
       amount,
+      is_discretionary: isDiscretionary,
     })
     .where({ name: oldCategory, owner })
     .then((data) => data);
@@ -40,12 +42,13 @@ function deleteFixedExpense(category) {
     .then((data) => data);
 }
 
-function insertFixedExpense(category, aaron, jen) {
+function insertFixedExpense(category, aaron, jen, isDiscretionary) {
   let name = category;
+  let is_discretionary = isDiscretionary;
   return knex("fixed_expenses")
     .insert([
-      { name, owner: "Aaron", amount: aaron },
-      { name, owner: "Jen", amount: jen },
+      { name, owner: "Aaron", amount: aaron, is_discretionary },
+      { name, owner: "Jen", amount: jen, is_discretionary },
     ])
     .then((data) => data);
 }

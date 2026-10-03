@@ -1,5 +1,14 @@
 import { useState, useEffect } from "react";
-import { Modal, Box, Typography, TextField, Grid, Button } from "@mui/material";
+import {
+  Modal,
+  Box,
+  Typography,
+  TextField,
+  Grid,
+  Button,
+  Checkbox,
+  FormControlLabel,
+} from "@mui/material";
 import { useDispatch } from "react-redux";
 import { addFixedExpense, updateFixedExpense } from "../../state/fixedExpensesSlice";
 import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
@@ -30,8 +39,10 @@ export default function EditFixedExpense({
   let [category, setCategory] = useState(null);
   let [aaron, setAaron] = useState(null);
   let [jen, setJen] = useState(null);
+  let [isDiscretionary, setIsDiscretionary] = useState(false);
   let [error, setError] = useState(false);
   const handleCategoryChange = (e) => setCategory(e.target.value);
+  const handleDiscretionaryChange = (e) => setIsDiscretionary(e.target.checked);
   const handleAaronChange = (e) => setAaron(e.target.value);
   const handleJenChange = (e) => setJen(e.target.value);
 
@@ -41,6 +52,7 @@ export default function EditFixedExpense({
     setCategory(null);
     setAaron(null);
     setJen(null);
+    setIsDiscretionary(false);
     setOpenEdit(false);
     setOpenAdd(false);
   };
@@ -51,7 +63,7 @@ export default function EditFixedExpense({
       );
       return;
     }
-    dispatch(addFixedExpense({ category, aaron, jen }))
+    dispatch(addFixedExpense({ category, aaron, jen, isDiscretionary }))
       .unwrap()
       .then(() => dispatch(setSnackbarSuccess(true)))
       .catch(() => dispatch(setSnackbarError(true)));
@@ -71,7 +83,15 @@ export default function EditFixedExpense({
     if (!jen) {
       jen = currentRow.jen;
     }
-    dispatch(updateFixedExpense({ category: newCategory, oldCategory, aaron, jen }))
+    dispatch(
+      updateFixedExpense({
+        category: newCategory,
+        oldCategory,
+        aaron,
+        jen,
+        isDiscretionary,
+      })
+    )
       .unwrap()
       .then(() => dispatch(setSnackbarSuccess(true)))
       .catch(() => dispatch(setSnackbarError(true)));
@@ -106,6 +126,7 @@ export default function EditFixedExpense({
       setCategory(currentRow.category);
       setAaron(currentRow.aaron);
       setJen(currentRow.jen);
+      setIsDiscretionary(Boolean(currentRow.isDiscretionary));
     }
     return () => (mounted = false);
   }, [currentRow]);
@@ -179,7 +200,18 @@ export default function EditFixedExpense({
                 required
               />
             </Grid>
-            <Grid item xs={6}></Grid>
+            <Grid item xs={6} sx={{ display: "flex", alignItems: "center" }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={isDiscretionary}
+                    onChange={handleDiscretionaryChange}
+                    sx={{ "&.Mui-checked": { color: "#3282B8" } }}
+                  />
+                }
+                label="Discretionary (non-essential, could cancel anytime)"
+              />
+            </Grid>
             <Grid item xs={6}>
               <Grid container spacing={2}>
                 <Grid item xs={6}>

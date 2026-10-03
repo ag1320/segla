@@ -9,6 +9,7 @@ import ConfirmDeleteFixedExpenseDialog from "./ConfirmDeleteFixedExpenseDialog.j
 import AddCircleOutline from "@mui/icons-material/AddCircleOutline";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import {
   Table,
   TableBody,
@@ -22,6 +23,7 @@ import {
   IconButton,
   Box,
   Typography,
+  Tooltip,
 } from "@mui/material";
 
 export default function FixedIncome({ setViewExpenses, fixedExpenses }) {
@@ -194,7 +196,23 @@ export default function FixedIncome({ setViewExpenses, fixedExpenses }) {
                       scope="row"
                       style={{ borderBottom: borders[index] }}
                     >
-                      {row.category}
+                      <Box
+                        component="span"
+                        sx={{ display: "inline-flex", alignItems: "center" }}
+                      >
+                        {row.category}
+                        {row.isDiscretionary && (
+                          <Tooltip
+                            title="Discretionary - non-essential, could cancel anytime"
+                            arrow
+                          >
+                            <AutoAwesomeIcon
+                              fontSize="small"
+                              sx={{ color: "#3282B8", ml: 1 }}
+                            />
+                          </Tooltip>
+                        )}
+                      </Box>
                     </TableCell>
                     <TableCell
                       align="right"
