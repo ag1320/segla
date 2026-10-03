@@ -202,10 +202,7 @@ export default function FixedIncome({ setViewExpenses, fixedExpenses }) {
                       >
                         {row.category}
                         {row.isDiscretionary && (
-                          <Tooltip
-                            title="Discretionary - non-essential, could cancel anytime"
-                            arrow
-                          >
+                          <Tooltip title="Discretionary" arrow>
                             <AutoAwesomeIcon
                               fontSize="small"
                               sx={{ color: "#3282B8", ml: 1 }}

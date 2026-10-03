@@ -10,7 +10,10 @@ import {
   FormControlLabel,
 } from "@mui/material";
 import { useDispatch } from "react-redux";
-import { addFixedExpense, updateFixedExpense } from "../../state/fixedExpensesSlice";
+import {
+  addFixedExpense,
+  updateFixedExpense,
+} from "../../state/fixedExpensesSlice";
 import { setSnackbarSuccess, setSnackbarError } from "../../state/uiSlice";
 import "./EditFixedExpense.css";
 export default function EditFixedExpense({
@@ -59,7 +62,7 @@ export default function EditFixedExpense({
   const handleAddSubmit = () => {
     if (error) {
       alert(
-        "Category Already Exists - Submit a New Category, or Edit the Existing Category."
+        "Category Already Exists - Submit a New Category, or Edit the Existing Category.",
       );
       return;
     }
@@ -90,7 +93,7 @@ export default function EditFixedExpense({
         aaron,
         jen,
         isDiscretionary,
-      })
+      }),
     )
       .unwrap()
       .then(() => dispatch(setSnackbarSuccess(true)))
@@ -111,7 +114,7 @@ export default function EditFixedExpense({
   const handleCategoryBlur = () => {
     let doesIncludeCategory =
       expenses.filter(
-        (e) => e.category?.toLowerCase() === category?.toLowerCase()
+        (e) => e.category?.toLowerCase() === category?.toLowerCase(),
       ).length > 0;
     if (openAdd && doesIncludeCategory) {
       setError(true);
@@ -170,7 +173,7 @@ export default function EditFixedExpense({
                 onChange={handleCategoryChange}
                 value={category}
                 error={error}
-                helperText={error? 'Category Already Exists': ''}
+                helperText={error ? "Category Already Exists" : ""}
                 onBlur={handleCategoryBlur}
                 placeholder="Enter a Category"
                 required
@@ -209,7 +212,7 @@ export default function EditFixedExpense({
                     sx={{ "&.Mui-checked": { color: "#3282B8" } }}
                   />
                 }
-                label="Discretionary (non-essential, could cancel anytime)"
+                label="Discretionary"
               />
             </Grid>
             <Grid item xs={6}>
