@@ -1,3 +1,6 @@
-canvas{
+/* Scoped to the donut: CRA bundles this globally, and Chart.js subtracts a
+   canvas's computed margins when sizing responsive charts, so an auto margin
+   on every canvas pinned the Net Worth page's charts at their 300px default. */
+.donut-chart canvas {
     margin: 0 auto;
 }

@@ -119,7 +119,7 @@ export default function Donut({ composition, title }) {
     // in) a wider parent - on the Budget page's 240px-capped container
     // that's a real overflow ("goes off screen"), and everywhere else it's
     // a fixed-width block sitting at the left edge instead of centered.
-    <div style={{ position: "relative", height: "100%", width: "100%", maxWidth: "100%" }}>
+    <div className="donut-chart" style={{ position: "relative", height: "100%", width: "100%", maxWidth: "100%" }}>
       <Doughnut
         data={data}
         options={options}

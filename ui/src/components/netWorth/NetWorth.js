@@ -71,12 +71,12 @@ export default function NetWorth() {
           <NetWorthChart />
         </Grid>
 
-        <Grid item xs={12}>
-          <SavingsRate />
+        <Grid item xs={12} md={5}>
+          <WhatChanged />
         </Grid>
 
-        <Grid item xs={12}>
-          <WhatChanged />
+        <Grid item xs={12} md={7}>
+          <SavingsRate />
         </Grid>
 
         <Grid item xs={12}>
