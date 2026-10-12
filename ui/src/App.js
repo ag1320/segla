@@ -7,6 +7,7 @@ import Home from './components/Home.js'
 import Investments from './components/investmentsNew/Investments.js'
 import Loans from './components/loans/Loans.js'
 import Budget from './components/budget/Budget.js'
+import NetWorth from './components/netWorth/NetWorth.js'
 import AppSnackbar from './components/AppSnackbar'
 import GetCryptoData from "./components/investmentsNew/crypto/GetCryptoData.js";
 import Login from "./components/Login.js";
@@ -32,6 +33,7 @@ function App() {
                   <Route path="/investments" element = {<Investments className = 'page'/>}/>
                   <Route path="/reserve" element = {<Reserve className = 'page'/>}/>
                   <Route path="/loans" element = {<Loans className = 'page'/>}/>
+                  <Route path="/net-worth" element = {<NetWorth className = 'page'/>}/>
                   <Route path="/" element = {<Home className = 'page'/>}/>
                 </Routes>
               </div>

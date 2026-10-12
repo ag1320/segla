@@ -21,8 +21,11 @@ import budgetCategoriesRoutes from "./routes/budgetCategoriesRoutes.js";
 import monthEndDistributionsRoutes from "./routes/monthEndDistributionsRoutes.js";
 import notesRoutes from "./routes/notesRoutes.js";
 import reportsRoutes from "./routes/reportsRoutes.js";
+import netWorthRoutes from "./routes/netWorthRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import { requireAuth } from "./middleware/auth.js";
+import { snapshotOnChange } from "./middleware/snapshotOnChange.js";
+import { ensureMonthlySnapshot } from "./controllers/netWorthController.js";
 import { sendError } from "./utils/sendError.js";
 
 // Fail closed, not open: if the app were ever started without these set,
@@ -90,6 +93,9 @@ app.use(authRoutes);
 // Everything below this line requires a valid session cookie.
 app.use(requireAuth);
 
+// Refreshes today's net worth snapshot after any successful asset/loan edit.
+app.use(snapshotOnChange);
+
 // Routes
 app.use(vanguardRetirementRoutes);
 app.use(tspRoutes);
@@ -108,6 +114,7 @@ app.use(budgetCategoriesRoutes);
 app.use(monthEndDistributionsRoutes);
 app.use(notesRoutes);
 app.use(reportsRoutes);
+app.use(netWorthRoutes);
 
 // Safety net for anything that doesn't go through a route's own .catch()
 // (e.g. express.json() choking on malformed JSON, a synchronous throw) -
@@ -122,3 +129,14 @@ const port = process.env.PORT || 4001;
 app.listen(port, () =>
   console.log(`Backend listening at http://localhost:${port}`),
 );
+
+// Monthly floor for net worth history: make sure every month has at least
+// one snapshot even if nothing was edited that month. Checked at boot and
+// every 6 hours after (cheap - one indexed query once a snapshot exists).
+const SNAPSHOT_CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
+const checkMonthlySnapshot = () =>
+  ensureMonthlySnapshot().catch((err) =>
+    console.error("Monthly net worth snapshot check failed:", err),
+  );
+checkMonthlySnapshot();
+setInterval(checkMonthlySnapshot, SNAPSHOT_CHECK_INTERVAL_MS);

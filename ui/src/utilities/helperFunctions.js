@@ -146,9 +146,76 @@ const selectBudgetComparison = createSelector(
   }
 );
 
+// Mirrors Home.js's Net Worth card math (and the server's
+// netWorthController.computeNetWorth) - the single place the live
+// assets/liabilities/net worth totals are derived.
+const selectNetWorthTotals = createSelector(
+  [selectInvestmentTotals, selectLoanTotals],
+  (investments, loans) => {
+    // Keys match netWorthSlice's snapshot fields / netWorthCategories.js
+    const breakdown = {
+      retirement: investments.vanguardRetirementTotal + investments.tspTotal,
+      brokerage: investments.vanguardBrokerageTotal,
+      college: investments.pa529Total,
+      crypto: investments.cryptoTotal,
+      emergency: investments.baskTotal,
+      house: investments.houseValuationTotal,
+      mortgage: loans.mortgageTotal,
+      studentLoan: loans.studentLoanTotal,
+      autoLoan: loans.autoLoanTotal,
+    };
+    const totalAssets =
+      breakdown.retirement +
+      breakdown.brokerage +
+      breakdown.college +
+      breakdown.crypto +
+      breakdown.emergency +
+      breakdown.house;
+    const totalLiabilities = breakdown.mortgage + breakdown.studentLoan + breakdown.autoLoan;
+    return { breakdown, totalAssets, totalLiabilities, netWorth: totalAssets - totalLiabilities };
+  }
+);
+
+// Given ascending snapshots (YYYY-MM-DD dates) and a current net worth,
+// returns how much it moved vs. a few reference points. Each entry is
+// null when there's no snapshot old enough to compare against yet.
+const getNetWorthChanges = (snapshots, currentNetWorth, today = new Date()) => {
+  const pad = (n) => String(n).padStart(2, "0");
+  const monthStart = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-01`;
+  const yearStart = `${today.getFullYear()}-01-01`;
+
+  const lastBefore = (date) => {
+    for (let i = snapshots.length - 1; i >= 0; i--) {
+      if (snapshots[i].date < date) return snapshots[i];
+    }
+    return null;
+  };
+  const diff = (snapshot) =>
+    snapshot
+      ? {
+          amount: currentNetWorth - snapshot.netWorth,
+          percent: snapshot.netWorth ? ((currentNetWorth - snapshot.netWorth) / Math.abs(snapshot.netWorth)) * 100 : null,
+          since: snapshot.date,
+          baseline: snapshot,
+        }
+      : null;
+
+  // YTD compares against the last snapshot of last year; until there is
+  // one (tracking only just started), fall back to the first one this year.
+  const ytdBase = lastBefore(yearStart) || snapshots.find((s) => s.date >= yearStart) || null;
+
+  return {
+    sinceLastMonth: diff(lastBefore(monthStart)),
+    yearToDate: diff(ytdBase),
+    allTime: diff(snapshots[0] || null),
+  };
+};
+
 export {
   selectInvestmentTotals,
   selectLoanTotals,
   selectBudgetBalance,
   selectBudgetComparison,
+  selectNetWorthTotals,
+  getNetWorthChanges,
 };

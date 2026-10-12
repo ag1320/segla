@@ -24,7 +24,14 @@ import stock from "../images/stock.png";
 import netWorth from "../images/net-worth.png";
 import "./Home.css";
 import HomeSummary from "./HomeSummary";
-import { selectInvestmentTotals, selectLoanTotals } from "../utilities/helperFunctions";
+import {
+  selectInvestmentTotals,
+  selectLoanTotals,
+  selectNetWorthTotals,
+  getNetWorthChanges,
+} from "../utilities/helperFunctions";
+import { formatSigned, changeColor } from "./netWorth/netWorthFormat";
+import { loadNetWorthSnapshots } from "../state/netWorthSlice";
 import { loadVanguardRetirement } from "../state/vanguardRetirementSlice";
 import { loadTsp } from "../state/tspSlice";
 import { loadVanguardBrokerage } from "../state/vanguardBrokerageSlice";
@@ -69,12 +76,15 @@ export default function Home() {
     pa529Total,
     cryptoTotal,
     baskTotal,
-    houseValuationTotal,
   } = useSelector(selectInvestmentTotals);
-  const { mortgageTotal, studentLoanTotal, autoLoanTotal, equityTotal } = useSelector(selectLoanTotals);
+  const { equityTotal } = useSelector(selectLoanTotals);
   const fixedIncome = useSelector((state) => state.fixedIncome.items);
   const fixedExpenses = useSelector((state) => state.fixedExpenses.items);
   const cryptoData = useSelector((state) => state.crypto.items);
+  const { totalAssets, totalLiabilities: totalLoan, netWorth: netWorthTotal } =
+    useSelector(selectNetWorthTotals);
+  const netWorthSnapshots = useSelector((state) => state.netWorth.snapshots);
+  const monthChange = getNetWorthChanges(netWorthSnapshots, netWorthTotal).sinceLastMonth;
 
   const formatCurrency = (value) => {
     return `$${value.toLocaleString(undefined, {
@@ -95,9 +105,6 @@ export default function Home() {
     },
     0
   );
-  const totalLoan = mortgageTotal + studentLoanTotal + autoLoanTotal;
-  const totalAssets = totalRetirement + totalOther + totalReserve + houseValuationTotal;
-  const netWorthTotal = totalAssets - totalLoan;
 
   // Loads every domain Home.js's totals depend on directly - replaces the
   // old approach of force-mounting <Retirement/><Budget/><Investments/>
@@ -113,6 +120,7 @@ export default function Home() {
     dispatch(loadEquity());
     dispatch(loadFixedIncome());
     dispatch(loadFixedExpenses());
+    dispatch(loadNetWorthSnapshots());
   }, [dispatch]);
 
   return (
@@ -660,6 +668,15 @@ export default function Home() {
                       <Typography variant="h6" className="card-text bold-text">
                         {formatCurrency(netWorthTotal)}
                       </Typography>
+                      {monthChange && (
+                        <Typography
+                          variant="body2"
+                          className="card-text"
+                          sx={{ color: `${changeColor(monthChange.amount)} !important`, fontWeight: 600 }}
+                        >
+                          {`${formatSigned(monthChange.amount)} this month`}
+                        </Typography>
+                      )}
                     </Grid>
                   </Grid>
                 </CardContent>
@@ -671,6 +688,11 @@ export default function Home() {
                     justifyContent: "flex-end",
                   }}
                 >
+                  <CardActions sx={{ justifyContent: "flex-end" }}>
+                    <Link to="/net-worth">
+                      <StyledButton>See More</StyledButton>
+                    </Link>
+                  </CardActions>
                   <div
                     style={{
                       backgroundColor: "rgba(0, 188, 212, 0.3)",

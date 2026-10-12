@@ -10,6 +10,14 @@ A full-stack personal finance application for tracking investments, managing mon
 - Manage discrete investment accounts: Vanguard retirement, Vanguard brokerage, TSP, PA 529, Bask savings, and crypto
 - Track loans (balance, rate, payoff date, monthly payment) and home equity
 
+### Net Worth
+- Net worth history graph (with an asset-mix breakdown view) at `/net-worth`, linked from the Home card
+- A snapshot of every asset/liability category is saved automatically after any account or loan edit (one row per day; later edits that day overwrite it), plus at least one per month even if nothing changes
+- "What Changed" panel: which categories drove the change this month / YTD / all time
+- Savings rate per month from Budget data (income − fixed − varied expenses), alongside net worth growth ÷ income
+- "Capture Now" button for an on-demand snapshot; bad snapshots can be deleted from the history table
+- Snapshot dates use `SNAPSHOT_TZ` (optional env var, default `America/New_York`)
+
 ### Budget
 - Define fixed income sources and fixed monthly expenses
 - Create and manage monthly budgets with custom spending categories and per-category limits
@@ -126,3 +134,4 @@ The Express server exposes REST endpoints organized around the app's core domain
 | Month-End Distributions | `GET/POST/DELETE /monthEndDistributions` |
 | Reports | `GET /reportData` |
 | Notes | `GET/POST/DELETE /notes` |
+| Net Worth | `GET/POST/DELETE /netWorthSnapshots` |

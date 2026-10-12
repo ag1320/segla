@@ -354,6 +354,20 @@ async function fetchReportDataWarningsAndLimits(startDateString, endDateString, 
   return res.data;
 }
 
+// NET WORTH SNAPSHOTS
+async function fetchNetWorthSnapshots() {
+  const res = await axios.get(`${BASE_URL}/netWorthSnapshots`);
+  return res.data;
+}
+async function postNetWorthSnapshot() {
+  const res = await axios.post(`${BASE_URL}/netWorthSnapshots`);
+  return res.data;
+}
+async function deleteNetWorthSnapshot(id) {
+  const res = await axios.delete(`${BASE_URL}/netWorthSnapshots`, { params: { id } });
+  return res.data;
+}
+
 export {
   login, logout, fetchCurrentUser,
   fetchVanguardRetirement, postVanguardRetirement, patchVanguardRetirement, deleteVanguardRetirement,
@@ -373,4 +387,5 @@ export {
   fetchMonthEndDistributions, postMonthEndDistribution, deleteMonthEndDistribution,
   fetchNotes, postNote, deleteNote,
   fetchReportData, fetchReportDataTotal, fetchReportDataWarningsAndLimits,
+  fetchNetWorthSnapshots, postNetWorthSnapshot, deleteNetWorthSnapshot,
 };

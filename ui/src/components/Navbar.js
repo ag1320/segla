@@ -14,6 +14,7 @@ import SavingsIcon from '@mui/icons-material/Savings';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import SchoolIcon from '@mui/icons-material/School';
 import LogoutIcon from '@mui/icons-material/Logout';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import logo from "../images/Segla.ico";
 import { logoutUser } from "../state/authSlice";
 import {
@@ -187,6 +188,18 @@ export default function Navbar() {
                 <HomeIcon />
               </ListItemIcon>
               <ListItemText primary="Home" />
+            </ListItem>
+          </Link>
+          <Link
+            to="/net-worth"
+            onClick={handleDrawerClose}
+            style={{ textDecoration: "none", color: "black" }}
+          >
+            <ListItem button>
+              <ListItemIcon>
+                <TrendingUpIcon style={{ fill: "#00bcd4" }} />
+              </ListItemIcon>
+              <ListItemText primary="Net Worth" />
             </ListItem>
           </Link>
           <Link

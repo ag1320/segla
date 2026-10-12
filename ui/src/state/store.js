@@ -17,6 +17,7 @@ import budgetCategoriesReducer from "./budgetCategoriesSlice";
 import monthEndDistributionsReducer from "./monthEndDistributionsSlice";
 import notesReducer from "./notesSlice";
 import reportsReducer from "./reportsSlice";
+import netWorthReducer from "./netWorthSlice";
 import uiReducer from "./uiSlice";
 
 export const store = configureStore({
@@ -39,6 +40,7 @@ export const store = configureStore({
     monthEndDistributions: monthEndDistributionsReducer,
     notes: notesReducer,
     reports: reportsReducer,
+    netWorth: netWorthReducer,
     ui: uiReducer,
   },
 });
