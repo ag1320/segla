@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { Box, Button, Chip, Grid, Typography } from "@mui/material";
+import { Box, Button, Chip, Grid } from "@mui/material";
 import CameraAltOutlinedIcon from "@mui/icons-material/CameraAltOutlined";
 import "../Home.css";
 import NetWorthSummary from "./NetWorthSummary";
@@ -27,7 +27,8 @@ export default function NetWorth() {
   // loads; crypto is loaded globally in App.js).
   useEffect(() => {
     dispatch(loadNetWorthSnapshots());
-    dispatch(loadMonthlyCashFlow());
+    // 60 months covers the Savings Rate chart's longest (5Y) range
+    dispatch(loadMonthlyCashFlow(60));
     dispatch(loadVanguardRetirement());
     dispatch(loadTsp());
     dispatch(loadVanguardBrokerage());
@@ -54,19 +55,7 @@ export default function NetWorth() {
         </Grid>
 
         <Grid item xs={12}>
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 1,
-            }}
-          >
-            <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.6)", flex: "1 1 260px" }}>
-              Snapshots save automatically whenever you update an account or loan (one per day), with at
-              least one per month.
-            </Typography>
+          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
             <Button onClick={handleCapture} disabled={capturing} sx={{ px: 0 }}>
               <Chip
                 avatar={<CameraAltOutlinedIcon style={{ color: "white" }} />}
@@ -82,12 +71,12 @@ export default function NetWorth() {
           <NetWorthChart />
         </Grid>
 
-        <Grid item xs={12} md={5}>
-          <WhatChanged />
+        <Grid item xs={12}>
+          <SavingsRate />
         </Grid>
 
-        <Grid item xs={12} md={7}>
-          <SavingsRate />
+        <Grid item xs={12}>
+          <WhatChanged />
         </Grid>
 
         <Grid item xs={12}>
