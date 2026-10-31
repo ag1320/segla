@@ -27,6 +27,7 @@ import { requireAuth } from "./middleware/auth.js";
 import { snapshotOnChange } from "./middleware/snapshotOnChange.js";
 import { ensureMonthlySnapshot } from "./controllers/netWorthController.js";
 import { sendError } from "./utils/sendError.js";
+import { AppError } from "./utils/errors.js";
 
 // Fail closed, not open: if the app were ever started without these set,
 // the alternative is either crashing inside a request (AUTH_PASSWORD_HASH
@@ -49,6 +50,11 @@ const app = express();
 // (rate limiting) and req.secure reflect the real client/connection
 // instead of the proxy hop.
 app.set("trust proxy", 1);
+
+// The reports page sends arrays in the query string
+// (formattedCategories[]=...). Express 5's default "simple" parser would
+// leave them as a key named "formattedCategories[]".
+app.set("query parser", "extended");
 
 // crossOriginResourcePolicy defaults to "same-origin", which would make
 // Chrome block the frontend's cross-origin fetches even with CORS headers
@@ -116,12 +122,16 @@ app.use(notesRoutes);
 app.use(reportsRoutes);
 app.use(netWorthRoutes);
 
-// Safety net for anything that doesn't go through a route's own .catch()
-// (e.g. express.json() choking on malformed JSON, a synchronous throw) -
-// without this, Express's own default handler takes over, which dumps a
-// stack trace into the response body outside of production.
+// Express 5 sends every thrown error and rejected promise here. Errors from
+// utils/errors.js carry a status and a message meant for the client;
+// anything else gets a generic 500 so internal details never leak.
+// Without this, Express's default handler dumps a stack trace into the
+// response body outside of production.
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
+  if (err instanceof AppError) {
+    return res.status(err.status).json({ error: err.message });
+  }
   sendError(res, err);
 });
 
