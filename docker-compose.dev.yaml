@@ -4,6 +4,11 @@
 #
 # docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up --build -d
 services:
+  # Lets `npm test` in server/ reach Postgres from WSL.
+  segla-database:
+    ports:
+      - "${DB_PORT}:5432"
+
   segla-backend:
     ports:
       - "${PORT}:${PORT}"

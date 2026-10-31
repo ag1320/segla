@@ -5,7 +5,8 @@
   "main": "src/app.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "pretest": "node --env-file=../.env scripts/prepareTestDatabase.js",
+    "test": "NODE_ENV=test node --env-file=../.env --test \"test/**/*.test.js\"",
     "start": "npx knex migrate:latest && node src/app.js",
     "dev": "npx knex migrate:latest && nodemon src/app.js",
     "hash-password": "node scripts/hashPassword.js"
@@ -24,7 +25,8 @@
     "jsonwebtoken": "^9.0.2",
     "knex": "^3.1.0",
     "morgan": "^1.10.0",
-    "pg": "^8.12.0"
+    "pg": "^8.12.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "nodemon": "^2.0.15"
