@@ -158,3 +158,6 @@ The business module lives in `business/` subfolders:
 - Never deploy `business-module` to the VM: the server runs
   `knex migrate:latest` on start.
 - Deploy (VM): `git pull`, then `docker compose up --build -d`.
+- Local (laptop): `docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up --build -d`,
+  then open http://localhost:4000. The laptop has its own database and
+  `.env` (`REACT_APP_API_BASE_URL=http://localhost:4001`).

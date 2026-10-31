@@ -1,0 +1,13 @@
+# Laptop only. Layers host ports onto docker-compose.yaml so the app can be
+# opened at http://localhost:4000. The VM runs docker-compose.yaml alone,
+# behind Caddy, and never reads this file.
+#
+# docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up --build -d
+services:
+  segla-backend:
+    ports:
+      - "${PORT}:${PORT}"
+
+  segla-frontend:
+    ports:
+      - "4000:4000"
