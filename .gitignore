@@ -1,5 +1,6 @@
 database
 node_modules
+*.dump
 server/ChatGPT Explains Connection String.txt
 server/Commands to create and run migration.txt
 .env
