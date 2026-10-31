@@ -1,30 +1,30 @@
 services:
-  database:
+  segla-database:
     image: "postgres:14"
     restart: unless-stopped
     volumes:
       - ./database:/var/lib/postgresql/data
     networks:
       - network1
-    container_name: database
+    container_name: segla-database
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
-    # Not exposed to the host - server/frontend reach it over the Docker
-    # network at hostname "database", and each app on the homelab server gets
+    # Not exposed to the host - backend/frontend reach it over the Docker
+    # network at hostname "segla-database", and each app on the homelab server gets
     # its own Postgres container, so there's nothing host-side to collide on.
     # To connect an external tool (psql/pgAdmin) instead, temporarily add
-    # back `ports: ["${DB_PORT}:5432"]` or use `docker exec -it database psql -U postgres`.
+    # back `ports: ["${DB_PORT}:5432"]` or use `docker exec -it segla-database psql -U postgres`.
 
-  server:
+  segla-backend:
     networks:
       - network1
     build: ./server
-    container_name: server
+    container_name: segla-backend
     # `restart: unless-stopped` matters here specifically: on a fresh
-    # `database` volume, Postgres's first-time initdb takes a few seconds,
-    # and `depends_on: - database` (this bare list form) only waits for the
+    # `segla-database` volume, Postgres's first-time initdb takes a few seconds,
+    # and `depends_on: - segla-database` (this bare list form) only waits for the
     # database *container* to start, not for Postgres inside it to actually
     # be ready to accept connections - so `knex migrate:latest` (this
     # image's CMD, before `node src/app.js` runs) can lose that race on
@@ -39,7 +39,7 @@ services:
     # SERVER_MIGRATION.md's Caddy section. To reach it directly for
     # debugging, temporarily add back `ports: ["${PORT}:${PORT}"]`.
     depends_on:
-      - database
+      - segla-database
     environment:
       DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
       PORT: ${PORT}
@@ -52,7 +52,7 @@ services:
     # directly on the host instead of through this container.
     env_file: ".env"
 
-  frontend:
+  segla-frontend:
     networks:
       - network1
     build:
@@ -63,14 +63,14 @@ services:
         # value has to reach `npm run build` as a build arg, not just an
         # environment/env_file entry the running container would see.
         REACT_APP_API_BASE_URL: ${REACT_APP_API_BASE_URL}
-    container_name: frontend
+    container_name: segla-frontend
     restart: unless-stopped
     # Not exposed to the host - reachable only via Caddy, which joins this
     # network and proxies segla.keylimedesigns.dev to this container's
     # port 4000. See SERVER_MIGRATION.md's Caddy section. To reach it
     # directly for debugging, temporarily add back `ports: ["4000:4000"]`.
     depends_on:
-      - server
+      - segla-backend
 
 networks:
   network1:
