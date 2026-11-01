@@ -368,6 +368,42 @@ async function deleteNetWorthSnapshot(id) {
   return res.data;
 }
 
+// BUSINESS
+// Business routes answer a rejected request with { error: "<what went
+// wrong>" }, written for the user. Fall back to axios's own message when
+// the request never got an answer.
+function serverErrorMessage(err) {
+  return err.response?.data?.error ?? err.message;
+}
+async function fetchBusinessEntities() {
+  const res = await axios.get(`${BASE_URL}/business/entities`);
+  return res.data;
+}
+async function fetchBusinessAccounts() {
+  const res = await axios.get(`${BASE_URL}/business/accounts`);
+  return res.data;
+}
+async function postBusinessAccount(account) {
+  const res = await axios.post(`${BASE_URL}/business/accounts`, account);
+  return res.data;
+}
+async function patchBusinessAccount(id, changes) {
+  const res = await axios.patch(`${BASE_URL}/business/accounts/${id}`, changes);
+  return res.data;
+}
+async function fetchBusinessProperties() {
+  const res = await axios.get(`${BASE_URL}/business/properties`);
+  return res.data;
+}
+async function postBusinessProperty(property) {
+  const res = await axios.post(`${BASE_URL}/business/properties`, property);
+  return res.data;
+}
+async function patchBusinessProperty(id, changes) {
+  const res = await axios.patch(`${BASE_URL}/business/properties/${id}`, changes);
+  return res.data;
+}
+
 export {
   login, logout, fetchCurrentUser,
   fetchVanguardRetirement, postVanguardRetirement, patchVanguardRetirement, deleteVanguardRetirement,
@@ -388,4 +424,7 @@ export {
   fetchNotes, postNote, deleteNote,
   fetchReportData, fetchReportDataTotal, fetchReportDataWarningsAndLimits,
   fetchNetWorthSnapshots, postNetWorthSnapshot, deleteNetWorthSnapshot,
+  serverErrorMessage, fetchBusinessEntities,
+  fetchBusinessAccounts, postBusinessAccount, patchBusinessAccount,
+  fetchBusinessProperties, postBusinessProperty, patchBusinessProperty,
 };

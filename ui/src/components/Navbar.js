@@ -15,6 +15,7 @@ import ShowChartIcon from '@mui/icons-material/ShowChart';
 import SchoolIcon from '@mui/icons-material/School';
 import LogoutIcon from '@mui/icons-material/Logout';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import HomeWorkIcon from '@mui/icons-material/HomeWork';
 import logo from "../images/Segla.ico";
 import { logoutUser } from "../state/authSlice";
 import {
@@ -263,6 +264,21 @@ export default function Navbar() {
                 <SchoolIcon style={{ fill: "#0F4C75" }}/>
               </ListItemIcon>
               <ListItemText primary="Loans" />
+            </ListItem>
+          </Link>
+        </List>
+        <Divider />
+        <List>
+          <Link
+            to="/business"
+            onClick={handleDrawerClose}
+            style={{ textDecoration: "none", color: "black" }}
+          >
+            <ListItem button>
+              <ListItemIcon>
+                <HomeWorkIcon style={{ fill: "#3282B8" }}/>
+              </ListItemIcon>
+              <ListItemText primary="Gettemy Properties" />
             </ListItem>
           </Link>
         </List>

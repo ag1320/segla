@@ -19,6 +19,9 @@ import notesReducer from "./notesSlice";
 import reportsReducer from "./reportsSlice";
 import netWorthReducer from "./netWorthSlice";
 import uiReducer from "./uiSlice";
+import businessEntitiesReducer from "./businessEntitiesSlice";
+import businessAccountsReducer from "./businessAccountsSlice";
+import businessPropertiesReducer from "./businessPropertiesSlice";
 
 export const store = configureStore({
   reducer: {
@@ -42,6 +45,9 @@ export const store = configureStore({
     reports: reportsReducer,
     netWorth: netWorthReducer,
     ui: uiReducer,
+    businessEntities: businessEntitiesReducer,
+    businessAccounts: businessAccountsReducer,
+    businessProperties: businessPropertiesReducer,
   },
 });
 
