@@ -22,6 +22,7 @@ import uiReducer from "./uiSlice";
 import businessEntitiesReducer from "./businessEntitiesSlice";
 import businessAccountsReducer from "./businessAccountsSlice";
 import businessPropertiesReducer from "./businessPropertiesSlice";
+import businessJournalEntriesReducer from "./businessJournalEntriesSlice";
 
 export const store = configureStore({
   reducer: {
@@ -48,6 +49,7 @@ export const store = configureStore({
     businessEntities: businessEntitiesReducer,
     businessAccounts: businessAccountsReducer,
     businessProperties: businessPropertiesReducer,
+    businessJournalEntries: businessJournalEntriesReducer,
   },
 });
 

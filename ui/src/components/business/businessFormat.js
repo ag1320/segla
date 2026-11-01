@@ -19,6 +19,9 @@ export const isDollarAmount = (text) =>
 export const dollarsToCents = (text) =>
   text.trim() === "" ? null : Math.round(Number(stripFormatting(text)) * 100);
 
+// en-CA formats as YYYY-MM-DD, in the browser's own timezone.
+export const todayDateString = () => new Date().toLocaleDateString("en-CA");
+
 // new Date("2027-06-01") would be UTC midnight, the evening before in the US.
 export const formatDate = (dateString) => {
   const [year, month, day] = dateString.split("-").map(Number);

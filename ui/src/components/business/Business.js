@@ -3,8 +3,12 @@ import { Box, Typography } from "@mui/material";
 import "../Home.css";
 import BusinessTabs from "./BusinessTabs";
 import BusinessSettings from "./settings/BusinessSettings";
+import Ledger from "./ledger/Ledger";
 
-const SECTIONS = [{ label: "Settings", path: "/business/settings" }];
+const SECTIONS = [
+  { label: "Ledger", path: "/business/ledger" },
+  { label: "Settings", path: "/business/settings" },
+];
 
 export default function Business() {
   return (
@@ -15,7 +19,8 @@ export default function Business() {
       <BusinessTabs tabs={SECTIONS} />
       <Box sx={{ mt: 2 }}>
         <Routes>
-          <Route index element={<Navigate to="/business/settings" replace />} />
+          <Route index element={<Navigate to="/business/ledger" replace />} />
+          <Route path="ledger" element={<Ledger />} />
           <Route path="settings/*" element={<BusinessSettings />} />
         </Routes>
       </Box>

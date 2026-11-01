@@ -10,14 +10,23 @@ import {
 
 // The frame every business add/edit form shares. error is the server's
 // message (or a form check's), shown above the buttons.
-export default function BusinessFormDialog({ title, error, saving, onClose, onSubmit, children }) {
+export default function BusinessFormDialog({
+  title,
+  error,
+  saving,
+  onClose,
+  onSubmit,
+  submitLabel = "Save",
+  maxWidth = "sm",
+  children,
+}) {
   const handleSubmit = (event) => {
     event.preventDefault();
     onSubmit();
   };
 
   return (
-    <Dialog open onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog open onClose={onClose} fullWidth maxWidth={maxWidth}>
       <form onSubmit={handleSubmit}>
         <DialogTitle>{title}</DialogTitle>
         <DialogContent>
@@ -34,7 +43,7 @@ export default function BusinessFormDialog({ title, error, saving, onClose, onSu
             disabled={saving}
             sx={{ backgroundColor: "#0f4c75" }}
           >
-            Save
+            {submitLabel}
           </Button>
         </DialogActions>
       </form>

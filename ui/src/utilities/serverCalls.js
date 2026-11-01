@@ -403,6 +403,19 @@ async function patchBusinessProperty(id, changes) {
   const res = await axios.patch(`${BASE_URL}/business/properties/${id}`, changes);
   return res.data;
 }
+// filters: { from, to, accountId }, each optional
+async function fetchBusinessJournalEntries(filters) {
+  const res = await axios.get(`${BASE_URL}/business/journal-entries`, { params: filters });
+  return res.data;
+}
+async function postBusinessJournalEntry(entry) {
+  const res = await axios.post(`${BASE_URL}/business/journal-entries`, entry);
+  return res.data;
+}
+async function postBusinessJournalEntryReversal(id, entryDate) {
+  const res = await axios.post(`${BASE_URL}/business/journal-entries/${id}/reversal`, { entryDate });
+  return res.data;
+}
 
 export {
   login, logout, fetchCurrentUser,
@@ -427,4 +440,5 @@ export {
   serverErrorMessage, fetchBusinessEntities,
   fetchBusinessAccounts, postBusinessAccount, patchBusinessAccount,
   fetchBusinessProperties, postBusinessProperty, patchBusinessProperty,
+  fetchBusinessJournalEntries, postBusinessJournalEntry, postBusinessJournalEntryReversal,
 };

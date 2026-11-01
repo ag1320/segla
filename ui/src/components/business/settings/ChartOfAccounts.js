@@ -5,6 +5,7 @@ import BusinessTable from "../BusinessTable";
 import SettingsHeader from "./SettingsHeader";
 import AddAccountDialog from "./AddAccountDialog";
 import EditAccountDialog from "./EditAccountDialog";
+import AccountNumberingGuide from "./AccountNumberingGuide";
 import { ACCOUNT_TYPE_LABELS } from "./settingsLabels";
 
 const COLUMNS = [
@@ -33,7 +34,12 @@ export default function ChartOfAccounts() {
 
   return (
     <>
-      <SettingsHeader title="Chart of Accounts" addLabel="Add account" onAdd={() => setIsAdding(true)} />
+      <SettingsHeader
+        title="Chart of Accounts"
+        titleExtra={<AccountNumberingGuide />}
+        addLabel="Add account"
+        onAdd={() => setIsAdding(true)}
+      />
       <BusinessTable
         columns={COLUMNS}
         rows={rows}

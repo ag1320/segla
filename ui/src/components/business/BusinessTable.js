@@ -13,8 +13,7 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import AccountCard from "../AccountCard";
-
-const HEADER_CELL_SX = { color: "white", backgroundColor: "#0f4c75" };
+import { TABLE_PAPER_SX, TABLE_CONTAINER_SX, HEADER_CELL_SX, CELL_SX } from "./businessStyles";
 
 // columns: [{ id, label, align }]; rows: display-ready objects with an id.
 // On a phone each row becomes a card, like the account tables elsewhere.
@@ -41,8 +40,8 @@ export default function BusinessTable({ columns, rows, onEdit, isRowMuted = () =
   }
 
   return (
-    <Paper sx={{ width: "100%", overflow: "hidden", backgroundColor: "#1b262c" }}>
-      <TableContainer sx={{ "& .MuiTableRow-root:hover": { backgroundColor: "#333" } }}>
+    <Paper sx={TABLE_PAPER_SX}>
+      <TableContainer sx={TABLE_CONTAINER_SX}>
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -58,7 +57,7 @@ export default function BusinessTable({ columns, rows, onEdit, isRowMuted = () =
             {rows.map((row) => (
               <TableRow hover key={row.id} sx={{ opacity: isRowMuted(row) ? 0.5 : 1 }}>
                 {columns.map((column) => (
-                  <TableCell key={column.id} align={column.align} sx={{ color: "white" }}>
+                  <TableCell key={column.id} align={column.align} sx={CELL_SX}>
                     {row[column.id] ?? "—"}
                   </TableCell>
                 ))}
