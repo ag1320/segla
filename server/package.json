@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "pretest": "node --env-file=../.env scripts/prepareTestDatabase.js",
-    "test": "NODE_ENV=test node --env-file=../.env --test \"test/**/*.test.js\"",
+    "test": "NODE_ENV=test node --env-file=../.env --test --test-concurrency=1 \"test/**/*.test.js\"",
     "start": "npx knex migrate:latest && node src/app.js",
     "dev": "npx knex migrate:latest && nodemon src/app.js",
     "hash-password": "node scripts/hashPassword.js"
