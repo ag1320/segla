@@ -5,7 +5,6 @@ import { findPropertiesByIds } from "../../controllers/business/propertiesContro
 import { findLockedThroughDate } from "../../controllers/business/periodLocksController.js";
 import {
   findJournalEntry,
-  findReversalOf,
   findJournalLines,
   insertJournalEntry,
   insertJournalLines,
@@ -45,10 +44,9 @@ async function reverseJournalEntry(journalEntryId, entryDate) {
       `Entry ${journalEntryId} is itself a reversal and can't be reversed. Post the original entry again instead.`,
     );
   }
-  const existingReversal = await findReversalOf(journalEntryId);
-  if (existingReversal) {
+  if (original.reversed_by_journal_entry_id !== null) {
     throw new ConflictError(
-      `Entry ${journalEntryId} was already reversed by entry ${existingReversal.journal_entry_id}`,
+      `Entry ${journalEntryId} was already reversed by entry ${original.reversed_by_journal_entry_id}`,
     );
   }
   if (entryDate < original.entry_date) {
@@ -61,9 +59,8 @@ async function reverseJournalEntry(journalEntryId, entryDate) {
   const reversedLines = originalLines.map((line) => ({
     accountId: line.account_id,
     propertyId: line.property_id,
-    // pg returns bigint columns as strings.
-    debitCents: Number(line.credit_cents),
-    creditCents: Number(line.debit_cents),
+    debitCents: line.credit_cents,
+    creditCents: line.debit_cents,
     needsCpaReview: line.needs_cpa_review,
   }));
 

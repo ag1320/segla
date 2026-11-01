@@ -9,8 +9,34 @@ const JOURNAL_ENTRY_COLUMNS = [
   "memo",
   "source",
   "reverses_journal_entry_id",
+  knex.raw(
+    "(select reversals.journal_entry_id from journal_entries as reversals where reversals.reverses_journal_entry_id = journal_entries.journal_entry_id) as reversed_by_journal_entry_id",
+  ),
   "created_at",
 ];
+
+// Each filter is optional. accountId keeps entries with at least one line
+// on that account, and returns all of their lines.
+function findJournalEntries({ from, to, accountId }, trx = knex) {
+  return trx("journal_entries")
+    .select(JOURNAL_ENTRY_COLUMNS)
+    .modify((query) => {
+      if (from) query.where("journal_entries.entry_date", ">=", from);
+      if (to) query.where("journal_entries.entry_date", "<=", to);
+      if (accountId) {
+        query.whereIn(
+          "journal_entry_id",
+          trx("journal_lines")
+            .select("journal_entry_id")
+            .where({ account_id: accountId }),
+        );
+      }
+    })
+    .orderBy([
+      { column: "journal_entries.entry_date" },
+      { column: "journal_entry_id" },
+    ]);
+}
 
 function findJournalEntry(journalEntryId, trx = knex) {
   return trx("journal_entries")
@@ -19,16 +45,15 @@ function findJournalEntry(journalEntryId, trx = knex) {
     .first();
 }
 
-function findReversalOf(journalEntryId, trx = knex) {
-  return trx("journal_entries")
-    .select(JOURNAL_ENTRY_COLUMNS)
-    .where({ reverses_journal_entry_id: journalEntryId })
-    .first();
-}
-
 function findJournalLines(journalEntryId, trx = knex) {
   return trx("journal_lines")
     .where({ journal_entry_id: journalEntryId })
+    .orderBy("journal_line_id");
+}
+
+function findJournalLinesForEntries(journalEntryIds, trx = knex) {
+  return trx("journal_lines")
+    .whereIn("journal_entry_id", journalEntryIds)
     .orderBy("journal_line_id");
 }
 
@@ -44,9 +69,10 @@ function insertJournalLines(lines, trx = knex) {
 }
 
 export {
+  findJournalEntries,
   findJournalEntry,
-  findReversalOf,
   findJournalLines,
+  findJournalLinesForEntries,
   insertJournalEntry,
   insertJournalLines,
 };
