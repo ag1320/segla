@@ -12,28 +12,32 @@ import {
   TableRow,
   Tooltip,
 } from "@mui/material";
+import SuggestionCell from "./SuggestionCell";
 import { formatCents, formatDate } from "../businessFormat";
 import { TABLE_PAPER_SX, TABLE_CONTAINER_SX, HEADER_CELL_SX, CELL_SX } from "../businessStyles";
 
 const MONEY_IN_COLOR = "#81c784";
 
 // onChangeStatus(transaction, "excluded" | "new") sets a transaction aside
-// or brings it back.
-export default function InboxTable({ onCategorize, onChangeStatus }) {
+// or brings it back. onAccept(transaction, rule) posts a rule's suggestion;
+// onMatch(transaction) pairs a transfer.
+export default function InboxTable({ onCategorize, onChangeStatus, onAccept, onMatch }) {
   const transactions = useSelector((state) => state.businessBankTransactions.items);
   const bankAccounts = useSelector((state) => state.businessBankAccounts.items);
+  const isInbox = useSelector((state) => state.businessBankTransactions.status === "new");
   const bankAccountName = (id) => bankAccounts.find((bankAccount) => bankAccount.id === id)?.name ?? "";
 
   return (
     <Paper sx={TABLE_PAPER_SX}>
       <TableContainer sx={TABLE_CONTAINER_SX}>
-        <Table size="small" sx={{ minWidth: 800 }}>
+        <Table size="small" sx={{ minWidth: 1000 }}>
           <TableHead>
             <TableRow>
               <TableCell sx={HEADER_CELL_SX}>Date</TableCell>
               <TableCell sx={HEADER_CELL_SX}>Account</TableCell>
               <TableCell sx={HEADER_CELL_SX}>Description</TableCell>
               <TableCell sx={HEADER_CELL_SX} align="right">Amount</TableCell>
+              {isInbox && <TableCell sx={HEADER_CELL_SX}>Suggestion</TableCell>}
               <TableCell sx={HEADER_CELL_SX} />
             </TableRow>
           </TableHead>
@@ -51,6 +55,11 @@ export default function InboxTable({ onCategorize, onChangeStatus }) {
                 >
                   {formatCents(transaction.amountCents)}
                 </TableCell>
+                {isInbox && (
+                  <TableCell sx={CELL_SX}>
+                    <SuggestionCell transaction={transaction} onAccept={onAccept} onMatch={onMatch} />
+                  </TableCell>
+                )}
                 <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
                   {transaction.status === "new" ? (
                     <>

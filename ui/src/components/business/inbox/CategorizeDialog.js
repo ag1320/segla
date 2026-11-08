@@ -6,39 +6,52 @@ import { postBusinessBankTransaction } from "../../../state/businessBankTransact
 import { setSnackbarSuccess } from "../../../state/uiSlice";
 import BusinessFormDialog from "../BusinessFormDialog";
 import SplitLineFields from "./SplitLineFields";
+import SaveRuleFields from "./SaveRuleFields";
 import { centsOrZero, centsToDollarsText, formatCents, formatDate, isDollarAmount } from "../businessFormat";
 
 let nextSplitKey = 1;
-const newSplit = (amount) => ({
+const newSplit = (amount, rule = null) => ({
   key: nextSplitKey++,
-  accountId: "",
-  propertyId: "",
+  accountId: rule?.accountId ?? "",
+  propertyId: rule?.propertyId ?? "",
+  vendorId: rule?.vendorId ?? "",
   amount,
   needsCpaReview: false,
 });
 
+const idOrNull = (value) => (value === "" ? null : value);
+
 // Posts an imported transaction. The bank side of the entry is filled in
 // by the server; the user picks the other side, split across categories
-// if needed.
+// if needed. A matching rule fills in the first split.
 export default function CategorizeDialog({ transaction, onClose }) {
   const dispatch = useDispatch();
-  const bankAccount = useSelector((state) =>
-    state.businessBankAccounts.items.find((item) => item.id === transaction.bankAccountId)
-  );
+  const bankAccounts = useSelector((state) => state.businessBankAccounts.items);
   const allAccounts = useSelector((state) => state.businessAccounts.items);
   const allProperties = useSelector((state) => state.businessProperties.items);
-  const accounts = allAccounts.filter((account) => account.isActive && account.id !== bankAccount.accountId);
+  const vendors = useSelector((state) => state.businessVendors.items);
+  const rules = useSelector((state) => state.businessRules.items);
+  const bankAccount = bankAccounts.find((item) => item.id === transaction.bankAccountId);
+  const suggestedRule = rules.find((rule) => rule.id === transaction.suggestedRuleId) ?? null;
+
+  // Money moving between two imported accounts is matched as a transfer
+  // instead, so those accounts aren't offered as categories.
+  const importedAccountIds = bankAccounts.filter((item) => item.importFormat).map((item) => item.accountId);
+  const accounts = allAccounts.filter((account) => account.isActive && !importedAccountIds.includes(account.id));
   const properties = allProperties.filter((property) => property.entityId === bankAccount.entityId);
 
   const size = Math.abs(transaction.amountCents);
   const isMoneyIn = transaction.amountCents > 0;
   const [memo, setMemo] = useState(transaction.description);
-  const [splits, setSplits] = useState([newSplit(centsToDollarsText(size))]);
+  const isRuleUsable = suggestedRule && accounts.some((account) => account.id === suggestedRule.accountId);
+  const [splits, setSplits] = useState([newSplit(centsToDollarsText(size), isRuleUsable ? suggestedRule : null)]);
+  const [saveRule, setSaveRule] = useState({ isOn: false, descriptionPattern: transaction.description });
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
 
   const assigned = splits.reduce((total, split) => total + centsOrZero(split.amount), 0);
   const left = size - assigned;
+  const canSaveRule = splits.length === 1 && !suggestedRule;
 
   const updateSplit = (key, changes) =>
     setSplits(splits.map((split) => (split.key === key ? { ...split, ...changes } : split)));
@@ -63,10 +76,13 @@ export default function CategorizeDialog({ transaction, onClose }) {
           memo: memo.trim() || null,
           splits: splits.map((split) => ({
             accountId: split.accountId,
-            propertyId: split.propertyId === "" ? null : split.propertyId,
+            propertyId: idOrNull(split.propertyId),
+            vendorId: idOrNull(split.vendorId),
             amountCents: centsOrZero(split.amount),
             needsCpaReview: split.needsCpaReview,
           })),
+          saveRule:
+            canSaveRule && saveRule.isOn ? { descriptionPattern: saveRule.descriptionPattern.trim() } : undefined,
         })
       ).unwrap();
       dispatch(setSnackbarSuccess(true));
@@ -105,6 +121,7 @@ export default function CategorizeDialog({ transaction, onClose }) {
           split={split}
           accounts={accounts}
           properties={properties}
+          vendors={vendors}
           canRemove={splits.length > 1}
           onChange={(changes) => updateSplit(split.key, changes)}
           onRemove={() => removeSplit(split.key)}
@@ -123,6 +140,7 @@ export default function CategorizeDialog({ transaction, onClose }) {
           )}
         </Typography>
       </Box>
+      {!suggestedRule && <SaveRuleFields value={saveRule} disabled={!canSaveRule} onChange={setSaveRule} />}
     </BusinessFormDialog>
   );
 }

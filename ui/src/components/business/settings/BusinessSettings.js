@@ -3,10 +3,14 @@ import { Box } from "@mui/material";
 import BusinessTabs from "../BusinessTabs";
 import ChartOfAccounts from "./ChartOfAccounts";
 import Properties from "./Properties";
+import Vendors from "./Vendors";
+import Rules from "./Rules";
 
 const SETTINGS_TABS = [
   { label: "Chart of Accounts", path: "/business/settings/accounts" },
   { label: "Properties", path: "/business/settings/properties" },
+  { label: "Vendors", path: "/business/settings/vendors" },
+  { label: "Rules", path: "/business/settings/rules" },
 ];
 
 export default function BusinessSettings() {
@@ -18,6 +22,8 @@ export default function BusinessSettings() {
           <Route index element={<Navigate to="/business/settings/accounts" replace />} />
           <Route path="accounts" element={<ChartOfAccounts />} />
           <Route path="properties" element={<Properties />} />
+          <Route path="vendors" element={<Vendors />} />
+          <Route path="rules" element={<Rules />} />
         </Routes>
       </Box>
     </>

@@ -29,6 +29,8 @@ import propertiesRoutes from "./routes/business/propertiesRoutes.js";
 import journalEntriesRoutes from "./routes/business/journalEntriesRoutes.js";
 import bankAccountsRoutes from "./routes/business/bankAccountsRoutes.js";
 import bankTransactionsRoutes from "./routes/business/bankTransactionsRoutes.js";
+import vendorsRoutes from "./routes/business/vendorsRoutes.js";
+import rulesRoutes from "./routes/business/rulesRoutes.js";
 import { requireAuth } from "./middleware/auth.js";
 import { snapshotOnChange } from "./middleware/snapshotOnChange.js";
 import { ensureMonthlySnapshot } from "./controllers/netWorthController.js";
@@ -135,6 +137,8 @@ app.use(propertiesRoutes);
 app.use(journalEntriesRoutes);
 app.use(bankAccountsRoutes);
 app.use(bankTransactionsRoutes);
+app.use(vendorsRoutes);
+app.use(rulesRoutes);
 
 // Express 5 sends every thrown error and rejected promise here. Errors from
 // utils/errors.js carry a status and a message meant for the client;

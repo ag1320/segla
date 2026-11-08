@@ -434,10 +434,42 @@ async function patchBusinessBankTransaction(id, changes) {
   const res = await axios.patch(`${BASE_URL}/business/bank-transactions/${id}`, changes);
   return res.data;
 }
-// posting: { memo, splits: [{ accountId, propertyId, amountCents, needsCpaReview }] }
+// posting: { memo, splits: [{ accountId, propertyId, vendorId, amountCents,
+//   needsCpaReview }], saveRule: { descriptionPattern } (optional) }
 async function postBusinessBankTransactionEntry(id, posting) {
   const res = await axios.post(`${BASE_URL}/business/bank-transactions/${id}/journal-entry`, posting);
   return res.data;
+}
+async function postBusinessBankTransfer(id, otherBankTransactionId) {
+  const res = await axios.post(`${BASE_URL}/business/bank-transactions/${id}/transfer`, { otherBankTransactionId });
+  return res.data;
+}
+async function fetchBusinessVendors() {
+  const res = await axios.get(`${BASE_URL}/business/vendors`);
+  return res.data;
+}
+async function postBusinessVendor(vendor) {
+  const res = await axios.post(`${BASE_URL}/business/vendors`, vendor);
+  return res.data;
+}
+async function patchBusinessVendor(id, changes) {
+  const res = await axios.patch(`${BASE_URL}/business/vendors/${id}`, changes);
+  return res.data;
+}
+async function fetchBusinessRules() {
+  const res = await axios.get(`${BASE_URL}/business/rules`);
+  return res.data;
+}
+async function postBusinessRule(rule) {
+  const res = await axios.post(`${BASE_URL}/business/rules`, rule);
+  return res.data;
+}
+async function patchBusinessRule(id, changes) {
+  const res = await axios.patch(`${BASE_URL}/business/rules/${id}`, changes);
+  return res.data;
+}
+async function deleteBusinessRule(id) {
+  await axios.delete(`${BASE_URL}/business/rules/${id}`);
 }
 
 export {
@@ -466,4 +498,7 @@ export {
   fetchBusinessJournalEntries, postBusinessJournalEntry, postBusinessJournalEntryReversal,
   fetchBusinessBankAccounts, postBusinessBankImport,
   fetchBusinessBankTransactions, patchBusinessBankTransaction, postBusinessBankTransactionEntry,
+  postBusinessBankTransfer,
+  fetchBusinessVendors, postBusinessVendor, patchBusinessVendor,
+  fetchBusinessRules, postBusinessRule, patchBusinessRule, deleteBusinessRule,
 };

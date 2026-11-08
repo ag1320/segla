@@ -1,3 +1,4 @@
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditIcon from "@mui/icons-material/Edit";
 import {
   Box,
@@ -17,14 +18,23 @@ import { TABLE_PAPER_SX, TABLE_CONTAINER_SX, HEADER_CELL_SX, CELL_SX } from "./b
 
 // columns: [{ id, label, align }]; rows: display-ready objects with an id.
 // On a phone each row becomes a card, like the account tables elsewhere.
-export default function BusinessTable({ columns, rows, onEdit, isRowMuted = () => false }) {
+// onDelete is optional; only things that aren't ledger records (rules) can
+// be deleted.
+export default function BusinessTable({ columns, rows, onEdit, onDelete, isRowMuted = () => false }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const editButton = (row) => (
-    <IconButton size="small" onClick={() => onEdit(row)} aria-label={`edit ${row.name}`}>
-      <EditIcon sx={{ fill: "white" }} fontSize="small" />
-    </IconButton>
+    <>
+      <IconButton size="small" onClick={() => onEdit(row)} aria-label={`edit ${row.name}`}>
+        <EditIcon sx={{ fill: "white" }} fontSize="small" />
+      </IconButton>
+      {onDelete && (
+        <IconButton size="small" onClick={() => onDelete(row)} aria-label={`delete ${row.name}`}>
+          <DeleteOutlineIcon sx={{ fill: "white" }} fontSize="small" />
+        </IconButton>
+      )}
+    </>
   );
 
   if (isMobile) {

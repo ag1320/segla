@@ -2,6 +2,7 @@ import knex from "../../controllers/dbConnection.js";
 import { findEntity } from "../../controllers/business/entitiesController.js";
 import { findAccountsByIds } from "../../controllers/business/accountsController.js";
 import { findPropertiesByIds } from "../../controllers/business/propertiesController.js";
+import { findVendorsByIds } from "../../controllers/business/vendorsController.js";
 import { findLockedThroughDate } from "../../controllers/business/periodLocksController.js";
 import {
   findJournalEntry,
@@ -18,8 +19,9 @@ import {
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-// lines: [{ accountId, propertyId, debitCents, creditCents, needsCpaReview }]
-// Leave propertyId out for a company-wide line.
+// lines: [{ accountId, propertyId, vendorId, debitCents, creditCents, needsCpaReview }]
+// Leave propertyId out for a company-wide line, and vendorId out when no
+// vendor applies.
 // Pass trx to post inside a caller's transaction (an import marks its bank
 // transaction posted in the same transaction).
 async function postJournalEntry({ entityId, entryDate, memo, source, lines }, trx = knex) {
@@ -65,6 +67,7 @@ async function reverseJournalEntry(journalEntryId, entryDate) {
   const reversedLines = originalLines.map((line) => ({
     accountId: line.account_id,
     propertyId: line.property_id,
+    vendorId: line.vendor_id,
     debitCents: line.credit_cents,
     creditCents: line.debit_cents,
     needsCpaReview: line.needs_cpa_review,
@@ -111,6 +114,7 @@ async function writeJournalEntry(
       trx,
     });
     await assertPropertiesBelongToEntity({ lines, entityId, trx });
+    await assertVendorsExist(lines, trx);
 
     const entry = await insertJournalEntry(
       {
@@ -127,6 +131,7 @@ async function writeJournalEntry(
         journal_entry_id: entry.journal_entry_id,
         account_id: line.accountId,
         property_id: line.propertyId ?? null,
+        vendor_id: line.vendorId ?? null,
         debit_cents: line.debitCents ?? 0,
         credit_cents: line.creditCents ?? 0,
         needs_cpa_review: line.needsCpaReview ?? false,
@@ -227,6 +232,19 @@ async function assertPropertiesBelongToEntity({ lines, entityId, trx }) {
     if (property.entity_id !== entityId) {
       throw new ValidationError(`${property.name} belongs to a different entity`);
     }
+  }
+}
+
+async function assertVendorsExist(lines, trx) {
+  const vendorIds = [
+    ...new Set(lines.map((line) => line.vendorId).filter((id) => id != null)),
+  ];
+  if (vendorIds.length === 0) return;
+
+  const vendors = await findVendorsByIds(vendorIds, trx);
+  const missingId = vendorIds.find((id) => !vendors.some((row) => row.vendor_id === id));
+  if (missingId !== undefined) {
+    throw new ValidationError(`Vendor ${missingId} doesn't exist`);
   }
 }
 

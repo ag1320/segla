@@ -1,12 +1,13 @@
 import { Router } from "express";
 import { z } from "zod";
 import { validate } from "../../middleware/validate.js";
-import { findBankTransactions } from "../../controllers/business/bankTransactionsController.js";
 import {
+  listBankTransactions,
   postBankTransaction,
+  postTransfer,
   changeBankTransactionStatus,
 } from "../../services/business/bankTransactionsService.js";
-import { ID, ID_PARAMS } from "./schemaFields.js";
+import { ID, ID_PARAMS, DESCRIPTION_PATTERN } from "./schemaFields.js";
 
 const STATUSES = ["new", "posted", "excluded"];
 
@@ -23,6 +24,7 @@ const STATUS_CHANGE = z.strictObject({
 const SPLIT = z.strictObject({
   accountId: ID,
   propertyId: ID.nullable().optional(),
+  vendorId: ID.nullable().optional(),
   amountCents: z.number().int().positive(),
   needsCpaReview: z.boolean().optional(),
 });
@@ -30,6 +32,11 @@ const SPLIT = z.strictObject({
 const POSTING = z.strictObject({
   memo: z.string().trim().max(1000).nullable().optional(),
   splits: z.array(SPLIT).min(1),
+  saveRule: z.strictObject({ descriptionPattern: DESCRIPTION_PATTERN }).optional(),
+});
+
+const TRANSFER = z.strictObject({
+  otherBankTransactionId: ID,
 });
 
 const router = Router();
@@ -38,7 +45,7 @@ router.get(
   "/business/bank-transactions",
   validate({ query: BANK_TRANSACTION_FILTERS }),
   async (req, res) => {
-    res.status(200).json(await findBankTransactions(req.validated.query));
+    res.status(200).json(await listBankTransactions(req.validated.query));
   },
 );
 
@@ -59,6 +66,18 @@ router.post(
   validate({ params: ID_PARAMS, body: POSTING }),
   async (req, res) => {
     const entry = await postBankTransaction(req.validated.params.id, req.validated.body);
+    res.status(201).json(entry);
+  },
+);
+
+router.post(
+  "/business/bank-transactions/:id/transfer",
+  validate({ params: ID_PARAMS, body: TRANSFER }),
+  async (req, res) => {
+    const entry = await postTransfer(
+      req.validated.params.id,
+      req.validated.body.otherBankTransactionId,
+    );
     res.status(201).json(entry);
   },
 );

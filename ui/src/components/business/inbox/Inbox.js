@@ -4,13 +4,18 @@ import { Alert, Box, MenuItem, TextField, Typography } from "@mui/material";
 import {
   loadBusinessBankTransactions,
   changeBusinessBankTransactionStatus,
+  postBusinessBankTransaction,
 } from "../../../state/businessBankTransactionsSlice";
 import { loadBusinessBankAccounts } from "../../../state/businessBankAccountsSlice";
 import { loadBusinessAccounts } from "../../../state/businessAccountsSlice";
 import { loadBusinessProperties } from "../../../state/businessPropertiesSlice";
+import { loadBusinessVendors } from "../../../state/businessVendorsSlice";
+import { loadBusinessRules } from "../../../state/businessRulesSlice";
+import { setSnackbarSuccess } from "../../../state/uiSlice";
 import ImportCsvButton from "./ImportCsvButton";
 import InboxTable from "./InboxTable";
 import CategorizeDialog from "./CategorizeDialog";
+import MatchTransferDialog from "./MatchTransferDialog";
 import { DARK_FIELD_SX, MUTED_TEXT } from "../businessStyles";
 
 const EMPTY_MESSAGES = {
@@ -25,18 +30,43 @@ export default function Inbox() {
   const status = useSelector((state) => state.businessBankTransactions.status);
   const [notice, setNotice] = useState(null);
   const [categorizing, setCategorizing] = useState(null);
+  const [matching, setMatching] = useState(null);
   const importableAccounts = bankAccounts.filter((bankAccount) => bankAccount.importFormat && bankAccount.isActive);
 
   useEffect(() => {
     dispatch(loadBusinessBankAccounts());
     dispatch(loadBusinessAccounts());
     dispatch(loadBusinessProperties());
+    dispatch(loadBusinessVendors());
+    dispatch(loadBusinessRules());
     dispatch(loadBusinessBankTransactions({ status: "new" }));
   }, [dispatch]);
 
   const handleChangeStatus = async (transaction, newStatus) => {
     try {
       await dispatch(changeBusinessBankTransactionStatus({ id: transaction.id, status: newStatus })).unwrap();
+    } catch (message) {
+      setNotice({ severity: "error", text: message });
+    }
+  };
+
+  const handleAccept = async (transaction, rule) => {
+    try {
+      await dispatch(
+        postBusinessBankTransaction({
+          id: transaction.id,
+          memo: null,
+          splits: [
+            {
+              accountId: rule.accountId,
+              propertyId: rule.propertyId,
+              vendorId: rule.vendorId,
+              amountCents: Math.abs(transaction.amountCents),
+            },
+          ],
+        })
+      ).unwrap();
+      dispatch(setSnackbarSuccess(true));
     } catch (message) {
       setNotice({ severity: "error", text: message });
     }
@@ -72,12 +102,18 @@ export default function Inbox() {
       {transactions.length === 0 ? (
         <Typography color={MUTED_TEXT}>{EMPTY_MESSAGES[status]}</Typography>
       ) : (
-        <InboxTable onCategorize={setCategorizing} onChangeStatus={handleChangeStatus} />
+        <InboxTable
+          onCategorize={setCategorizing}
+          onChangeStatus={handleChangeStatus}
+          onAccept={handleAccept}
+          onMatch={setMatching}
+        />
       )}
 
       {categorizing && (
         <CategorizeDialog transaction={categorizing} onClose={() => setCategorizing(null)} />
       )}
+      {matching && <MatchTransferDialog transaction={matching} onClose={() => setMatching(null)} />}
     </>
   );
 }

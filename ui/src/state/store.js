@@ -25,6 +25,8 @@ import businessPropertiesReducer from "./businessPropertiesSlice";
 import businessJournalEntriesReducer from "./businessJournalEntriesSlice";
 import businessBankAccountsReducer from "./businessBankAccountsSlice";
 import businessBankTransactionsReducer from "./businessBankTransactionsSlice";
+import businessVendorsReducer from "./businessVendorsSlice";
+import businessRulesReducer from "./businessRulesSlice";
 
 export const store = configureStore({
   reducer: {
@@ -54,6 +56,8 @@ export const store = configureStore({
     businessJournalEntries: businessJournalEntriesReducer,
     businessBankAccounts: businessBankAccountsReducer,
     businessBankTransactions: businessBankTransactionsReducer,
+    businessVendors: businessVendorsReducer,
+    businessRules: businessRulesReducer,
   },
 });
 

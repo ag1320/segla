@@ -2,12 +2,12 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import FlagOutlinedIcon from "@mui/icons-material/FlagOutlined";
 import FlagIcon from "@mui/icons-material/Flag";
 import { Box, Checkbox, IconButton, InputAdornment, MenuItem, TextField, Tooltip } from "@mui/material";
+import PropertySelect from "../PropertySelect";
+import VendorSelect from "../VendorSelect";
 
-// split: { key, accountId, propertyId, amount, needsCpaReview }, where
-// accountId and propertyId are "" until chosen and amount is dollar text.
-export default function SplitLineFields({ split, accounts, properties, canRemove, onChange, onRemove }) {
-  const handleChange = (field) => (event) => onChange({ [field]: event.target.value });
-
+// split: { key, accountId, propertyId, vendorId, amount, needsCpaReview },
+// where the ids are "" until chosen and amount is dollar text.
+export default function SplitLineFields({ split, accounts, properties, vendors, canRemove, onChange, onRemove }) {
   return (
     <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 1 }}>
       <TextField
@@ -15,7 +15,7 @@ export default function SplitLineFields({ split, accounts, properties, canRemove
         size="small"
         label="Category"
         value={split.accountId}
-        onChange={handleChange("accountId")}
+        onChange={(event) => onChange({ accountId: event.target.value })}
         sx={{ flex: "3 1 220px" }}
       >
         {accounts.map((account) => (
@@ -24,28 +24,23 @@ export default function SplitLineFields({ split, accounts, properties, canRemove
           </MenuItem>
         ))}
       </TextField>
-      <TextField
-        select
-        size="small"
-        label="Property"
+      <PropertySelect
         value={split.propertyId}
-        onChange={handleChange("propertyId")}
-        SelectProps={{ displayEmpty: true }}
-        InputLabelProps={{ shrink: true }}
+        properties={properties}
+        onChange={(propertyId) => onChange({ propertyId })}
         sx={{ flex: "2 1 150px" }}
-      >
-        <MenuItem value="">Company-wide</MenuItem>
-        {properties.map((property) => (
-          <MenuItem key={property.id} value={property.id}>
-            {property.name}
-          </MenuItem>
-        ))}
-      </TextField>
+      />
+      <VendorSelect
+        value={split.vendorId}
+        vendors={vendors}
+        onChange={(vendorId) => onChange({ vendorId })}
+        sx={{ flex: "2 1 150px" }}
+      />
       <TextField
         size="small"
         label="Amount"
         value={split.amount}
-        onChange={handleChange("amount")}
+        onChange={(event) => onChange({ amount: event.target.value })}
         InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
         inputProps={{ inputMode: "decimal" }}
         sx={{ flex: "1 1 120px" }}

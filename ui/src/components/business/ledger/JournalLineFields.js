@@ -2,6 +2,7 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import FlagOutlinedIcon from "@mui/icons-material/FlagOutlined";
 import FlagIcon from "@mui/icons-material/Flag";
 import { Box, Checkbox, IconButton, InputAdornment, MenuItem, TextField, Tooltip } from "@mui/material";
+import PropertySelect from "../PropertySelect";
 
 const DOLLAR_ADORNMENT = { startAdornment: <InputAdornment position="start">$</InputAdornment> };
 
@@ -26,23 +27,12 @@ export default function JournalLineFields({ line, accounts, properties, onChange
           </MenuItem>
         ))}
       </TextField>
-      <TextField
-        select
-        size="small"
-        label="Property"
+      <PropertySelect
         value={line.propertyId}
-        onChange={handleChange("propertyId")}
-        SelectProps={{ displayEmpty: true }}
-        InputLabelProps={{ shrink: true }}
+        properties={properties}
+        onChange={(propertyId) => onChange({ propertyId })}
         sx={{ flex: "2 1 150px" }}
-      >
-        <MenuItem value="">Company-wide</MenuItem>
-        {properties.map((property) => (
-          <MenuItem key={property.id} value={property.id}>
-            {property.name}
-          </MenuItem>
-        ))}
-      </TextField>
+      />
       <TextField
         size="small"
         label="Debit"

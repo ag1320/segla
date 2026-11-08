@@ -4,9 +4,13 @@ import {
   fetchBusinessBankTransactions,
   patchBusinessBankTransaction,
   postBusinessBankTransactionEntry,
+  postBusinessBankTransfer,
   serverErrorMessage,
 } from "../utilities/serverCalls";
+import { loadBusinessRules } from "./businessRulesSlice";
 
+// Inbox rows also carry suggestedRuleId and transferCandidateIds (the other
+// side of a possible transfer); other lists don't.
 const toBankTransaction = (row) => ({
   id: row.bank_transaction_id,
   bankAccountId: row.bank_account_id,
@@ -15,6 +19,8 @@ const toBankTransaction = (row) => ({
   amountCents: row.amount_cents,
   status: row.status,
   journalEntryId: row.journal_entry_id,
+  suggestedRuleId: row.suggested_rule_id ?? null,
+  transferCandidateIds: row.transfer_candidate_ids ?? [],
 });
 
 // status: "new" for the Inbox, or "excluded". The slice remembers it so an
@@ -51,12 +57,29 @@ export const importBusinessBankCsv = createAsyncThunk(
   }
 );
 
-// splits: [{ accountId, propertyId, amountCents, needsCpaReview }]
+// splits: [{ accountId, propertyId, vendorId, amountCents, needsCpaReview }]
+// saveRule: { descriptionPattern }, or undefined to post without one
 export const postBusinessBankTransaction = createAsyncThunk(
   "businessBankTransactions/postBusinessBankTransaction",
-  async ({ id, memo, splits }, { dispatch, getState, rejectWithValue }) => {
+  async ({ id, memo, splits, saveRule }, { dispatch, getState, rejectWithValue }) => {
     try {
-      const data = await postBusinessBankTransactionEntry(id, { memo, splits });
+      const data = await postBusinessBankTransactionEntry(id, { memo, splits, saveRule });
+      reloadSameList(dispatch, getState);
+      if (saveRule) dispatch(loadBusinessRules());
+      return data;
+    } catch (err) {
+      return rejectWithValue(serverErrorMessage(err));
+    }
+  }
+);
+
+// Posts two imported transactions (money leaving one account and arriving
+// in the other) as one transfer entry.
+export const postBusinessBankTransferPair = createAsyncThunk(
+  "businessBankTransactions/postBusinessBankTransferPair",
+  async ({ id, otherId }, { dispatch, getState, rejectWithValue }) => {
+    try {
+      const data = await postBusinessBankTransfer(id, otherId);
       reloadSameList(dispatch, getState);
       return data;
     } catch (err) {
