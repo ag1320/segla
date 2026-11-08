@@ -11,10 +11,11 @@ import BusinessTabs from "../BusinessTabs";
 import PropertyDialog from "./PropertyDialog";
 import PropertyOverview from "./PropertyOverview";
 import PropertyValuations from "./PropertyValuations";
+import PropertyLoan from "./PropertyLoan";
 import { PROPERTY_STATUS_LABELS } from "../settings/settingsLabels";
 import { MUTED_TEXT } from "../businessStyles";
 
-// One property, with a tab per topic. Loan, fixed assets, leases and the
+// One property, with a tab per topic. Fixed assets, leases and the
 // capex plan join these tabs in later steps.
 export default function PropertyDetail() {
   const dispatch = useDispatch();
@@ -38,6 +39,7 @@ export default function PropertyDetail() {
   const tabs = [
     { label: "Overview", path: `${basePath}/overview` },
     { label: "Valuations", path: `${basePath}/valuations` },
+    { label: "Loan", path: `${basePath}/loan` },
   ];
 
   return (
@@ -76,6 +78,7 @@ export default function PropertyDetail() {
           <Route index element={<Navigate to={`${basePath}/overview`} replace />} />
           <Route path="overview" element={<PropertyOverview property={property} />} />
           <Route path="valuations" element={<PropertyValuations property={property} />} />
+          <Route path="loan" element={<PropertyLoan property={property} />} />
         </Routes>
       </Box>
       {isEditing && <PropertyDialog property={property} onClose={() => setIsEditing(false)} />}

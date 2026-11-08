@@ -3,10 +3,12 @@ import { useDispatch, useSelector } from "react-redux";
 import AddIcon from "@mui/icons-material/Add";
 import { Box, Button, TextField, Typography } from "@mui/material";
 import { postBusinessBankTransaction } from "../../../state/businessBankTransactionsSlice";
+import { loadBusinessMortgagePaymentSplit } from "../../../state/businessMortgagesSlice";
 import { setSnackbarSuccess } from "../../../state/uiSlice";
 import BusinessFormDialog from "../BusinessFormDialog";
 import SplitLineFields from "./SplitLineFields";
 import SaveRuleFields from "./SaveRuleFields";
+import MortgagePaymentSelect from "./MortgagePaymentSelect";
 import { centsOrZero, centsToDollarsText, formatCents, formatDate, isDollarAmount } from "../businessFormat";
 
 let nextSplitKey = 1;
@@ -31,6 +33,7 @@ export default function CategorizeDialog({ transaction, onClose }) {
   const allProperties = useSelector((state) => state.businessProperties.items);
   const vendors = useSelector((state) => state.businessVendors.items);
   const rules = useSelector((state) => state.businessRules.items);
+  const allMortgages = useSelector((state) => state.businessMortgages.items);
   const bankAccount = bankAccounts.find((item) => item.id === transaction.bankAccountId);
   const suggestedRule = rules.find((rule) => rule.id === transaction.suggestedRuleId) ?? null;
 
@@ -39,6 +42,8 @@ export default function CategorizeDialog({ transaction, onClose }) {
   const importedAccountIds = bankAccounts.filter((item) => item.importFormat).map((item) => item.accountId);
   const accounts = allAccounts.filter((account) => account.isActive && !importedAccountIds.includes(account.id));
   const properties = allProperties.filter((property) => property.entityId === bankAccount.entityId);
+  const mortgages = allMortgages.filter((mortgage) => properties.some((property) => property.id === mortgage.propertyId));
+  const propertyName = (propertyId) => properties.find((property) => property.id === propertyId)?.name ?? "";
 
   const size = Math.abs(transaction.amountCents);
   const isMoneyIn = transaction.amountCents > 0;
@@ -57,6 +62,30 @@ export default function CategorizeDialog({ transaction, onClose }) {
     setSplits(splits.map((split) => (split.key === key ? { ...split, ...changes } : split)));
   const removeSplit = (key) => setSplits(splits.filter((split) => split.key !== key));
   const addSplit = () => setSplits([...splits, newSplit(left > 0 ? centsToDollarsText(left) : "")]);
+
+  // If the bank amount differs (extra principal, a new escrow amount), the
+  // "left"/"over" total shows it and the user adjusts a split.
+  const fillMortgagePayment = async (mortgageId) => {
+    try {
+      const split = await dispatch(
+        loadBusinessMortgagePaymentSplit({ mortgageId, date: transaction.transactionDate })
+      ).unwrap();
+      const part = (accountId, cents) => ({
+        ...newSplit(centsToDollarsText(cents)),
+        accountId,
+        propertyId: split.propertyId,
+      });
+      const parts = [
+        part(split.interestAccountId, split.interestCents),
+        part(split.principalAccountId, split.principalCents),
+      ];
+      setSplits(split.escrowCents > 0 ? [...parts, part(split.escrowAccountId, split.escrowCents)] : parts);
+      setMemo(`${mortgages.find((mortgage) => mortgage.id === mortgageId).lender} payment #${split.number}`);
+      setError(null);
+    } catch (message) {
+      setError(message);
+    }
+  };
 
   const handleSubmit = async () => {
     if (splits.some((split) => split.accountId === "")) {
@@ -114,6 +143,9 @@ export default function CategorizeDialog({ transaction, onClose }) {
           {isMoneyIn ? "Where did this money come from?" : "What was this money spent on?"}
         </Typography>
       </Box>
+      {!isMoneyIn && mortgages.length > 0 && (
+        <MortgagePaymentSelect mortgages={mortgages} propertyLabel={propertyName} onPick={fillMortgagePayment} />
+      )}
       <TextField label="Memo" value={memo} onChange={(event) => setMemo(event.target.value)} />
       {splits.map((split) => (
         <SplitLineFields

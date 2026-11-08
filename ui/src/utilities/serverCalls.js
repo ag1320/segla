@@ -418,6 +418,29 @@ async function patchBusinessPropertyValuation(id, changes) {
 async function deleteBusinessPropertyValuation(id) {
   await axios.delete(`${BASE_URL}/business/property-valuations/${id}`);
 }
+async function fetchBusinessMortgages() {
+  const res = await axios.get(`${BASE_URL}/business/mortgages`);
+  return res.data;
+}
+async function postBusinessMortgage(mortgage) {
+  const res = await axios.post(`${BASE_URL}/business/mortgages`, mortgage);
+  return res.data;
+}
+async function patchBusinessMortgage(id, changes) {
+  const res = await axios.patch(`${BASE_URL}/business/mortgages/${id}`, changes);
+  return res.data;
+}
+async function deleteBusinessMortgage(id) {
+  await axios.delete(`${BASE_URL}/business/mortgages/${id}`);
+}
+async function fetchBusinessMortgageSchedule(id) {
+  const res = await axios.get(`${BASE_URL}/business/mortgages/${id}/schedule`);
+  return res.data;
+}
+async function fetchBusinessMortgagePaymentSplit(id, date) {
+  const res = await axios.get(`${BASE_URL}/business/mortgages/${id}/payment-split`, { params: { date } });
+  return res.data;
+}
 // filters: { from, to, accountId }, each optional
 async function fetchBusinessJournalEntries(filters) {
   const res = await axios.get(`${BASE_URL}/business/journal-entries`, { params: filters });
@@ -570,6 +593,8 @@ export {
   fetchBusinessProperties, postBusinessProperty, patchBusinessProperty,
   fetchBusinessPropertyValuations, postBusinessPropertyValuation,
   patchBusinessPropertyValuation, deleteBusinessPropertyValuation,
+  fetchBusinessMortgages, postBusinessMortgage, patchBusinessMortgage, deleteBusinessMortgage,
+  fetchBusinessMortgageSchedule, fetchBusinessMortgagePaymentSplit,
   fetchBusinessJournalEntries, postBusinessJournalEntry, postBusinessJournalEntryReversal,
   fetchBusinessBankAccounts, postBusinessBankImport,
   fetchBusinessBankTransactions, patchBusinessBankTransaction, postBusinessBankTransactionEntry,

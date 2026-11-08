@@ -11,6 +11,7 @@ import { loadBusinessAccounts } from "../../../state/businessAccountsSlice";
 import { loadBusinessProperties } from "../../../state/businessPropertiesSlice";
 import { loadBusinessVendors } from "../../../state/businessVendorsSlice";
 import { loadBusinessRules } from "../../../state/businessRulesSlice";
+import { loadBusinessMortgages } from "../../../state/businessMortgagesSlice";
 import { setSnackbarSuccess } from "../../../state/uiSlice";
 import ImportCsvButton from "./ImportCsvButton";
 import InboxTable from "./InboxTable";
@@ -39,6 +40,7 @@ export default function Inbox() {
     dispatch(loadBusinessProperties());
     dispatch(loadBusinessVendors());
     dispatch(loadBusinessRules());
+    dispatch(loadBusinessMortgages());
     dispatch(loadBusinessBankTransactions({ status: "new" }));
   }, [dispatch]);
 
