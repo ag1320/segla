@@ -14,6 +14,9 @@ import {
   Typography,
 } from "@mui/material";
 import { loadBusinessTrialBalance } from "../../../state/businessReportsSlice";
+import ReportActions from "./ReportActions";
+import PrintHeader from "./PrintHeader";
+import { csvAmount } from "./reportCsv";
 import { formatCents, formatDate, todayDateString } from "../businessFormat";
 import { TABLE_PAPER_SX, HEADER_CELL_SX, CELL_SX, DARK_FIELD_SX, MUTED_TEXT } from "../businessStyles";
 
@@ -40,10 +43,16 @@ export default function TrialBalance({ entityId }) {
   };
 
   const isBalanced = trialBalance && trialBalance.totalDebitCents === trialBalance.totalCreditCents;
+  const subtitle = trialBalance ? `As of ${formatDate(trialBalance.asOfDate)}` : "";
+  const csvRows = () => [
+    ["Number", "Account", "Debit", "Credit"],
+    ...trialBalance.rows.map((row) => [row.accountNumber, row.name, csvAmount(row.debitCents), csvAmount(row.creditCents)]),
+    ["", "Total", csvAmount(trialBalance.totalDebitCents), csvAmount(trialBalance.totalCreditCents)],
+  ];
 
   return (
     <>
-      <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 2, mb: 2 }}>
+      <Box className="no-print" sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2, mb: 2 }}>
         <TextField
           label="As of"
           type="date"
@@ -63,7 +72,16 @@ export default function TrialBalance({ entityId }) {
             color={isBalanced ? "success" : "error"}
           />
         )}
+        {trialBalance && (
+          <ReportActions
+            title="Trial Balance"
+            subtitle={subtitle}
+            fileName={`trial-balance_${trialBalance.asOfDate}.csv`}
+            getCsvRows={csvRows}
+          />
+        )}
       </Box>
+      {trialBalance && <PrintHeader title="Trial Balance" subtitle={subtitle} />}
 
       {trialBalance && trialBalance.rows.length === 0 && (
         <Typography color={MUTED_TEXT}>{`No balances as of ${formatDate(trialBalance.asOfDate)}.`}</Typography>

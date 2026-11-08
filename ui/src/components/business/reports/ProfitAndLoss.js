@@ -5,6 +5,9 @@ import { loadBusinessProfitAndLoss } from "../../../state/businessReportsSlice";
 import { loadBusinessProperties } from "../../../state/businessPropertiesSlice";
 import StatementTable from "./StatementTable";
 import PeriodFields from "./PeriodFields";
+import ReportActions from "./ReportActions";
+import PrintHeader from "./PrintHeader";
+import { statementCsvRows } from "./reportCsv";
 import { PERIOD_COMPARISONS, presetPeriod, comparisonPeriod } from "./reportPeriods";
 import { formatDate } from "../businessFormat";
 import { DARK_FIELD_SX } from "../businessStyles";
@@ -47,16 +50,25 @@ export default function ProfitAndLoss({ entityId }) {
     if (next.period.from && next.period.to) dispatch(loadBusinessProfitAndLoss(toQuery(entityId, next)));
   };
 
-  const columnLabels = profitAndLoss
-    ? [
-        periodLabel(profitAndLoss.from, profitAndLoss.to),
-        ...(profitAndLoss.compareFrom ? [periodLabel(profitAndLoss.compareFrom, profitAndLoss.compareTo)] : []),
-      ]
-    : [];
+  const statement = profitAndLoss && {
+    columnLabels: [
+      periodLabel(profitAndLoss.from, profitAndLoss.to),
+      ...(profitAndLoss.compareFrom ? [periodLabel(profitAndLoss.compareFrom, profitAndLoss.compareTo)] : []),
+    ],
+    sections: [
+      { title: "Income", totalLabel: "Total income", section: profitAndLoss.income },
+      { title: "Expenses", totalLabel: "Total expenses", section: profitAndLoss.expenses },
+    ],
+    summaryRows: [
+      { label: "Net income", cents: profitAndLoss.netIncomeCents, compareCents: profitAndLoss.compareNetIncomeCents },
+    ],
+  };
+  const propertyName = properties.find((property) => property.id === settings.propertyId)?.name ?? "Whole business";
+  const subtitle = statement ? `${statement.columnLabels.join(" vs. ")} · ${propertyName}` : "";
 
   return (
     <>
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
+      <Box className="no-print" sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
         <PeriodFields value={settings.period} onChange={(period) => applySettings({ period })} />
         <TextField
           select
@@ -85,19 +97,21 @@ export default function ProfitAndLoss({ entityId }) {
             <MenuItem key={property.id} value={property.id}>{property.name}</MenuItem>
           ))}
         </TextField>
+        {statement && (
+          <ReportActions
+            title="Profit & Loss"
+            subtitle={subtitle}
+            fileName={`profit-and-loss_${profitAndLoss.from}_${profitAndLoss.to}.csv`}
+            getCsvRows={() => statementCsvRows(statement)}
+          />
+        )}
       </Box>
 
-      {profitAndLoss && (
-        <StatementTable
-          columnLabels={columnLabels}
-          sections={[
-            { title: "Income", totalLabel: "Total income", section: profitAndLoss.income },
-            { title: "Expenses", totalLabel: "Total expenses", section: profitAndLoss.expenses },
-          ]}
-          summaryRows={[
-            { label: "Net income", cents: profitAndLoss.netIncomeCents, compareCents: profitAndLoss.compareNetIncomeCents },
-          ]}
-        />
+      {statement && (
+        <>
+          <PrintHeader title="Profit & Loss" subtitle={subtitle} />
+          <StatementTable {...statement} />
+        </>
       )}
     </>
   );

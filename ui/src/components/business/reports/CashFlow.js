@@ -4,6 +4,9 @@ import { Box } from "@mui/material";
 import { loadBusinessCashFlow } from "../../../state/businessReportsSlice";
 import StatementTable from "./StatementTable";
 import PeriodFields from "./PeriodFields";
+import ReportActions from "./ReportActions";
+import PrintHeader from "./PrintHeader";
+import { statementCsvRows } from "./reportCsv";
 import { presetPeriod } from "./reportPeriods";
 import { formatDate } from "../businessFormat";
 
@@ -27,25 +30,39 @@ export default function CashFlow({ entityId }) {
     if (next.from && next.to) dispatch(loadBusinessCashFlow({ entityId, from: next.from, to: next.to }));
   };
 
+  const subtitle = cashFlow ? `${formatDate(cashFlow.from)} – ${formatDate(cashFlow.to)}` : "";
+  const statement = cashFlow && {
+    columnLabels: [subtitle],
+    sections: [
+      { title: "Operating", totalLabel: "Net cash from operating", section: cashFlow.operating },
+      { title: "Investing", totalLabel: "Net cash from investing", section: cashFlow.investing },
+      { title: "Financing", totalLabel: "Net cash from financing", section: cashFlow.financing },
+    ],
+    summaryRows: [
+      { label: "Net change in cash", cents: cashFlow.netChangeCents },
+      { label: `Cash on ${formatDate(cashFlow.from)} (start)`, cents: cashFlow.openingCashCents },
+      { label: `Cash on ${formatDate(cashFlow.to)} (end)`, cents: cashFlow.closingCashCents },
+    ],
+  };
+
   return (
     <>
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
+      <Box className="no-print" sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2, mb: 2 }}>
         <PeriodFields value={period} onChange={handlePeriod} />
+        {statement && (
+          <ReportActions
+            title="Statement of Cash Flows"
+            subtitle={subtitle}
+            fileName={`cash-flow_${cashFlow.from}_${cashFlow.to}.csv`}
+            getCsvRows={() => statementCsvRows(statement)}
+          />
+        )}
       </Box>
-      {cashFlow && (
-        <StatementTable
-          columnLabels={[`${formatDate(cashFlow.from)} – ${formatDate(cashFlow.to)}`]}
-          sections={[
-            { title: "Operating", totalLabel: "Net cash from operating", section: cashFlow.operating },
-            { title: "Investing", totalLabel: "Net cash from investing", section: cashFlow.investing },
-            { title: "Financing", totalLabel: "Net cash from financing", section: cashFlow.financing },
-          ]}
-          summaryRows={[
-            { label: "Net change in cash", cents: cashFlow.netChangeCents },
-            { label: `Cash on ${formatDate(cashFlow.from)} (start)`, cents: cashFlow.openingCashCents },
-            { label: `Cash on ${formatDate(cashFlow.to)} (end)`, cents: cashFlow.closingCashCents },
-          ]}
-        />
+      {statement && (
+        <>
+          <PrintHeader title="Statement of Cash Flows" subtitle={subtitle} />
+          <StatementTable {...statement} />
+        </>
       )}
     </>
   );

@@ -3,6 +3,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { Box, TextField, Typography } from "@mui/material";
 import { loadBusinessGeneralLedger } from "../../../state/businessReportsSlice";
 import GeneralLedgerAccount from "./GeneralLedgerAccount";
+import ReportActions from "./ReportActions";
+import PrintHeader from "./PrintHeader";
+import { csvAmount } from "./reportCsv";
 import { formatDate, todayDateString } from "../businessFormat";
 import { DARK_FIELD_SX, MUTED_TEXT } from "../businessStyles";
 
@@ -26,9 +29,29 @@ export default function GeneralLedger({ entityId }) {
     }
   };
 
+  const subtitle = generalLedger ? `${formatDate(generalLedger.from)} – ${formatDate(generalLedger.to)}` : "";
+  const csvRows = () => [
+    ["Account", "Date", "Memo", "Debit", "Credit", "Balance"],
+    ...generalLedger.accounts.flatMap((account) => {
+      const label = `${account.accountNumber} ${account.name}`;
+      return [
+        [label, "", "Opening balance", "", "", csvAmount(account.openingBalanceCents)],
+        ...account.lines.map((line) => [
+          label,
+          line.entryDate,
+          line.memo || `Entry ${line.journalEntryId}`,
+          line.debitCents ? csvAmount(line.debitCents) : "",
+          line.creditCents ? csvAmount(line.creditCents) : "",
+          csvAmount(line.balanceCents),
+        ]),
+        [label, "", "Closing balance", "", "", csvAmount(account.closingBalanceCents)],
+      ];
+    }),
+  ];
+
   return (
     <>
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
+      <Box className="no-print" sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2, mb: 2 }}>
         <TextField
           label="From"
           type="date"
@@ -47,7 +70,16 @@ export default function GeneralLedger({ entityId }) {
           InputLabelProps={{ shrink: true }}
           sx={DARK_FIELD_SX}
         />
+        {generalLedger && (
+          <ReportActions
+            title="General Ledger"
+            subtitle={subtitle}
+            fileName={`general-ledger_${generalLedger.from}_${generalLedger.to}.csv`}
+            getCsvRows={csvRows}
+          />
+        )}
       </Box>
+      {generalLedger && <PrintHeader title="General Ledger" subtitle={subtitle} />}
 
       {generalLedger && generalLedger.accounts.length === 0 && (
         <Typography color={MUTED_TEXT}>

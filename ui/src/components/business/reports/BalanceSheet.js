@@ -3,6 +3,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { Box, Chip, MenuItem, TextField } from "@mui/material";
 import { loadBusinessBalanceSheet } from "../../../state/businessReportsSlice";
 import StatementTable from "./StatementTable";
+import ReportActions from "./ReportActions";
+import PrintHeader from "./PrintHeader";
+import { statementCsvRows } from "./reportCsv";
 import { DATE_COMPARISONS, comparisonDate } from "./reportPeriods";
 import { formatCents, formatDate, todayDateString } from "../businessFormat";
 import { DARK_FIELD_SX } from "../businessStyles";
@@ -33,60 +36,71 @@ export default function BalanceSheet({ entityId }) {
   const difference = balanceSheet
     ? balanceSheet.assets.totalCents - balanceSheet.totalLiabilitiesAndEquityCents
     : 0;
+  const statement = balanceSheet && {
+    columnLabels: [
+      formatDate(balanceSheet.asOfDate),
+      ...(balanceSheet.compareAsOfDate ? [formatDate(balanceSheet.compareAsOfDate)] : []),
+    ],
+    sections: [
+      { title: "Assets", totalLabel: "Total assets", section: balanceSheet.assets },
+      { title: "Liabilities", totalLabel: "Total liabilities", section: balanceSheet.liabilities },
+      { title: "Equity", totalLabel: "Total equity", section: balanceSheet.equity },
+    ],
+    summaryRows: [
+      {
+        label: "Total liabilities and equity",
+        cents: balanceSheet.totalLiabilitiesAndEquityCents,
+        compareCents: balanceSheet.compareTotalLiabilitiesAndEquityCents,
+      },
+    ],
+  };
+  const subtitle = statement ? `As of ${statement.columnLabels.join(" vs. ")}` : "";
 
   return (
     <>
-      <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 2, mb: 2 }}>
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-          <TextField
-            label="As of"
-            type="date"
-            size="small"
-            value={settings.asOfDate}
-            onChange={handleChange("asOfDate")}
-            InputLabelProps={{ shrink: true }}
-            sx={DARK_FIELD_SX}
-          />
-          <TextField
-            select
-            size="small"
-            label="Compare to"
-            value={settings.comparison}
-            onChange={handleChange("comparison")}
-            sx={{ ...DARK_FIELD_SX, minWidth: 200 }}
-          >
-            {Object.entries(DATE_COMPARISONS).map(([value, label]) => (
-              <MenuItem key={value} value={value}>{label}</MenuItem>
-            ))}
-          </TextField>
-        </Box>
+      <Box className="no-print" sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2, mb: 2 }}>
+        <TextField
+          label="As of"
+          type="date"
+          size="small"
+          value={settings.asOfDate}
+          onChange={handleChange("asOfDate")}
+          InputLabelProps={{ shrink: true }}
+          sx={DARK_FIELD_SX}
+        />
+        <TextField
+          select
+          size="small"
+          label="Compare to"
+          value={settings.comparison}
+          onChange={handleChange("comparison")}
+          sx={{ ...DARK_FIELD_SX, minWidth: 200 }}
+        >
+          {Object.entries(DATE_COMPARISONS).map(([value, label]) => (
+            <MenuItem key={value} value={value}>{label}</MenuItem>
+          ))}
+        </TextField>
         {balanceSheet && (
           <Chip
             label={difference === 0 ? "Balanced" : `Out of balance by ${formatCents(Math.abs(difference))}`}
             color={difference === 0 ? "success" : "error"}
           />
         )}
+        {statement && (
+          <ReportActions
+            title="Balance Sheet"
+            subtitle={subtitle}
+            fileName={`balance-sheet_${balanceSheet.asOfDate}.csv`}
+            getCsvRows={() => statementCsvRows(statement)}
+          />
+        )}
       </Box>
 
-      {balanceSheet && (
-        <StatementTable
-          columnLabels={[
-            formatDate(balanceSheet.asOfDate),
-            ...(balanceSheet.compareAsOfDate ? [formatDate(balanceSheet.compareAsOfDate)] : []),
-          ]}
-          sections={[
-            { title: "Assets", totalLabel: "Total assets", section: balanceSheet.assets },
-            { title: "Liabilities", totalLabel: "Total liabilities", section: balanceSheet.liabilities },
-            { title: "Equity", totalLabel: "Total equity", section: balanceSheet.equity },
-          ]}
-          summaryRows={[
-            {
-              label: "Total liabilities and equity",
-              cents: balanceSheet.totalLiabilitiesAndEquityCents,
-              compareCents: balanceSheet.compareTotalLiabilitiesAndEquityCents,
-            },
-          ]}
-        />
+      {statement && (
+        <>
+          <PrintHeader title="Balance Sheet" subtitle={subtitle} />
+          <StatementTable {...statement} />
+        </>
       )}
     </>
   );

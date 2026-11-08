@@ -10,6 +10,7 @@ import ProfitAndLoss from "./ProfitAndLoss";
 import BalanceSheet from "./BalanceSheet";
 import CashFlow from "./CashFlow";
 import OwnersEquity from "./OwnersEquity";
+import "./reportPrint.css";
 
 const REPORT_TABS = [
   { label: "Profit & Loss", path: "/business/reports/profit-and-loss" },
@@ -32,8 +33,8 @@ export default function Reports() {
   return (
     <>
       <BusinessTabs tabs={REPORT_TABS} />
-      <Box sx={{ mt: 2 }}>
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      <Box className="print-area" sx={{ mt: 2 }}>
+        {error && <Alert className="no-print" severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         {entityId && (
           <Routes>
             <Route index element={<Navigate to="/business/reports/profit-and-loss" replace />} />
