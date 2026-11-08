@@ -2,8 +2,24 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import {
   fetchBusinessTrialBalance,
   fetchBusinessGeneralLedger,
+  fetchBusinessProfitAndLoss,
+  fetchBusinessBalanceSheet,
   serverErrorMessage,
 } from "../utilities/serverCalls";
+
+// A P&L or balance sheet section: account rows plus totals. Computed equity
+// lines (net income) have a null accountId.
+const toSection = (section) => ({
+  rows: section.rows.map((row) => ({
+    key: row.account_id ?? row.name,
+    accountNumber: row.account_number,
+    name: row.name,
+    amountCents: row.amount_cents,
+    compareAmountCents: row.compare_amount_cents,
+  })),
+  totalCents: section.total_cents,
+  compareTotalCents: section.compare_total_cents,
+});
 
 const toAccountColumns = (row) => ({
   accountId: row.account_id,
@@ -65,11 +81,64 @@ export const loadBusinessGeneralLedger = createAsyncThunk(
   }
 );
 
+// query: { entityId, from, to, compareFrom, compareTo, propertyId }
+export const loadBusinessProfitAndLoss = createAsyncThunk(
+  "businessReports/loadBusinessProfitAndLoss",
+  async (query, { rejectWithValue }) => {
+    try {
+      const data = await fetchBusinessProfitAndLoss(query);
+      return {
+        from: data.from,
+        to: data.to,
+        compareFrom: data.compare_from,
+        compareTo: data.compare_to,
+        income: toSection(data.income),
+        expenses: toSection(data.expenses),
+        netIncomeCents: data.net_income_cents,
+        compareNetIncomeCents: data.compare_net_income_cents,
+      };
+    } catch (err) {
+      return rejectWithValue(serverErrorMessage(err));
+    }
+  }
+);
+
+// query: { entityId, asOfDate, compareAsOfDate }
+export const loadBusinessBalanceSheet = createAsyncThunk(
+  "businessReports/loadBusinessBalanceSheet",
+  async (query, { rejectWithValue }) => {
+    try {
+      const data = await fetchBusinessBalanceSheet(query);
+      return {
+        asOfDate: data.as_of_date,
+        compareAsOfDate: data.compare_as_of_date,
+        assets: toSection(data.assets),
+        liabilities: toSection(data.liabilities),
+        equity: toSection(data.equity),
+        totalLiabilitiesAndEquityCents: data.total_liabilities_and_equity_cents,
+        compareTotalLiabilitiesAndEquityCents: data.compare_total_liabilities_and_equity_cents,
+      };
+    } catch (err) {
+      return rejectWithValue(serverErrorMessage(err));
+    }
+  }
+);
+
+const storeReport = (key) => (state, action) => {
+  state[key] = action.payload;
+  state.error = null;
+};
+const storeError = (state, action) => {
+  state.error = action.payload;
+};
+
 const businessReportsSlice = createSlice({
   name: "businessReports",
   initialState: {
     trialBalance: null,
     generalLedger: null,
+    profitAndLoss: null,
+    balanceSheet: null,
     error: null,
   },
   reducers: {},
@@ -88,7 +157,11 @@ const businessReportsSlice = createSlice({
       })
       .addCase(loadBusinessGeneralLedger.rejected, (state, action) => {
         state.error = action.payload;
-      });
+      })
+      .addCase(loadBusinessProfitAndLoss.fulfilled, storeReport("profitAndLoss"))
+      .addCase(loadBusinessProfitAndLoss.rejected, storeError)
+      .addCase(loadBusinessBalanceSheet.fulfilled, storeReport("balanceSheet"))
+      .addCase(loadBusinessBalanceSheet.rejected, storeError);
   },
 });
 

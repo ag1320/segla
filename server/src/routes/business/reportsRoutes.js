@@ -6,6 +6,10 @@ import {
   getGeneralLedger,
   getAccountBalances,
 } from "../../services/business/reportsService.js";
+import {
+  getProfitAndLoss,
+  getBalanceSheet,
+} from "../../services/business/financialStatementsService.js";
 import { ID, ISO_DATE } from "./schemaFields.js";
 
 const TRIAL_BALANCE_QUERY = z.strictObject({
@@ -23,6 +27,22 @@ const ACCOUNT_BALANCES_QUERY = z.strictObject({
   entityId: ID,
   from: ISO_DATE.optional(),
   to: ISO_DATE.optional(),
+});
+
+// compareFrom and compareTo come together, for a second column.
+const PROFIT_AND_LOSS_QUERY = z.strictObject({
+  entityId: ID,
+  from: ISO_DATE,
+  to: ISO_DATE,
+  compareFrom: ISO_DATE.optional(),
+  compareTo: ISO_DATE.optional(),
+  propertyId: ID.optional(),
+});
+
+const BALANCE_SHEET_QUERY = z.strictObject({
+  entityId: ID,
+  asOfDate: ISO_DATE,
+  compareAsOfDate: ISO_DATE.optional(),
 });
 
 const router = Router();
@@ -48,6 +68,22 @@ router.get(
   validate({ query: ACCOUNT_BALANCES_QUERY }),
   async (req, res) => {
     res.status(200).json(await getAccountBalances(req.validated.query));
+  },
+);
+
+router.get(
+  "/business/reports/profit-and-loss",
+  validate({ query: PROFIT_AND_LOSS_QUERY }),
+  async (req, res) => {
+    res.status(200).json(await getProfitAndLoss(req.validated.query));
+  },
+);
+
+router.get(
+  "/business/reports/balance-sheet",
+  validate({ query: BALANCE_SHEET_QUERY }),
+  async (req, res) => {
+    res.status(200).json(await getBalanceSheet(req.validated.query));
   },
 );
 

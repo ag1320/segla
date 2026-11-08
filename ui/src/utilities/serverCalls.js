@@ -503,6 +503,17 @@ async function fetchBusinessGeneralLedger(query) {
   const res = await axios.get(`${BASE_URL}/business/reports/general-ledger`, { params: query });
   return res.data;
 }
+// query: { entityId, from, to, compareFrom, compareTo, propertyId }, the
+// last three optional
+async function fetchBusinessProfitAndLoss(query) {
+  const res = await axios.get(`${BASE_URL}/business/reports/profit-and-loss`, { params: query });
+  return res.data;
+}
+// query: { entityId, asOfDate, compareAsOfDate }, compareAsOfDate optional
+async function fetchBusinessBalanceSheet(query) {
+  const res = await axios.get(`${BASE_URL}/business/reports/balance-sheet`, { params: query });
+  return res.data;
+}
 // lockedThroughDate: a month-end 'YYYY-MM-DD', or null to reopen everything
 async function putBusinessPeriodLock(entityId, lockedThroughDate) {
   const res = await axios.put(`${BASE_URL}/business/entities/${entityId}/period-lock`, { lockedThroughDate });
@@ -542,4 +553,5 @@ export {
   postBusinessReconciliation, deleteBusinessReconciliation,
   fetchBusinessPeriodLock, putBusinessPeriodLock,
   fetchBusinessTrialBalance, fetchBusinessGeneralLedger,
+  fetchBusinessProfitAndLoss, fetchBusinessBalanceSheet,
 };

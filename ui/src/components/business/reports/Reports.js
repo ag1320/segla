@@ -6,8 +6,12 @@ import { loadBusinessEntities } from "../../../state/businessEntitiesSlice";
 import BusinessTabs from "../BusinessTabs";
 import TrialBalance from "./TrialBalance";
 import GeneralLedger from "./GeneralLedger";
+import ProfitAndLoss from "./ProfitAndLoss";
+import BalanceSheet from "./BalanceSheet";
 
 const REPORT_TABS = [
+  { label: "Profit & Loss", path: "/business/reports/profit-and-loss" },
+  { label: "Balance Sheet", path: "/business/reports/balance-sheet" },
   { label: "Trial Balance", path: "/business/reports/trial-balance" },
   { label: "General Ledger", path: "/business/reports/general-ledger" },
 ];
@@ -28,7 +32,9 @@ export default function Reports() {
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         {entityId && (
           <Routes>
-            <Route index element={<Navigate to="/business/reports/trial-balance" replace />} />
+            <Route index element={<Navigate to="/business/reports/profit-and-loss" replace />} />
+            <Route path="profit-and-loss" element={<ProfitAndLoss entityId={entityId} />} />
+            <Route path="balance-sheet" element={<BalanceSheet entityId={entityId} />} />
             <Route path="trial-balance" element={<TrialBalance entityId={entityId} />} />
             <Route path="general-ledger" element={<GeneralLedger entityId={entityId} />} />
           </Routes>
