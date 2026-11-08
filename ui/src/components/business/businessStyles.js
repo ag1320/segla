@@ -17,4 +17,6 @@ export const DARK_FIELD_SX = {
   "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.7)" },
   "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.3)" },
   "& .MuiSvgIcon-root": { color: "white" },
+  // Draws the browser's own date-picker icon (and its popup) light on dark.
+  "& input": { colorScheme: "dark" },
 };

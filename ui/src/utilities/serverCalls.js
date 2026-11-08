@@ -403,6 +403,21 @@ async function patchBusinessProperty(id, changes) {
   const res = await axios.patch(`${BASE_URL}/business/properties/${id}`, changes);
   return res.data;
 }
+async function fetchBusinessPropertyValuations(propertyId) {
+  const res = await axios.get(`${BASE_URL}/business/properties/${propertyId}/valuations`);
+  return res.data;
+}
+async function postBusinessPropertyValuation(propertyId, valuation) {
+  const res = await axios.post(`${BASE_URL}/business/properties/${propertyId}/valuations`, valuation);
+  return res.data;
+}
+async function patchBusinessPropertyValuation(id, changes) {
+  const res = await axios.patch(`${BASE_URL}/business/property-valuations/${id}`, changes);
+  return res.data;
+}
+async function deleteBusinessPropertyValuation(id) {
+  await axios.delete(`${BASE_URL}/business/property-valuations/${id}`);
+}
 // filters: { from, to, accountId }, each optional
 async function fetchBusinessJournalEntries(filters) {
   const res = await axios.get(`${BASE_URL}/business/journal-entries`, { params: filters });
@@ -553,6 +568,8 @@ export {
   serverErrorMessage, fetchBusinessEntities,
   fetchBusinessAccounts, postBusinessAccount, patchBusinessAccount,
   fetchBusinessProperties, postBusinessProperty, patchBusinessProperty,
+  fetchBusinessPropertyValuations, postBusinessPropertyValuation,
+  patchBusinessPropertyValuation, deleteBusinessPropertyValuation,
   fetchBusinessJournalEntries, postBusinessJournalEntry, postBusinessJournalEntryReversal,
   fetchBusinessBankAccounts, postBusinessBankImport,
   fetchBusinessBankTransactions, patchBusinessBankTransaction, postBusinessBankTransactionEntry,

@@ -7,7 +7,7 @@ import {
 } from "../../../state/businessPropertiesSlice";
 import { setSnackbarSuccess } from "../../../state/uiSlice";
 import BusinessFormDialog from "../BusinessFormDialog";
-import { PROPERTY_STATUS_LABELS } from "./settingsLabels";
+import { PROPERTY_STATUS_LABELS } from "../settings/settingsLabels";
 import { centsToDollarsText, dollarsToCents, isDollarAmount } from "../businessFormat";
 
 const DOLLAR_ADORNMENT = { startAdornment: <InputAdornment position="start">$</InputAdornment> };

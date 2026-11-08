@@ -1,7 +1,8 @@
-import { Fragment } from "react";
+import { useState } from "react";
 import { useSelector } from "react-redux";
-import FlagIcon from "@mui/icons-material/Flag";
 import {
+  Box,
+  Button,
   Paper,
   Table,
   TableBody,
@@ -9,83 +10,64 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Tooltip,
 } from "@mui/material";
-import EntryActions from "./EntryActions";
-import useLedgerLookups from "./useLedgerLookups";
-import { formatCents, formatDate } from "../businessFormat";
-import {
-  TABLE_PAPER_SX,
-  TABLE_CONTAINER_SX,
-  HEADER_CELL_SX,
-  CELL_SX,
-  MUTED_TEXT,
-} from "../businessStyles";
+import JournalEntryRow from "./JournalEntryRow";
+import { TABLE_PAPER_SX, TABLE_CONTAINER_SX, HEADER_CELL_SX } from "../businessStyles";
 
-const ENTRY_ROW_SX = { ...CELL_SX, borderBottom: "none", pt: 1.5, fontWeight: 600 };
-const LINE_CELL_SX = { ...CELL_SX, pl: 4 };
-
-// Every entry with all of its lines, newest first.
+// Every entry, newest first, one row each until opened. An entry and the
+// reversal that cancels it share one row, since together they add up to
+// nothing.
 export default function JournalView({ onReverse }) {
   const entries = useSelector((state) => state.businessJournalEntries.items);
-  const { accountLabel, propertyLabel } = useLedgerLookups();
-  const newestFirst = [...entries].reverse();
+  const [openIds, setOpenIds] = useState([]);
+
+  const entriesById = Object.fromEntries(entries.map((entry) => [entry.id, entry]));
+  const groups = [...entries]
+    .reverse()
+    .filter((entry) => entry.reversesId === null || !entriesById[entry.reversesId])
+    .map((entry) => ({ entry, reversal: entriesById[entry.reversedById] ?? null }));
+
+  const allOpen = openIds.length === groups.length;
+  const toggleAll = () => setOpenIds(allOpen ? [] : groups.map((group) => group.entry.id));
+  const toggle = (id) =>
+    setOpenIds(openIds.includes(id) ? openIds.filter((openId) => openId !== id) : [...openIds, id]);
 
   return (
-    <Paper sx={TABLE_PAPER_SX}>
-      <TableContainer sx={TABLE_CONTAINER_SX}>
-        <Table size="small" sx={{ minWidth: 800 }}>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={HEADER_CELL_SX}>Date</TableCell>
-              <TableCell sx={HEADER_CELL_SX}>Account</TableCell>
-              <TableCell sx={HEADER_CELL_SX}>Property</TableCell>
-              <TableCell sx={HEADER_CELL_SX} align="right">Debit</TableCell>
-              <TableCell sx={HEADER_CELL_SX} align="right">Credit</TableCell>
-              <TableCell sx={HEADER_CELL_SX} />
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {newestFirst.map((entry) => (
-              <Fragment key={entry.id}>
-                <TableRow>
-                  <TableCell sx={ENTRY_ROW_SX}>{formatDate(entry.entryDate)}</TableCell>
-                  <TableCell sx={ENTRY_ROW_SX} colSpan={4}>
-                    {`#${entry.id}`}
-                    {entry.memo && <span style={{ fontWeight: 400 }}>{` · ${entry.memo}`}</span>}
-                  </TableCell>
-                  <TableCell sx={{ ...ENTRY_ROW_SX, fontWeight: 400 }}>
-                    <EntryActions entry={entry} onReverse={onReverse} />
-                  </TableCell>
-                </TableRow>
-                {entry.lines.map((line) => (
-                  <TableRow key={line.id}>
-                    <TableCell sx={CELL_SX} />
-                    <TableCell sx={LINE_CELL_SX}>
-                      {accountLabel(line.accountId)}
-                      {line.needsCpaReview && (
-                        <Tooltip title="Flagged for CPA review">
-                          <FlagIcon fontSize="inherit" sx={{ ml: 1, color: "#f9a825", verticalAlign: "middle" }} />
-                        </Tooltip>
-                      )}
-                    </TableCell>
-                    <TableCell sx={{ ...CELL_SX, color: line.propertyId === null ? MUTED_TEXT : "white" }}>
-                      {propertyLabel(line.propertyId)}
-                    </TableCell>
-                    <TableCell sx={CELL_SX} align="right">
-                      {line.debitCents > 0 && formatCents(line.debitCents)}
-                    </TableCell>
-                    <TableCell sx={CELL_SX} align="right">
-                      {line.creditCents > 0 && formatCents(line.creditCents)}
-                    </TableCell>
-                    <TableCell sx={CELL_SX} />
-                  </TableRow>
-                ))}
-              </Fragment>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Paper>
+    <>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}>
+        <Button size="small" onClick={toggleAll} sx={{ color: "#BBE1FA" }}>
+          {allOpen ? "Collapse all" : "Expand all"}
+        </Button>
+      </Box>
+      <Paper sx={TABLE_PAPER_SX}>
+        <TableContainer sx={TABLE_CONTAINER_SX}>
+          <Table size="small" sx={{ minWidth: 860 }}>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ ...HEADER_CELL_SX, width: 40 }} />
+                <TableCell sx={HEADER_CELL_SX}>Date</TableCell>
+                <TableCell sx={HEADER_CELL_SX}>Memo</TableCell>
+                <TableCell sx={HEADER_CELL_SX}>Went to (debit)</TableCell>
+                <TableCell sx={HEADER_CELL_SX}>Came from (credit)</TableCell>
+                <TableCell sx={HEADER_CELL_SX} align="right">Amount</TableCell>
+                <TableCell sx={HEADER_CELL_SX} />
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {groups.map((group) => (
+                <JournalEntryRow
+                  key={group.entry.id}
+                  entry={group.entry}
+                  reversal={group.reversal}
+                  isOpen={openIds.includes(group.entry.id)}
+                  onToggle={() => toggle(group.entry.id)}
+                  onReverse={onReverse}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+    </>
   );
 }
