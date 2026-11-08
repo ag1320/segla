@@ -64,6 +64,15 @@ async function insertJournalEntry(entry, trx = knex) {
   return findJournalEntry(journal_entry_id, trx);
 }
 
+async function hasJournalLinesThrough({ accountId, throughDate }, trx = knex) {
+  const line = await trx("journal_lines")
+    .join("journal_entries", "journal_entries.journal_entry_id", "journal_lines.journal_entry_id")
+    .where("journal_lines.account_id", accountId)
+    .where("journal_entries.entry_date", "<=", throughDate)
+    .first("journal_lines.journal_line_id");
+  return line !== undefined;
+}
+
 function insertJournalLines(lines, trx = knex) {
   return trx("journal_lines").insert(lines).returning("*");
 }
@@ -73,6 +82,7 @@ export {
   findJournalEntry,
   findJournalLines,
   findJournalLinesForEntries,
+  hasJournalLinesThrough,
   insertJournalEntry,
   insertJournalLines,
 };

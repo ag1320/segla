@@ -24,7 +24,7 @@ before(async () => {
 
 beforeEach(() =>
   knex.raw(
-    "truncate bank_transactions, journal_lines, journal_entries, period_locks, rules, vendors restart identity",
+    "truncate reconciled_lines, reconciliations, bank_transactions, journal_lines, journal_entries, period_locks, rules, vendors restart identity",
   ),
 );
 

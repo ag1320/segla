@@ -177,8 +177,11 @@ async function postTransfer(bankTransactionId, otherBankTransactionId) {
   });
 }
 
-// Moves a transaction between the Inbox ("new") and "excluded" (personal
-// spending, card verifications). A posted one is undone by reversing its entry.
+// Moves a transaction between the Inbox ("new") and "excluded". Excluded
+// rows never reach the ledger, so only exclude ones that cancel out (card
+// verification deposits) or duplicates, or the account won't reconcile.
+// Personal spending on a business account is an owner draw, not excluded.
+// A posted one is undone by reversing its entry.
 async function changeBankTransactionStatus(bankTransactionId, status) {
   return knex.transaction(async (trx) => {
     const transaction = await findBankTransactionForUpdate(bankTransactionId, trx);

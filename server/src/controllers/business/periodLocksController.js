@@ -8,4 +8,15 @@ async function findLockedThroughDate(entityId, trx = knex) {
   return lock?.locked_through_date ?? null;
 }
 
-export { findLockedThroughDate };
+function saveLockedThroughDate(entityId, lockedThroughDate, trx = knex) {
+  return trx("period_locks")
+    .insert({ entity_id: entityId, locked_through_date: lockedThroughDate })
+    .onConflict("entity_id")
+    .merge({ locked_through_date: lockedThroughDate, updated_at: knex.fn.now() });
+}
+
+function deletePeriodLock(entityId, trx = knex) {
+  return trx("period_locks").where({ entity_id: entityId }).delete();
+}
+
+export { findLockedThroughDate, saveLockedThroughDate, deletePeriodLock };

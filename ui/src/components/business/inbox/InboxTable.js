@@ -66,7 +66,7 @@ export default function InboxTable({ onCategorize, onChangeStatus, onAccept, onM
                       <Button size="small" onClick={() => onCategorize(transaction)} sx={{ color: "#BBE1FA" }}>
                         Categorize
                       </Button>
-                      <Tooltip title="Exclude (not a business transaction)">
+                      <Tooltip title="Exclude (only for duplicates or amounts that cancel out)">
                         <IconButton
                           size="small"
                           onClick={() => onChangeStatus(transaction, "excluded")}

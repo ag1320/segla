@@ -471,6 +471,33 @@ async function patchBusinessRule(id, changes) {
 async function deleteBusinessRule(id) {
   await axios.delete(`${BASE_URL}/business/rules/${id}`);
 }
+async function fetchBusinessReconciliations() {
+  const res = await axios.get(`${BASE_URL}/business/reconciliations`);
+  return res.data;
+}
+async function fetchBusinessReconciliationWorksheet(bankAccountId, statementDate) {
+  const res = await axios.get(`${BASE_URL}/business/bank-accounts/${bankAccountId}/reconciliation-worksheet`, {
+    params: { statementDate },
+  });
+  return res.data;
+}
+// reconciliation: { bankAccountId, statementDate, statementBalanceCents, clearedLineIds }
+async function postBusinessReconciliation(reconciliation) {
+  const res = await axios.post(`${BASE_URL}/business/reconciliations`, reconciliation);
+  return res.data;
+}
+async function deleteBusinessReconciliation(id) {
+  await axios.delete(`${BASE_URL}/business/reconciliations/${id}`);
+}
+async function fetchBusinessPeriodLock(entityId) {
+  const res = await axios.get(`${BASE_URL}/business/entities/${entityId}/period-lock`);
+  return res.data;
+}
+// lockedThroughDate: a month-end 'YYYY-MM-DD', or null to reopen everything
+async function putBusinessPeriodLock(entityId, lockedThroughDate) {
+  const res = await axios.put(`${BASE_URL}/business/entities/${entityId}/period-lock`, { lockedThroughDate });
+  return res.data;
+}
 
 export {
   login, logout, fetchCurrentUser,
@@ -501,4 +528,7 @@ export {
   postBusinessBankTransfer,
   fetchBusinessVendors, postBusinessVendor, patchBusinessVendor,
   fetchBusinessRules, postBusinessRule, patchBusinessRule, deleteBusinessRule,
+  fetchBusinessReconciliations, fetchBusinessReconciliationWorksheet,
+  postBusinessReconciliation, deleteBusinessReconciliation,
+  fetchBusinessPeriodLock, putBusinessPeriodLock,
 };

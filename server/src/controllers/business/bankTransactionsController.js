@@ -54,6 +54,18 @@ async function updateBankTransaction(bankTransactionId, changes, trx = knex) {
   return updated;
 }
 
+// Inbox items for any of entityId's bank accounts, dated on or before
+// throughDate.
+async function countNewBankTransactionsThrough({ entityId, throughDate }, trx = knex) {
+  const [{ count }] = await trx("bank_transactions")
+    .join("bank_accounts", "bank_accounts.bank_account_id", "bank_transactions.bank_account_id")
+    .where("bank_accounts.entity_id", entityId)
+    .where("bank_transactions.status", "new")
+    .where("bank_transactions.transaction_date", "<=", throughDate)
+    .count({ count: "*" });
+  return Number(count);
+}
+
 function reopenBankTransactionsForEntry(journalEntryId, trx = knex) {
   return trx("bank_transactions")
     .where({ journal_entry_id: journalEntryId })
@@ -65,5 +77,6 @@ export {
   findBankTransactionForUpdate,
   insertNewBankTransactions,
   updateBankTransaction,
+  countNewBankTransactionsThrough,
   reopenBankTransactionsForEntry,
 };

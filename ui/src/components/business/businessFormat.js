@@ -19,6 +19,15 @@ export const isDollarAmount = (text) =>
 export const dollarsToCents = (text) =>
   text.trim() === "" ? null : Math.round(Number(stripFormatting(text)) * 100);
 
+// Like dollarsToCents, but a leading "-" makes it negative (a card
+// statement showing a credit balance). null when blank or not a number.
+export const signedDollarsToCents = (text) => {
+  const trimmed = text.trim();
+  const unsigned = trimmed.replace(/^-/, "");
+  if (unsigned === "" || !isDollarAmount(unsigned)) return null;
+  return (trimmed.startsWith("-") ? -1 : 1) * dollarsToCents(unsigned);
+};
+
 // For running totals while the user is still typing.
 export const centsOrZero = (text) => (isDollarAmount(text) ? dollarsToCents(text) ?? 0 : 0);
 
