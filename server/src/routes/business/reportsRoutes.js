@@ -9,7 +9,9 @@ import {
 import {
   getProfitAndLoss,
   getBalanceSheet,
+  getOwnersEquity,
 } from "../../services/business/financialStatementsService.js";
+import { getCashFlow } from "../../services/business/cashFlowService.js";
 import { ID, ISO_DATE } from "./schemaFields.js";
 
 const TRIAL_BALANCE_QUERY = z.strictObject({
@@ -17,7 +19,9 @@ const TRIAL_BALANCE_QUERY = z.strictObject({
   asOfDate: ISO_DATE,
 });
 
-const GENERAL_LEDGER_QUERY = z.strictObject({
+// The general ledger, cash flow and owner's equity statements all cover
+// one period.
+const PERIOD_QUERY = z.strictObject({
   entityId: ID,
   from: ISO_DATE,
   to: ISO_DATE,
@@ -57,7 +61,7 @@ router.get(
 
 router.get(
   "/business/reports/general-ledger",
-  validate({ query: GENERAL_LEDGER_QUERY }),
+  validate({ query: PERIOD_QUERY }),
   async (req, res) => {
     res.status(200).json(await getGeneralLedger(req.validated.query));
   },
@@ -84,6 +88,22 @@ router.get(
   validate({ query: BALANCE_SHEET_QUERY }),
   async (req, res) => {
     res.status(200).json(await getBalanceSheet(req.validated.query));
+  },
+);
+
+router.get(
+  "/business/reports/cash-flow",
+  validate({ query: PERIOD_QUERY }),
+  async (req, res) => {
+    res.status(200).json(await getCashFlow(req.validated.query));
+  },
+);
+
+router.get(
+  "/business/reports/owners-equity",
+  validate({ query: PERIOD_QUERY }),
+  async (req, res) => {
+    res.status(200).json(await getOwnersEquity(req.validated.query));
   },
 );
 

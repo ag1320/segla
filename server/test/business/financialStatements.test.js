@@ -2,7 +2,12 @@ import { test, before, beforeEach, after } from "node:test";
 import assert from "node:assert/strict";
 import knex from "../../src/controllers/dbConnection.js";
 import { postJournalEntry, reverseJournalEntry } from "../../src/services/business/postingService.js";
-import { getProfitAndLoss, getBalanceSheet } from "../../src/services/business/financialStatementsService.js";
+import {
+  getProfitAndLoss,
+  getBalanceSheet,
+  getOwnersEquity,
+} from "../../src/services/business/financialStatementsService.js";
+import { getCashFlow } from "../../src/services/business/cashFlowService.js";
 
 const accountIdsByNumber = {};
 let entityId;
@@ -124,4 +129,56 @@ test("a property's P&L leaves out company-wide costs", async () => {
 
   assert.equal(amountFor(pnl.expenses, "Legal & Professional Fees"), undefined);
   assert.equal(pnl.net_income_cents, 250000 - 90000);
+});
+
+function cashOnBalanceSheet(sheet) {
+  return sheet.assets.rows
+    .filter((row) => row.account_number >= 1000 && row.account_number <= 1099)
+    .reduce((total, row) => total + row.amount_cents, 0);
+}
+
+test("ending cash on the cash flow statement matches the balance sheet's cash", async () => {
+  await postSampleHistory();
+
+  const periods = [
+    ["2025-11-01", "2025-11-30"],
+    ["2025-11-16", "2026-01-15"],
+    ["2026-01-01", "2026-03-31"],
+    ["2025-10-01", "2026-03-31"],
+  ];
+  for (const [from, to] of periods) {
+    const cashFlow = await getCashFlow({ entityId, from, to });
+    const sheet = await getBalanceSheet({ entityId, asOfDate: to });
+    assert.equal(cashFlow.opening_cash_cents + cashFlow.net_change_cents, cashFlow.closing_cash_cents, `${from} to ${to}`);
+    assert.equal(cashFlow.closing_cash_cents, cashOnBalanceSheet(sheet), `${from} to ${to}`);
+  }
+});
+
+test("cash flows are grouped as operating, investing and financing", async () => {
+  await postSampleHistory();
+
+  const cashFlow = await getCashFlow({ entityId, from: "2025-11-01", to: "2026-03-31" });
+
+  assert.equal(cashFlow.operating.total_cents, 500000 + 200000 - 90000 - 40000 - 30000);
+  assert.equal(cashFlow.investing.total_cents, -20000000);
+  assert.equal(cashFlow.financing.total_cents, 7000000 + 18000000 - 30000 - 100000);
+  assert.equal(cashFlow.net_change_cents, 5410000);
+  // Card charges aren't cash until the card is paid; the payment is.
+  assert.equal(amountFor(cashFlow.operating, "Repairs"), undefined);
+  assert.equal(amountFor(cashFlow.operating, "WF Signify Business Card"), -40000);
+  // A reversed mistake nets to nothing.
+  assert.equal(amountFor(cashFlow.operating, "Supplies"), undefined);
+});
+
+test("the owner's equity statement ends at the balance sheet's total equity", async () => {
+  await postSampleHistory();
+
+  const statement = await getOwnersEquity({ entityId, from: "2026-01-01", to: "2026-03-31" });
+  const opening = await getBalanceSheet({ entityId, asOfDate: "2025-12-31" });
+  const closing = await getBalanceSheet({ entityId, asOfDate: "2026-03-31" });
+
+  assert.equal(statement.opening_equity_cents, opening.equity.total_cents);
+  assert.equal(statement.closing_equity_cents, closing.equity.total_cents);
+  assert.equal(statement.net_income_cents, 250000 - 90000 - 30000);
+  assert.deepEqual(statement.changes.map((row) => [row.name, row.amount_cents]), [["Owner Draws", -100000]]);
 });

@@ -4,6 +4,8 @@ import {
   fetchBusinessGeneralLedger,
   fetchBusinessProfitAndLoss,
   fetchBusinessBalanceSheet,
+  fetchBusinessCashFlow,
+  fetchBusinessOwnersEquity,
   serverErrorMessage,
 } from "../utilities/serverCalls";
 
@@ -124,6 +126,53 @@ export const loadBusinessBalanceSheet = createAsyncThunk(
   }
 );
 
+// query: { entityId, from, to }
+export const loadBusinessCashFlow = createAsyncThunk(
+  "businessReports/loadBusinessCashFlow",
+  async (query, { rejectWithValue }) => {
+    try {
+      const data = await fetchBusinessCashFlow(query);
+      return {
+        from: data.from,
+        to: data.to,
+        operating: toSection(data.operating),
+        investing: toSection(data.investing),
+        financing: toSection(data.financing),
+        netChangeCents: data.net_change_cents,
+        openingCashCents: data.opening_cash_cents,
+        closingCashCents: data.closing_cash_cents,
+      };
+    } catch (err) {
+      return rejectWithValue(serverErrorMessage(err));
+    }
+  }
+);
+
+// query: { entityId, from, to }
+export const loadBusinessOwnersEquity = createAsyncThunk(
+  "businessReports/loadBusinessOwnersEquity",
+  async (query, { rejectWithValue }) => {
+    try {
+      const data = await fetchBusinessOwnersEquity(query);
+      return {
+        from: data.from,
+        to: data.to,
+        openingEquityCents: data.opening_equity_cents,
+        changes: data.changes.map((row) => ({
+          accountId: row.account_id,
+          accountNumber: row.account_number,
+          name: row.name,
+          amountCents: row.amount_cents,
+        })),
+        netIncomeCents: data.net_income_cents,
+        closingEquityCents: data.closing_equity_cents,
+      };
+    } catch (err) {
+      return rejectWithValue(serverErrorMessage(err));
+    }
+  }
+);
+
 const storeReport = (key) => (state, action) => {
   state[key] = action.payload;
   state.error = null;
@@ -139,6 +188,8 @@ const businessReportsSlice = createSlice({
     generalLedger: null,
     profitAndLoss: null,
     balanceSheet: null,
+    cashFlow: null,
+    ownersEquity: null,
     error: null,
   },
   reducers: {},
@@ -161,7 +212,11 @@ const businessReportsSlice = createSlice({
       .addCase(loadBusinessProfitAndLoss.fulfilled, storeReport("profitAndLoss"))
       .addCase(loadBusinessProfitAndLoss.rejected, storeError)
       .addCase(loadBusinessBalanceSheet.fulfilled, storeReport("balanceSheet"))
-      .addCase(loadBusinessBalanceSheet.rejected, storeError);
+      .addCase(loadBusinessBalanceSheet.rejected, storeError)
+      .addCase(loadBusinessCashFlow.fulfilled, storeReport("cashFlow"))
+      .addCase(loadBusinessCashFlow.rejected, storeError)
+      .addCase(loadBusinessOwnersEquity.fulfilled, storeReport("ownersEquity"))
+      .addCase(loadBusinessOwnersEquity.rejected, storeError);
   },
 });
 

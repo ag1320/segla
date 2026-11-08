@@ -2,6 +2,7 @@ import { findEntity } from "../../controllers/business/entitiesController.js";
 import { findAccounts } from "../../controllers/business/accountsController.js";
 import { findAccountTotals, findLedgerLines } from "../../controllers/business/reportsController.js";
 import { NotFoundError, ValidationError } from "../../utils/errors.js";
+import { dayBefore } from "../../utils/isoDates.js";
 
 const CREDIT_NORMAL_TYPES = ["contra_asset", "liability", "equity", "income"];
 
@@ -100,12 +101,6 @@ async function assertEntityExists(entityId) {
   if (!(await findEntity(entityId))) {
     throw new NotFoundError(`Entity ${entityId} not found`);
   }
-}
-
-function dayBefore(isoDate) {
-  const date = new Date(`${isoDate}T00:00:00Z`);
-  date.setUTCDate(date.getUTCDate() - 1);
-  return date.toISOString().slice(0, 10);
 }
 
 function sum(rows, column) {

@@ -4,21 +4,26 @@ import { Box, MenuItem, TextField } from "@mui/material";
 import { loadBusinessProfitAndLoss } from "../../../state/businessReportsSlice";
 import { loadBusinessProperties } from "../../../state/businessPropertiesSlice";
 import StatementTable from "./StatementTable";
-import { PERIOD_PRESETS, PERIOD_COMPARISONS, presetPeriod, comparisonPeriod } from "./reportPeriods";
+import PeriodFields from "./PeriodFields";
+import { PERIOD_COMPARISONS, presetPeriod, comparisonPeriod } from "./reportPeriods";
 import { formatDate } from "../businessFormat";
 import { DARK_FIELD_SX } from "../businessStyles";
 
 const FIELD_SX = { ...DARK_FIELD_SX, minWidth: 170 };
 
-const defaultSettings = () => ({ preset: "yearToDate", ...presetPeriod("yearToDate"), comparison: "none", propertyId: "" });
+const defaultSettings = () => ({
+  period: { preset: "yearToDate", ...presetPeriod("yearToDate") },
+  comparison: "none",
+  propertyId: "",
+});
 
-function toQuery(entityId, settings) {
+function toQuery(entityId, { period, comparison, propertyId }) {
   return {
     entityId,
-    from: settings.from,
-    to: settings.to,
-    ...comparisonPeriod(settings, settings.comparison),
-    propertyId: settings.propertyId || undefined,
+    from: period.from,
+    to: period.to,
+    ...comparisonPeriod(period, comparison),
+    propertyId: propertyId || undefined,
   };
 }
 
@@ -36,16 +41,11 @@ export default function ProfitAndLoss({ entityId }) {
     dispatch(loadBusinessProfitAndLoss(toQuery(entityId, defaultSettings())));
   }, [dispatch, entityId]);
 
-  const applySettings = (next) => {
+  const applySettings = (changes) => {
+    const next = { ...settings, ...changes };
     setSettings(next);
-    if (next.from && next.to) dispatch(loadBusinessProfitAndLoss(toQuery(entityId, next)));
+    if (next.period.from && next.period.to) dispatch(loadBusinessProfitAndLoss(toQuery(entityId, next)));
   };
-  const handlePreset = (event) => {
-    const preset = event.target.value;
-    applySettings({ ...settings, preset, ...(preset === "custom" ? {} : presetPeriod(preset)) });
-  };
-  const handleChange = (field) => (event) =>
-    applySettings({ ...settings, [field]: event.target.value, ...(field === "from" || field === "to" ? { preset: "custom" } : {}) });
 
   const columnLabels = profitAndLoss
     ? [
@@ -57,14 +57,15 @@ export default function ProfitAndLoss({ entityId }) {
   return (
     <>
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
-        <TextField select size="small" label="Period" value={settings.preset} onChange={handlePreset} sx={FIELD_SX}>
-          {Object.entries(PERIOD_PRESETS).map(([value, label]) => (
-            <MenuItem key={value} value={value}>{label}</MenuItem>
-          ))}
-        </TextField>
-        <TextField label="From" type="date" size="small" value={settings.from} onChange={handleChange("from")} InputLabelProps={{ shrink: true }} sx={DARK_FIELD_SX} />
-        <TextField label="To" type="date" size="small" value={settings.to} onChange={handleChange("to")} InputLabelProps={{ shrink: true }} sx={DARK_FIELD_SX} />
-        <TextField select size="small" label="Compare to" value={settings.comparison} onChange={handleChange("comparison")} sx={FIELD_SX}>
+        <PeriodFields value={settings.period} onChange={(period) => applySettings({ period })} />
+        <TextField
+          select
+          size="small"
+          label="Compare to"
+          value={settings.comparison}
+          onChange={(event) => applySettings({ comparison: event.target.value })}
+          sx={FIELD_SX}
+        >
           {Object.entries(PERIOD_COMPARISONS).map(([value, label]) => (
             <MenuItem key={value} value={value}>{label}</MenuItem>
           ))}
@@ -74,7 +75,7 @@ export default function ProfitAndLoss({ entityId }) {
           size="small"
           label="Property"
           value={settings.propertyId}
-          onChange={handleChange("propertyId")}
+          onChange={(event) => applySettings({ propertyId: event.target.value })}
           SelectProps={{ displayEmpty: true }}
           InputLabelProps={{ shrink: true }}
           sx={FIELD_SX}

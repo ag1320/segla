@@ -55,4 +55,26 @@ function findLedgerLines({ entityId, from, to }, trx = knex) {
     ]);
 }
 
-export { findAccountTotals, findLedgerLines };
+// For entries dated from `from` through `to` that move cash (have a line
+// on one of cashAccountIds), how much cash each other account brought in
+// (positive) or took out (negative). A balanced entry's other lines add up
+// to exactly the cash it moved, so nothing needs to be split.
+function findCashMovementsByAccount({ entityId, from, to, cashAccountIds }, trx = knex) {
+  return trx("journal_lines")
+    .join("journal_entries", "journal_entries.journal_entry_id", "journal_lines.journal_entry_id")
+    .where("journal_entries.entity_id", entityId)
+    .where("journal_entries.entry_date", ">=", from)
+    .where("journal_entries.entry_date", "<=", to)
+    .whereNotIn("journal_lines.account_id", cashAccountIds)
+    .whereIn(
+      "journal_lines.journal_entry_id",
+      trx("journal_lines").select("journal_entry_id").whereIn("account_id", cashAccountIds),
+    )
+    .groupBy("journal_lines.account_id")
+    .select(
+      "journal_lines.account_id",
+      knex.raw("sum(journal_lines.credit_cents - journal_lines.debit_cents)::bigint as cash_cents"),
+    );
+}
+
+export { findAccountTotals, findLedgerLines, findCashMovementsByAccount };

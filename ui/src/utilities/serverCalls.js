@@ -514,6 +514,16 @@ async function fetchBusinessBalanceSheet(query) {
   const res = await axios.get(`${BASE_URL}/business/reports/balance-sheet`, { params: query });
   return res.data;
 }
+// query: { entityId, from, to }
+async function fetchBusinessCashFlow(query) {
+  const res = await axios.get(`${BASE_URL}/business/reports/cash-flow`, { params: query });
+  return res.data;
+}
+// query: { entityId, from, to }
+async function fetchBusinessOwnersEquity(query) {
+  const res = await axios.get(`${BASE_URL}/business/reports/owners-equity`, { params: query });
+  return res.data;
+}
 // lockedThroughDate: a month-end 'YYYY-MM-DD', or null to reopen everything
 async function putBusinessPeriodLock(entityId, lockedThroughDate) {
   const res = await axios.put(`${BASE_URL}/business/entities/${entityId}/period-lock`, { lockedThroughDate });
@@ -554,4 +564,5 @@ export {
   fetchBusinessPeriodLock, putBusinessPeriodLock,
   fetchBusinessTrialBalance, fetchBusinessGeneralLedger,
   fetchBusinessProfitAndLoss, fetchBusinessBalanceSheet,
+  fetchBusinessCashFlow, fetchBusinessOwnersEquity,
 };

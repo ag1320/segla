@@ -2,6 +2,7 @@ import { findEntity } from "../../controllers/business/entitiesController.js";
 import { findAccounts } from "../../controllers/business/accountsController.js";
 import { findAccountTotals } from "../../controllers/business/reportsController.js";
 import { NotFoundError, ValidationError } from "../../utils/errors.js";
+import { dayBefore } from "../../utils/isoDates.js";
 
 // Which side makes each section's amounts read as positive numbers.
 const DEBIT_SIDE = 1;
@@ -73,6 +74,55 @@ async function getBalanceSheet({ entityId, asOfDate, compareAsOfDate }) {
       ? liabilities.compare_total_cents + equity.compare_total_cents
       : null,
   };
+}
+
+// How the owner's stake changed over a period: where it started, money put
+// in, money taken out, profit or loss, and where it ended. The ending
+// figure is total equity on the balance sheet at `to`.
+async function getOwnersEquity({ entityId, from, to }) {
+  await assertEntityExists(entityId);
+  assertPeriod(from, to);
+  const [accounts, openingTotals, periodTotals] = await Promise.all([
+    findAccounts(),
+    findAccountTotals({ entityId, to: dayBefore(from) }),
+    findAccountTotals({ entityId, from, to }),
+  ]);
+
+  const changes = accounts
+    .filter((account) => account.account_type === "equity")
+    .map((account) => {
+      const row = periodTotals.find((total) => total.account_id === account.account_id);
+      return {
+        account_id: account.account_id,
+        account_number: account.account_number,
+        name: account.name,
+        amount_cents: row ? row.credit_cents - row.debit_cents : 0,
+      };
+    })
+    .filter((row) => row.amount_cents !== 0);
+  const periodNetIncome = netIncome(periodTotals, accounts);
+  const openingEquity = totalEquity(openingTotals, accounts);
+
+  return {
+    entity_id: entityId,
+    from,
+    to,
+    opening_equity_cents: openingEquity,
+    changes,
+    net_income_cents: periodNetIncome,
+    closing_equity_cents: openingEquity + sumOf(changes, "amount_cents") + periodNetIncome,
+  };
+}
+
+// Equity accounts plus every year's net income not yet closed into them.
+function totalEquity(totals, accounts) {
+  const equityIds = accounts
+    .filter((account) => account.account_type === "equity")
+    .map((account) => account.account_id);
+  const equityAccounts = totals
+    .filter((row) => equityIds.includes(row.account_id))
+    .reduce((total, row) => total + row.credit_cents - row.debit_cents, 0);
+  return equityAccounts + netIncome(totals, accounts);
 }
 
 async function balanceSheetTotals({ entityId, asOfDate, accounts }) {
@@ -159,4 +209,4 @@ async function assertEntityExists(entityId) {
   }
 }
 
-export { getProfitAndLoss, getBalanceSheet };
+export { getProfitAndLoss, getBalanceSheet, getOwnersEquity };
