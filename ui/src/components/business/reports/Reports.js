@@ -1,0 +1,39 @@
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { Alert, Box } from "@mui/material";
+import { loadBusinessEntities } from "../../../state/businessEntitiesSlice";
+import BusinessTabs from "../BusinessTabs";
+import TrialBalance from "./TrialBalance";
+import GeneralLedger from "./GeneralLedger";
+
+const REPORT_TABS = [
+  { label: "Trial Balance", path: "/business/reports/trial-balance" },
+  { label: "General Ledger", path: "/business/reports/general-ledger" },
+];
+
+export default function Reports() {
+  const dispatch = useDispatch();
+  const entityId = useSelector((state) => state.businessEntities.items[0]?.id);
+  const error = useSelector((state) => state.businessReports.error);
+
+  useEffect(() => {
+    dispatch(loadBusinessEntities());
+  }, [dispatch]);
+
+  return (
+    <>
+      <BusinessTabs tabs={REPORT_TABS} />
+      <Box sx={{ mt: 2 }}>
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {entityId && (
+          <Routes>
+            <Route index element={<Navigate to="/business/reports/trial-balance" replace />} />
+            <Route path="trial-balance" element={<TrialBalance entityId={entityId} />} />
+            <Route path="general-ledger" element={<GeneralLedger entityId={entityId} />} />
+          </Routes>
+        )}
+      </Box>
+    </>
+  );
+}

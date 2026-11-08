@@ -33,6 +33,7 @@ import vendorsRoutes from "./routes/business/vendorsRoutes.js";
 import rulesRoutes from "./routes/business/rulesRoutes.js";
 import reconciliationsRoutes from "./routes/business/reconciliationsRoutes.js";
 import periodLocksRoutes from "./routes/business/periodLocksRoutes.js";
+import businessReportsRoutes from "./routes/business/reportsRoutes.js";
 import { requireAuth } from "./middleware/auth.js";
 import { snapshotOnChange } from "./middleware/snapshotOnChange.js";
 import { ensureMonthlySnapshot } from "./controllers/netWorthController.js";
@@ -143,6 +144,7 @@ app.use(vendorsRoutes);
 app.use(rulesRoutes);
 app.use(reconciliationsRoutes);
 app.use(periodLocksRoutes);
+app.use(businessReportsRoutes);
 
 // Express 5 sends every thrown error and rejected promise here. Errors from
 // utils/errors.js carry a status and a message meant for the client;

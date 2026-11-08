@@ -493,6 +493,16 @@ async function fetchBusinessPeriodLock(entityId) {
   const res = await axios.get(`${BASE_URL}/business/entities/${entityId}/period-lock`);
   return res.data;
 }
+// query: { entityId, asOfDate }
+async function fetchBusinessTrialBalance(query) {
+  const res = await axios.get(`${BASE_URL}/business/reports/trial-balance`, { params: query });
+  return res.data;
+}
+// query: { entityId, from, to }
+async function fetchBusinessGeneralLedger(query) {
+  const res = await axios.get(`${BASE_URL}/business/reports/general-ledger`, { params: query });
+  return res.data;
+}
 // lockedThroughDate: a month-end 'YYYY-MM-DD', or null to reopen everything
 async function putBusinessPeriodLock(entityId, lockedThroughDate) {
   const res = await axios.put(`${BASE_URL}/business/entities/${entityId}/period-lock`, { lockedThroughDate });
@@ -531,4 +541,5 @@ export {
   fetchBusinessReconciliations, fetchBusinessReconciliationWorksheet,
   postBusinessReconciliation, deleteBusinessReconciliation,
   fetchBusinessPeriodLock, putBusinessPeriodLock,
+  fetchBusinessTrialBalance, fetchBusinessGeneralLedger,
 };

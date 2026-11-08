@@ -6,11 +6,13 @@ import BusinessSettings from "./settings/BusinessSettings";
 import Inbox from "./inbox/Inbox";
 import Ledger from "./ledger/Ledger";
 import Reconcile from "./reconcile/Reconcile";
+import Reports from "./reports/Reports";
 
 const SECTIONS = [
   { label: "Inbox", path: "/business/inbox" },
   { label: "Ledger", path: "/business/ledger" },
   { label: "Reconcile", path: "/business/reconcile" },
+  { label: "Reports", path: "/business/reports" },
   { label: "Settings", path: "/business/settings" },
 ];
 
@@ -27,6 +29,7 @@ export default function Business() {
           <Route path="inbox" element={<Inbox />} />
           <Route path="ledger" element={<Ledger />} />
           <Route path="reconcile" element={<Reconcile />} />
+          <Route path="reports/*" element={<Reports />} />
           <Route path="settings/*" element={<BusinessSettings />} />
         </Routes>
       </Box>

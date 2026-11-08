@@ -29,6 +29,7 @@ import businessVendorsReducer from "./businessVendorsSlice";
 import businessRulesReducer from "./businessRulesSlice";
 import businessReconciliationsReducer from "./businessReconciliationsSlice";
 import businessPeriodLocksReducer from "./businessPeriodLocksSlice";
+import businessReportsReducer from "./businessReportsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -62,6 +63,7 @@ export const store = configureStore({
     businessRules: businessRulesReducer,
     businessReconciliations: businessReconciliationsReducer,
     businessPeriodLocks: businessPeriodLocksReducer,
+    businessReports: businessReportsReducer,
   },
 });
 
