@@ -23,6 +23,8 @@ import businessEntitiesReducer from "./businessEntitiesSlice";
 import businessAccountsReducer from "./businessAccountsSlice";
 import businessPropertiesReducer from "./businessPropertiesSlice";
 import businessJournalEntriesReducer from "./businessJournalEntriesSlice";
+import businessBankAccountsReducer from "./businessBankAccountsSlice";
+import businessBankTransactionsReducer from "./businessBankTransactionsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -50,6 +52,8 @@ export const store = configureStore({
     businessAccounts: businessAccountsReducer,
     businessProperties: businessPropertiesReducer,
     businessJournalEntries: businessJournalEntriesReducer,
+    businessBankAccounts: businessBankAccountsReducer,
+    businessBankTransactions: businessBankTransactionsReducer,
   },
 });
 

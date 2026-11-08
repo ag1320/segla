@@ -32,6 +32,8 @@ export default function JournalLineFields({ line, accounts, properties, onChange
         label="Property"
         value={line.propertyId}
         onChange={handleChange("propertyId")}
+        SelectProps={{ displayEmpty: true }}
+        InputLabelProps={{ shrink: true }}
         sx={{ flex: "2 1 150px" }}
       >
         <MenuItem value="">Company-wide</MenuItem>

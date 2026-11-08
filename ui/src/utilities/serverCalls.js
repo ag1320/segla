@@ -416,6 +416,29 @@ async function postBusinessJournalEntryReversal(id, entryDate) {
   const res = await axios.post(`${BASE_URL}/business/journal-entries/${id}/reversal`, { entryDate });
   return res.data;
 }
+async function fetchBusinessBankAccounts() {
+  const res = await axios.get(`${BASE_URL}/business/bank-accounts`);
+  return res.data;
+}
+// csv: the downloaded file's text
+async function postBusinessBankImport(bankAccountId, csv) {
+  const res = await axios.post(`${BASE_URL}/business/bank-accounts/${bankAccountId}/imports`, { csv });
+  return res.data;
+}
+// filters: { status, bankAccountId }, each optional
+async function fetchBusinessBankTransactions(filters) {
+  const res = await axios.get(`${BASE_URL}/business/bank-transactions`, { params: filters });
+  return res.data;
+}
+async function patchBusinessBankTransaction(id, changes) {
+  const res = await axios.patch(`${BASE_URL}/business/bank-transactions/${id}`, changes);
+  return res.data;
+}
+// posting: { memo, splits: [{ accountId, propertyId, amountCents, needsCpaReview }] }
+async function postBusinessBankTransactionEntry(id, posting) {
+  const res = await axios.post(`${BASE_URL}/business/bank-transactions/${id}/journal-entry`, posting);
+  return res.data;
+}
 
 export {
   login, logout, fetchCurrentUser,
@@ -441,4 +464,6 @@ export {
   fetchBusinessAccounts, postBusinessAccount, patchBusinessAccount,
   fetchBusinessProperties, postBusinessProperty, patchBusinessProperty,
   fetchBusinessJournalEntries, postBusinessJournalEntry, postBusinessJournalEntryReversal,
+  fetchBusinessBankAccounts, postBusinessBankImport,
+  fetchBusinessBankTransactions, patchBusinessBankTransaction, postBusinessBankTransactionEntry,
 };

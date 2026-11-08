@@ -9,6 +9,7 @@ import {
   insertJournalEntry,
   insertJournalLines,
 } from "../../controllers/business/journalEntriesController.js";
+import { reopenBankTransactionsForEntry } from "../../controllers/business/bankTransactionsController.js";
 import {
   ValidationError,
   NotFoundError,
@@ -19,15 +20,20 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 // lines: [{ accountId, propertyId, debitCents, creditCents, needsCpaReview }]
 // Leave propertyId out for a company-wide line.
-async function postJournalEntry({ entityId, entryDate, memo, source, lines }) {
-  return writeJournalEntry({
-    entityId,
-    entryDate,
-    memo,
-    source,
-    lines,
-    reversesJournalEntryId: null,
-  });
+// Pass trx to post inside a caller's transaction (an import marks its bank
+// transaction posted in the same transaction).
+async function postJournalEntry({ entityId, entryDate, memo, source, lines }, trx = knex) {
+  return writeJournalEntry(
+    {
+      entityId,
+      entryDate,
+      memo,
+      source,
+      lines,
+      reversesJournalEntryId: null,
+    },
+    trx,
+  );
 }
 
 // Posted entries are never edited or deleted. A mistake is undone by a new
@@ -64,28 +70,35 @@ async function reverseJournalEntry(journalEntryId, entryDate) {
     needsCpaReview: line.needs_cpa_review,
   }));
 
-  return writeJournalEntry({
-    entityId: original.entity_id,
-    entryDate,
-    memo: `Reversal of entry ${journalEntryId}`,
-    source: "system",
-    lines: reversedLines,
-    reversesJournalEntryId: journalEntryId,
+  return knex.transaction(async (trx) => {
+    const reversal = await writeJournalEntry(
+      {
+        entityId: original.entity_id,
+        entryDate,
+        memo: `Reversal of entry ${journalEntryId}`,
+        source: "system",
+        lines: reversedLines,
+        reversesJournalEntryId: journalEntryId,
+      },
+      trx,
+    );
+    // An imported transaction whose entry is undone goes back to the Inbox
+    // to be categorized again.
+    await reopenBankTransactionsForEntry(journalEntryId, trx);
+    return reversal;
   });
 }
 
-async function writeJournalEntry({
-  entityId,
-  entryDate,
-  memo,
-  source,
-  lines,
-  reversesJournalEntryId,
-}) {
+async function writeJournalEntry(
+  { entityId, entryDate, memo, source, lines, reversesJournalEntryId },
+  parentTrx,
+) {
   assertIsoDate(entryDate);
   assertLinesBalance(lines);
 
-  return knex.transaction(async (trx) => {
+  // Inside a caller's transaction this is a savepoint, so the entry commits
+  // or rolls back together with the caller's own writes.
+  return parentTrx.transaction(async (trx) => {
     const entity = await findEntity(entityId, trx);
     if (!entity) {
       throw new NotFoundError(`Entity ${entityId} not found`);

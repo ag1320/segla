@@ -6,7 +6,7 @@ import { addBusinessJournalEntry } from "../../../state/businessJournalEntriesSl
 import { setSnackbarSuccess } from "../../../state/uiSlice";
 import BusinessFormDialog from "../BusinessFormDialog";
 import JournalLineFields from "./JournalLineFields";
-import { dollarsToCents, formatCents, isDollarAmount, todayDateString } from "../businessFormat";
+import { centsOrZero, formatCents, isDollarAmount, todayDateString } from "../businessFormat";
 
 let nextLineKey = 1;
 const emptyLine = () => ({
@@ -17,8 +17,6 @@ const emptyLine = () => ({
   credit: "",
   needsCpaReview: false,
 });
-
-const centsOrZero = (text) => (isDollarAmount(text) ? dollarsToCents(text) ?? 0 : 0);
 
 const isBlankLine = (line) =>
   line.accountId === "" && line.debit.trim() === "" && line.credit.trim() === "";

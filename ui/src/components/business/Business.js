@@ -3,9 +3,11 @@ import { Box, Typography } from "@mui/material";
 import "../Home.css";
 import BusinessTabs from "./BusinessTabs";
 import BusinessSettings from "./settings/BusinessSettings";
+import Inbox from "./inbox/Inbox";
 import Ledger from "./ledger/Ledger";
 
 const SECTIONS = [
+  { label: "Inbox", path: "/business/inbox" },
   { label: "Ledger", path: "/business/ledger" },
   { label: "Settings", path: "/business/settings" },
 ];
@@ -19,7 +21,8 @@ export default function Business() {
       <BusinessTabs tabs={SECTIONS} />
       <Box sx={{ mt: 2 }}>
         <Routes>
-          <Route index element={<Navigate to="/business/ledger" replace />} />
+          <Route index element={<Navigate to="/business/inbox" replace />} />
+          <Route path="inbox" element={<Inbox />} />
           <Route path="ledger" element={<Ledger />} />
           <Route path="settings/*" element={<BusinessSettings />} />
         </Routes>
