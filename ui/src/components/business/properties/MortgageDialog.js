@@ -81,7 +81,7 @@ export default function MortgageDialog({ propertyId, mortgage, onClose }) {
         onChange={handleChange("principal")}
         InputProps={dollarAdornment}
         inputProps={{ inputMode: "decimal" }}
-        helperText="The amount borrowed, or the balance when you took the loan over"
+        helperText="Amount borrowed or assumed"
         required
       />
       <TextField
@@ -98,7 +98,7 @@ export default function MortgageDialog({ propertyId, mortgage, onClose }) {
         onChange={handleChange("termMonths")}
         InputProps={{ endAdornment: <InputAdornment position="end">months</InputAdornment> }}
         inputProps={{ inputMode: "numeric" }}
-        helperText="From the first payment through the maturity date, counting both (360 for a new 30-year loan)"
+        helperText="Through maturity (360 = 30 years)"
         required
       />
       <TextField
@@ -107,7 +107,6 @@ export default function MortgageDialog({ propertyId, mortgage, onClose }) {
         value={form.firstPaymentDate}
         onChange={handleChange("firstPaymentDate")}
         InputLabelProps={{ shrink: true }}
-        helperText="The first payment made at the starting balance"
         required
       />
       <TextField
@@ -116,7 +115,7 @@ export default function MortgageDialog({ propertyId, mortgage, onClose }) {
         onChange={handleChange("escrow")}
         InputProps={dollarAdornment}
         inputProps={{ inputMode: "decimal" }}
-        helperText="From your latest statement. Update it after each yearly escrow analysis."
+        helperText="Current amount from your statement"
       />
     </BusinessFormDialog>
   );

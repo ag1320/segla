@@ -30,6 +30,7 @@ import propertyValuationsRoutes from "./routes/business/propertyValuationsRoutes
 import mortgagesRoutes from "./routes/business/mortgagesRoutes.js";
 import fixedAssetsRoutes from "./routes/business/fixedAssetsRoutes.js";
 import propertyConversionsRoutes from "./routes/business/propertyConversionsRoutes.js";
+import propertyAcquisitionsRoutes from "./routes/business/propertyAcquisitionsRoutes.js";
 import journalEntriesRoutes from "./routes/business/journalEntriesRoutes.js";
 import bankAccountsRoutes from "./routes/business/bankAccountsRoutes.js";
 import bankTransactionsRoutes from "./routes/business/bankTransactionsRoutes.js";
@@ -145,6 +146,7 @@ app.use(propertyValuationsRoutes);
 app.use(mortgagesRoutes);
 app.use(fixedAssetsRoutes);
 app.use(propertyConversionsRoutes);
+app.use(propertyAcquisitionsRoutes);
 app.use(journalEntriesRoutes);
 app.use(bankAccountsRoutes);
 app.use(bankTransactionsRoutes);

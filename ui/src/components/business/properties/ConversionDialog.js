@@ -102,7 +102,7 @@ export default function ConversionDialog({ property, onClose }) {
         <>
           <ConversionReview preview={preview} />
           <Button onClick={() => setPreview(null)} sx={{ alignSelf: "flex-start" }}>
-            Change the numbers
+            Back
           </Button>
         </>
       ) : (
@@ -113,20 +113,20 @@ export default function ConversionDialog({ property, onClose }) {
             value={form.placedInServiceDate}
             onChange={handleChange("placedInServiceDate")}
             InputLabelProps={{ shrink: true }}
-            helperText="The day it's listed or available for rent"
+            helperText="Day it's available for rent"
             required
           />
           <TextField
-            label="What you have in it (adjusted basis)"
+            label="Adjusted basis"
             value={form.adjustedBasis}
             onChange={handleChange("adjustedBasis")}
             InputProps={dollarAdornment}
             inputProps={{ inputMode: "decimal" }}
-            helperText="Purchase price + closing costs + improvements while you lived there"
+            helperText="Price + closing costs + improvements"
             required
           />
           <TextField
-            label="Market value that day"
+            label="Market value"
             value={form.fairMarketValue}
             onChange={handleChange("fairMarketValue")}
             InputProps={dollarAdornment}
@@ -140,16 +140,16 @@ export default function ConversionDialog({ property, onClose }) {
             onChange={handleChange("landPercent")}
             InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
             inputProps={{ inputMode: "decimal" }}
-            helperText="From the appraisal, or the county assessor's land value ÷ total value"
+            helperText="From the appraisal or assessor"
             required
           />
           <TextField
-            label="Mortgage balance that day"
+            label="Mortgage balance"
             value={form.mortgageBalance}
             onChange={handleChange("mortgageBalance")}
             InputProps={dollarAdornment}
             inputProps={{ inputMode: "decimal" }}
-            helperText={scheduledBalance === null ? "From the servicer's statement" : `The schedule says ${formatCents(scheduledBalance)}`}
+            helperText={scheduledBalance === null ? null : `Schedule: ${formatCents(scheduledBalance)}`}
           />
           {scheduledBalance !== null && (
             <Button
@@ -157,16 +157,16 @@ export default function ConversionDialog({ property, onClose }) {
               onClick={() => setForm({ ...form, mortgageBalance: centsToDollarsText(scheduledBalance) })}
               sx={{ alignSelf: "flex-start", mt: -1 }}
             >
-              Use the schedule's balance
+              Use schedule balance
             </Button>
           )}
           <TextField
-            label="Escrow balance that day"
+            label="Escrow balance"
             value={form.escrowBalance}
             onChange={handleChange("escrowBalance")}
             InputProps={dollarAdornment}
             inputProps={{ inputMode: "decimal" }}
-            helperText="From the servicer's statement. Put a minus sign in front of a deficit."
+            helperText="Use a minus sign for a deficit"
           />
         </>
       )}

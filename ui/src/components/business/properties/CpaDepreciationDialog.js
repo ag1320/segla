@@ -41,7 +41,7 @@ export default function CpaDepreciationDialog({ fixedAsset, year, onClose }) {
       onSubmit={handleSubmit}
     >
       <Typography variant="body2">
-        {`Segla estimated ${formatCents(year.estimateCents)}. Enter the figure from the depreciation schedule in your ${year.taxYear} tax return.`}
+        {`Segla's estimate: ${formatCents(year.estimateCents)}`}
       </Typography>
       <TextField
         label="CPA's figure"
@@ -49,7 +49,7 @@ export default function CpaDepreciationDialog({ fixedAsset, year, onClose }) {
         onChange={(event) => setAmount(event.target.value)}
         InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }}
         inputProps={{ inputMode: "decimal" }}
-        helperText="Leave blank to go back to Segla's estimate"
+        helperText="Blank uses Segla's estimate"
         autoFocus
       />
     </BusinessFormDialog>

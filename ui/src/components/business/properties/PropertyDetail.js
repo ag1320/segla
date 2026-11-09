@@ -4,6 +4,7 @@ import { Link as RouterLink, Navigate, Route, Routes, useParams } from "react-ro
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
 import VpnKeyIcon from "@mui/icons-material/VpnKey";
+import ReceiptIcon from "@mui/icons-material/Receipt";
 import { Box, Button, Chip, Typography } from "@mui/material";
 import { loadBusinessProperties } from "../../../state/businessPropertiesSlice";
 import { loadBusinessEntities } from "../../../state/businessEntitiesSlice";
@@ -15,6 +16,7 @@ import PropertyValuations from "./PropertyValuations";
 import PropertyLoan from "./PropertyLoan";
 import PropertyFixedAssets from "./PropertyFixedAssets";
 import ConversionDialog from "./ConversionDialog";
+import AcquisitionDialog from "./AcquisitionDialog";
 import { PROPERTY_STATUS_LABELS } from "../settings/settingsLabels";
 import { MUTED_TEXT } from "../businessStyles";
 
@@ -28,6 +30,7 @@ export default function PropertyDetail() {
   );
   const [isEditing, setIsEditing] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
+  const [isBuying, setIsBuying] = useState(false);
 
   useEffect(() => {
     dispatch(loadBusinessProperties());
@@ -70,15 +73,26 @@ export default function PropertyDetail() {
         />
         <Box sx={{ ml: "auto", display: "flex", gap: 1 }}>
           {property.status === "pre_rental" && (
-            <Button
-              size="small"
-              variant="contained"
-              startIcon={<VpnKeyIcon />}
-              onClick={() => setIsConverting(true)}
-              sx={{ backgroundColor: "#0f4c75" }}
-            >
-              Convert to rental
-            </Button>
+            <>
+              <Button
+                size="small"
+                variant="contained"
+                startIcon={<VpnKeyIcon />}
+                onClick={() => setIsConverting(true)}
+                sx={{ backgroundColor: "#0f4c75" }}
+              >
+                Convert to rental
+              </Button>
+              <Button
+                size="small"
+                variant="contained"
+                startIcon={<ReceiptIcon />}
+                onClick={() => setIsBuying(true)}
+                sx={{ backgroundColor: "#0f4c75" }}
+              >
+                Record purchase
+              </Button>
+            </>
           )}
           <Button size="small" startIcon={<EditIcon />} onClick={() => setIsEditing(true)} sx={{ color: "white" }}>
             Edit
@@ -97,6 +111,7 @@ export default function PropertyDetail() {
       </Box>
       {isEditing && <PropertyDialog property={property} onClose={() => setIsEditing(false)} />}
       {isConverting && <ConversionDialog property={property} onClose={() => setIsConverting(false)} />}
+      {isBuying && <AcquisitionDialog property={property} onClose={() => setIsBuying(false)} />}
     </>
   );
 }

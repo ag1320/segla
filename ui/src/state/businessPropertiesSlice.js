@@ -5,8 +5,11 @@ import {
   patchBusinessProperty,
   postBusinessConversionPreview,
   postBusinessConversion,
+  postBusinessAcquisitionPreview,
+  postBusinessAcquisition,
   serverErrorMessage,
 } from "../utilities/serverCalls";
+import { loadBusinessBankTransactions } from "./businessBankTransactionsSlice";
 import { loadBusinessFixedAssets } from "./businessFixedAssetsSlice";
 import { loadBusinessJournalEntries } from "./businessJournalEntriesSlice";
 
@@ -99,6 +102,49 @@ export const convertBusinessProperty = createAsyncThunk(
       dispatch(loadBusinessFixedAssets());
       dispatch(loadBusinessJournalEntries({ accountId: getState().businessJournalEntries.accountId }));
       return toConversion(data);
+    } catch (err) {
+      return rejectWithValue(serverErrorMessage(err));
+    }
+  }
+);
+
+const toAcquisition = (data) => ({
+  basisCents: data.basis_cents,
+  landCents: data.land_cents,
+  buildingCents: data.building_cents,
+  differenceCents: data.difference_cents,
+  lines: data.lines.map((line) => ({
+    accountId: line.account_id,
+    debitCents: line.debit_cents,
+    creditCents: line.credit_cents,
+  })),
+});
+
+// acquisition: the closing statement's amounts in cents, see
+// propertyAcquisitionsRoutes.js. A one-off read, so it isn't kept.
+export const previewBusinessAcquisition = createAsyncThunk(
+  "businessProperties/previewBusinessAcquisition",
+  async ({ propertyId, acquisition }, { rejectWithValue }) => {
+    try {
+      return toAcquisition(await postBusinessAcquisitionPreview(propertyId, acquisition));
+    } catch (err) {
+      return rejectWithValue(serverErrorMessage(err));
+    }
+  }
+);
+
+// Posting changes the property, its assets, the ledger and (when the wire
+// was picked) the Inbox, so all four reload.
+export const acquireBusinessProperty = createAsyncThunk(
+  "businessProperties/acquireBusinessProperty",
+  async ({ propertyId, acquisition }, { dispatch, getState, rejectWithValue }) => {
+    try {
+      const data = await postBusinessAcquisition(propertyId, acquisition);
+      dispatch(loadBusinessProperties());
+      dispatch(loadBusinessFixedAssets());
+      dispatch(loadBusinessJournalEntries({ accountId: getState().businessJournalEntries.accountId }));
+      dispatch(loadBusinessBankTransactions({ status: getState().businessBankTransactions.status }));
+      return toAcquisition(data);
     } catch (err) {
       return rejectWithValue(serverErrorMessage(err));
     }

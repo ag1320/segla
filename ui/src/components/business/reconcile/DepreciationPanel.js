@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { Alert, Box, Button, MenuItem, Paper, TextField, Typography } from "@mui/material";
 import { postBusinessDepreciation } from "../../../state/businessFixedAssetsSlice";
 import { formatDate, recentMonthEnds } from "../businessFormat";
-import { DARK_FIELD_SX, MUTED_TEXT } from "../businessStyles";
+import { DARK_FIELD_SX } from "../businessStyles";
 
 // A month-end step before locking: books each property's depreciation
 // through the chosen month. It only posts what's missing, so running it
@@ -39,9 +39,6 @@ export default function DepreciationPanel({ entityId }) {
       </Typography>
       <Paper sx={{ p: 2, backgroundColor: "#1b262c", color: "white" }}>
         <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2 }}>
-          <Typography sx={{ color: MUTED_TEXT, flex: "1 1 260px" }}>
-            Books each property's depreciation, month by month.
-          </Typography>
           <TextField
             select
             size="small"

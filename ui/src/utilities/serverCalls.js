@@ -411,6 +411,14 @@ async function postBusinessConversion(propertyId, conversion) {
   const res = await axios.post(`${BASE_URL}/business/properties/${propertyId}/conversion`, conversion);
   return res.data;
 }
+async function postBusinessAcquisitionPreview(propertyId, acquisition) {
+  const res = await axios.post(`${BASE_URL}/business/properties/${propertyId}/acquisition-preview`, acquisition);
+  return res.data;
+}
+async function postBusinessAcquisition(propertyId, acquisition) {
+  const res = await axios.post(`${BASE_URL}/business/properties/${propertyId}/acquisition`, acquisition);
+  return res.data;
+}
 async function fetchBusinessPropertyValuations(propertyId) {
   const res = await axios.get(`${BASE_URL}/business/properties/${propertyId}/valuations`);
   return res.data;
@@ -625,6 +633,7 @@ export {
   fetchBusinessAccounts, postBusinessAccount, patchBusinessAccount,
   fetchBusinessProperties, postBusinessProperty, patchBusinessProperty,
   postBusinessConversionPreview, postBusinessConversion,
+  postBusinessAcquisitionPreview, postBusinessAcquisition,
   fetchBusinessPropertyValuations, postBusinessPropertyValuation,
   patchBusinessPropertyValuation, deleteBusinessPropertyValuation,
   fetchBusinessMortgages, postBusinessMortgage, patchBusinessMortgage, deleteBusinessMortgage,
