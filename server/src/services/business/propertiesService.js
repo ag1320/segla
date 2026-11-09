@@ -44,6 +44,7 @@ function toPropertyColumns({
   placedInServiceDate,
   landBasisCents,
   buildingBasisCents,
+  marketRentCents,
 }) {
   return {
     name,
@@ -53,6 +54,7 @@ function toPropertyColumns({
     placed_in_service_date: placedInServiceDate,
     land_basis_cents: landBasisCents,
     building_basis_cents: buildingBasisCents,
+    market_rent_cents: marketRentCents,
   };
 }
 

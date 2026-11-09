@@ -12,6 +12,7 @@ const PROPERTY_COLUMNS = [
   knex.raw("to_char(placed_in_service_date, 'YYYY-MM-DD') as placed_in_service_date"),
   "land_basis_cents",
   "building_basis_cents",
+  "market_rent_cents",
   "created_at",
   "updated_at",
 ];

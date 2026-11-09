@@ -7,6 +7,7 @@ import {
   fetchBusinessCashFlow,
   fetchBusinessOwnersEquity,
   fetchBusinessRentRoll,
+  fetchBusinessOperatingStatement,
   serverErrorMessage,
 } from "../utilities/serverCalls";
 import { toLease } from "./businessLeasesSlice";
@@ -202,6 +203,51 @@ export const loadBusinessRentRoll = createAsyncThunk(
   }
 );
 
+const toAccountLine = (line) => ({
+  accountId: line.account_id,
+  accountNumber: line.account_number,
+  name: line.name,
+  amountCents: line.amount_cents,
+});
+
+// query: { propertyId, from, to }
+export const loadBusinessOperatingStatement = createAsyncThunk(
+  "businessReports/loadBusinessOperatingStatement",
+  async (query, { rejectWithValue }) => {
+    try {
+      const data = await fetchBusinessOperatingStatement(query);
+      return {
+        propertyId: data.property_id,
+        from: data.from,
+        to: data.to,
+        grossPotentialRentCents: data.gross_potential_rent_cents,
+        vacancyCents: data.vacancy_cents,
+        uncollectedRentCents: data.uncollected_rent_cents,
+        rentCollectedCents: data.rent_collected_cents,
+        otherIncome: data.other_income.map(toAccountLine),
+        effectiveGrossIncomeCents: data.effective_gross_income_cents,
+        operatingExpenses: data.operating_expenses.map(toAccountLine),
+        operatingExpensesCents: data.operating_expenses_cents,
+        noiCents: data.noi_cents,
+        interestCents: data.interest_cents,
+        principalCents: data.principal_cents,
+        cashFlowCents: data.cash_flow_cents,
+        capexCents: data.capex_cents,
+        cashFlowAfterCapexCents: data.cash_flow_after_capex_cents,
+        kpis: {
+          physicalOccupancy: data.kpis.physical_occupancy,
+          economicOccupancy: data.kpis.economic_occupancy,
+          expenseRatio: data.kpis.expense_ratio,
+          dscr: data.kpis.dscr,
+          capRate: data.kpis.cap_rate,
+        },
+      };
+    } catch (err) {
+      return rejectWithValue(serverErrorMessage(err));
+    }
+  }
+);
+
 const storeReport = (key) => (state, action) => {
   state[key] = action.payload;
   state.error = null;
@@ -220,6 +266,7 @@ const businessReportsSlice = createSlice({
     cashFlow: null,
     ownersEquity: null,
     rentRoll: null,
+    operatingStatement: null,
     error: null,
   },
   reducers: {},
@@ -248,7 +295,9 @@ const businessReportsSlice = createSlice({
       .addCase(loadBusinessOwnersEquity.fulfilled, storeReport("ownersEquity"))
       .addCase(loadBusinessOwnersEquity.rejected, storeError)
       .addCase(loadBusinessRentRoll.fulfilled, storeReport("rentRoll"))
-      .addCase(loadBusinessRentRoll.rejected, storeError);
+      .addCase(loadBusinessRentRoll.rejected, storeError)
+      .addCase(loadBusinessOperatingStatement.fulfilled, storeReport("operatingStatement"))
+      .addCase(loadBusinessOperatingStatement.rejected, storeError);
   },
 });
 

@@ -28,6 +28,7 @@ export const loadBusinessProperties = createAsyncThunk(
         placedInServiceDate: row.placed_in_service_date,
         landBasisCents: row.land_basis_cents,
         buildingBasisCents: row.building_basis_cents,
+        marketRentCents: row.market_rent_cents,
       }));
     } catch (err) {
       return rejectWithValue(serverErrorMessage(err));

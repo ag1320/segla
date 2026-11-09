@@ -25,6 +25,7 @@ const PROPERTY_DETAILS = {
   placedInServiceDate: ISO_DATE.nullable().optional(),
   landBasisCents: CENTS.nullable().optional(),
   buildingBasisCents: CENTS.nullable().optional(),
+  marketRentCents: z.number().int().positive().nullable().optional(),
 };
 
 const NEW_PROPERTY = z.strictObject({ entityId: ID, ...PROPERTY_DETAILS });

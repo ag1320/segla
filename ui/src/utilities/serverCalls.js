@@ -603,6 +603,11 @@ async function fetchBusinessOwnersEquity(query) {
   const res = await axios.get(`${BASE_URL}/business/reports/owners-equity`, { params: query });
   return res.data;
 }
+// query: { propertyId, from, to }
+async function fetchBusinessOperatingStatement(query) {
+  const res = await axios.get(`${BASE_URL}/business/reports/operating-statement`, { params: query });
+  return res.data;
+}
 // query: { entityId, asOfDate }
 async function fetchBusinessRentRoll(query) {
   const res = await axios.get(`${BASE_URL}/business/reports/rent-roll`, { params: query });
@@ -675,6 +680,6 @@ export {
   fetchBusinessPeriodLock, putBusinessPeriodLock,
   fetchBusinessTrialBalance, fetchBusinessGeneralLedger,
   fetchBusinessProfitAndLoss, fetchBusinessBalanceSheet,
-  fetchBusinessCashFlow, fetchBusinessOwnersEquity, fetchBusinessRentRoll,
+  fetchBusinessCashFlow, fetchBusinessOwnersEquity, fetchBusinessRentRoll, fetchBusinessOperatingStatement,
   fetchBusinessLeases, postBusinessLease, patchBusinessLease, deleteBusinessLease, postBusinessDepositKept,
 };

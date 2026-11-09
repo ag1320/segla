@@ -12,6 +12,7 @@ import {
   getOwnersEquity,
 } from "../../services/business/financialStatementsService.js";
 import { getCashFlow } from "../../services/business/cashFlowService.js";
+import { getOperatingStatement } from "../../services/business/operatingStatementService.js";
 import { ID, ISO_DATE } from "./schemaFields.js";
 
 const TRIAL_BALANCE_QUERY = z.strictObject({
@@ -23,6 +24,12 @@ const TRIAL_BALANCE_QUERY = z.strictObject({
 // one period.
 const PERIOD_QUERY = z.strictObject({
   entityId: ID,
+  from: ISO_DATE,
+  to: ISO_DATE,
+});
+
+const OPERATING_STATEMENT_QUERY = z.strictObject({
+  propertyId: ID,
   from: ISO_DATE,
   to: ISO_DATE,
 });
@@ -104,6 +111,14 @@ router.get(
   validate({ query: PERIOD_QUERY }),
   async (req, res) => {
     res.status(200).json(await getOwnersEquity(req.validated.query));
+  },
+);
+
+router.get(
+  "/business/reports/operating-statement",
+  validate({ query: OPERATING_STATEMENT_QUERY }),
+  async (req, res) => {
+    res.status(200).json(await getOperatingStatement(req.validated.query));
   },
 );
 

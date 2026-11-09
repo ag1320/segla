@@ -16,6 +16,17 @@ function addMonths(isoDate, months) {
   return target.toISOString().slice(0, 10);
 }
 
+function dayAfter(isoDate) {
+  const date = new Date(`${isoDate}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + 1);
+  return date.toISOString().slice(0, 10);
+}
+
+function daysInMonth(isoDate) {
+  const [year, month] = isoDate.split("-").map(Number);
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
 function daysBetween(fromIsoDate, toIsoDate) {
   return (Date.parse(`${toIsoDate}T00:00:00Z`) - Date.parse(`${fromIsoDate}T00:00:00Z`)) / 86400000;
 }
@@ -32,4 +43,4 @@ function monthEnd(isoDate) {
   return new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
 }
 
-export { dayBefore, addMonths, daysBetween, isMonthEnd, monthEnd };
+export { dayBefore, dayAfter, daysInMonth, addMonths, daysBetween, isMonthEnd, monthEnd };

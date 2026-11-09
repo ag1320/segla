@@ -26,6 +26,7 @@ export default function PropertyDialog({ property, onClose }) {
     placedInServiceDate: property?.placedInServiceDate ?? "",
     landBasis: centsToDollarsText(property?.landBasisCents),
     buildingBasis: centsToDollarsText(property?.buildingBasisCents),
+    marketRent: centsToDollarsText(property?.marketRentCents),
   });
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -33,8 +34,8 @@ export default function PropertyDialog({ property, onClose }) {
   const handleChange = (field) => (event) => setForm({ ...form, [field]: event.target.value });
 
   const handleSubmit = async () => {
-    if (!isDollarAmount(form.landBasis) || !isDollarAmount(form.buildingBasis)) {
-      setError("Enter basis amounts in dollars, like 250000.00");
+    if (![form.landBasis, form.buildingBasis, form.marketRent].every(isDollarAmount)) {
+      setError("Enter amounts in dollars, like 250000.00");
       return;
     }
     const details = {
@@ -45,6 +46,7 @@ export default function PropertyDialog({ property, onClose }) {
       placedInServiceDate: form.placedInServiceDate || null,
       landBasisCents: dollarsToCents(form.landBasis),
       buildingBasisCents: dollarsToCents(form.buildingBasis),
+      marketRentCents: dollarsToCents(form.marketRent),
     };
 
     setSaving(true);
@@ -114,6 +116,14 @@ export default function PropertyDialog({ property, onClose }) {
         onChange={handleChange("buildingBasis")}
         InputProps={DOLLAR_ADORNMENT}
         inputProps={{ inputMode: "decimal" }}
+      />
+      <TextField
+        label="Market rent"
+        value={form.marketRent}
+        onChange={handleChange("marketRent")}
+        InputProps={DOLLAR_ADORNMENT}
+        inputProps={{ inputMode: "decimal" }}
+        helperText="Per month"
       />
     </BusinessFormDialog>
   );
