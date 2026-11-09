@@ -10,6 +10,7 @@ import { findBankAccounts } from "../../controllers/business/bankAccountsControl
 import { findLatestReconciliation } from "../../controllers/business/reconciliationsController.js";
 import { hasJournalLinesThrough } from "../../controllers/business/journalEntriesController.js";
 import { ValidationError, NotFoundError, ConflictError } from "../../utils/errors.js";
+import { isMonthEnd } from "../../utils/isoDates.js";
 
 async function getPeriodLock(entityId) {
   await assertEntityExists(entityId);
@@ -81,12 +82,6 @@ async function assertEntityExists(entityId) {
   if (!(await findEntity(entityId))) {
     throw new NotFoundError(`Entity ${entityId} not found`);
   }
-}
-
-function isMonthEnd(isoDate) {
-  const nextDay = new Date(`${isoDate}T00:00:00Z`);
-  nextDay.setUTCDate(nextDay.getUTCDate() + 1);
-  return nextDay.getUTCDate() === 1;
 }
 
 export { getPeriodLock, setPeriodLock };

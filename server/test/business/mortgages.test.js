@@ -30,7 +30,7 @@ before(async () => {
 
 beforeEach(async () => {
   await knex.raw(
-    "truncate reconciled_lines, reconciliations, bank_transactions, rules, journal_lines, journal_entries, period_locks, property_valuations, mortgages, properties restart identity",
+    "truncate reconciled_lines, reconciliations, bank_transactions, rules, journal_lines, journal_entries, period_locks, property_valuations, mortgages, cpa_depreciation, fixed_assets, properties restart identity",
   );
   [{ property_id: propertyId }] = await knex("properties")
     .insert({ entity_id: entityId, name: "Test House" })

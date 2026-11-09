@@ -43,3 +43,12 @@ export const formatDate = (dateString) => {
     year: "numeric",
   });
 };
+
+// The last day of each of the past `count` finished months, newest first.
+export const recentMonthEnds = (count = 24) => {
+  const today = new Date();
+  return Array.from({ length: count }, (_, index) =>
+    // Day 0 of a month is the last day of the month before it.
+    new Date(today.getFullYear(), today.getMonth() - index, 0).toLocaleDateString("en-CA")
+  );
+};

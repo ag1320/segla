@@ -4,19 +4,7 @@ import { Alert, Box, MenuItem, TextField, Typography } from "@mui/material";
 import { saveBusinessPeriodLock } from "../../../state/businessPeriodLocksSlice";
 import { setSnackbarSuccess } from "../../../state/uiSlice";
 import BusinessFormDialog from "../BusinessFormDialog";
-import { formatDate } from "../businessFormat";
-
-const MONTHS_TO_OFFER = 24;
-
-// The last day of each of the past MONTHS_TO_OFFER finished months, newest
-// first, as 'YYYY-MM-DD'.
-function recentMonthEnds() {
-  const today = new Date();
-  return Array.from({ length: MONTHS_TO_OFFER }, (_, index) =>
-    // Day 0 of a month is the last day of the month before it.
-    new Date(today.getFullYear(), today.getMonth() - index, 0).toLocaleDateString("en-CA")
-  );
-}
+import { formatDate, recentMonthEnds } from "../businessFormat";
 
 // Moving the date later locks more months; moving it earlier (or to
 // "Nothing locked") reopens them to fix a mistake. The server only locks

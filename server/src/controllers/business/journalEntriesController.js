@@ -73,6 +73,16 @@ async function hasJournalLinesThrough({ accountId, throughDate }, trx = knex) {
   return line !== undefined;
 }
 
+// The date of entityId's earliest line on accountId, or null if none.
+async function findFirstLineDate({ entityId, accountId }, trx = knex) {
+  const row = await trx("journal_lines")
+    .join("journal_entries", "journal_entries.journal_entry_id", "journal_lines.journal_entry_id")
+    .where("journal_entries.entity_id", entityId)
+    .where("journal_lines.account_id", accountId)
+    .first(knex.raw("to_char(min(journal_entries.entry_date), 'YYYY-MM-DD') as first_date"));
+  return row.first_date;
+}
+
 function insertJournalLines(lines, trx = knex) {
   return trx("journal_lines").insert(lines).returning("*");
 }
@@ -83,6 +93,7 @@ export {
   findJournalLines,
   findJournalLinesForEntries,
   hasJournalLinesThrough,
+  findFirstLineDate,
   insertJournalEntry,
   insertJournalLines,
 };

@@ -15,7 +15,7 @@ export default function PeriodLockPanel({ entityId }) {
 
   return (
     <>
-      <Typography variant="h6" color="white" sx={{ mb: 1.5 }}>
+      <Typography variant="h6" color="white" sx={{ mt: 3, mb: 1.5 }}>
         Month Lock
       </Typography>
       <Paper sx={{ p: 2, backgroundColor: "#1b262c", color: "white" }}>

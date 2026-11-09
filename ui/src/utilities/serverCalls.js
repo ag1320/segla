@@ -437,6 +437,31 @@ async function fetchBusinessMortgageSchedule(id) {
   const res = await axios.get(`${BASE_URL}/business/mortgages/${id}/schedule`);
   return res.data;
 }
+async function fetchBusinessFixedAssets(asOfDate) {
+  const res = await axios.get(`${BASE_URL}/business/fixed-assets`, { params: { asOfDate } });
+  return res.data;
+}
+async function postBusinessFixedAsset(fixedAsset) {
+  const res = await axios.post(`${BASE_URL}/business/fixed-assets`, fixedAsset);
+  return res.data;
+}
+async function patchBusinessFixedAsset(id, changes) {
+  const res = await axios.patch(`${BASE_URL}/business/fixed-assets/${id}`, changes);
+  return res.data;
+}
+async function deleteBusinessFixedAsset(id) {
+  await axios.delete(`${BASE_URL}/business/fixed-assets/${id}`);
+}
+async function putBusinessCpaDepreciation(id, taxYear, amountCents) {
+  await axios.put(`${BASE_URL}/business/fixed-assets/${id}/cpa-depreciation/${taxYear}`, { amountCents });
+}
+async function deleteBusinessCpaDepreciation(id, taxYear) {
+  await axios.delete(`${BASE_URL}/business/fixed-assets/${id}/cpa-depreciation/${taxYear}`);
+}
+async function postBusinessDepreciationPosting(entityId, throughDate) {
+  const res = await axios.post(`${BASE_URL}/business/depreciation-postings`, { entityId, throughDate });
+  return res.data;
+}
 async function fetchBusinessMortgagePaymentSplit(id, date) {
   const res = await axios.get(`${BASE_URL}/business/mortgages/${id}/payment-split`, { params: { date } });
   return res.data;
@@ -595,6 +620,8 @@ export {
   patchBusinessPropertyValuation, deleteBusinessPropertyValuation,
   fetchBusinessMortgages, postBusinessMortgage, patchBusinessMortgage, deleteBusinessMortgage,
   fetchBusinessMortgageSchedule, fetchBusinessMortgagePaymentSplit,
+  fetchBusinessFixedAssets, postBusinessFixedAsset, patchBusinessFixedAsset, deleteBusinessFixedAsset,
+  putBusinessCpaDepreciation, deleteBusinessCpaDepreciation, postBusinessDepreciationPosting,
   fetchBusinessJournalEntries, postBusinessJournalEntry, postBusinessJournalEntryReversal,
   fetchBusinessBankAccounts, postBusinessBankImport,
   fetchBusinessBankTransactions, patchBusinessBankTransaction, postBusinessBankTransactionEntry,

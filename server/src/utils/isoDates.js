@@ -20,4 +20,16 @@ function daysBetween(fromIsoDate, toIsoDate) {
   return (Date.parse(`${toIsoDate}T00:00:00Z`) - Date.parse(`${fromIsoDate}T00:00:00Z`)) / 86400000;
 }
 
-export { dayBefore, addMonths, daysBetween };
+function isMonthEnd(isoDate) {
+  const nextDay = new Date(`${isoDate}T00:00:00Z`);
+  nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+  return nextDay.getUTCDate() === 1;
+}
+
+// The last day of isoDate's month.
+function monthEnd(isoDate) {
+  const [year, month] = isoDate.split("-").map(Number);
+  return new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
+}
+
+export { dayBefore, addMonths, daysBetween, isMonthEnd, monthEnd };
