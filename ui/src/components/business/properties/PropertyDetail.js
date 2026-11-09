@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link as RouterLink, Navigate, Route, Routes, useParams } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
+import VpnKeyIcon from "@mui/icons-material/VpnKey";
 import { Box, Button, Chip, Typography } from "@mui/material";
 import { loadBusinessProperties } from "../../../state/businessPropertiesSlice";
 import { loadBusinessEntities } from "../../../state/businessEntitiesSlice";
@@ -13,6 +14,7 @@ import PropertyOverview from "./PropertyOverview";
 import PropertyValuations from "./PropertyValuations";
 import PropertyLoan from "./PropertyLoan";
 import PropertyFixedAssets from "./PropertyFixedAssets";
+import ConversionDialog from "./ConversionDialog";
 import { PROPERTY_STATUS_LABELS } from "../settings/settingsLabels";
 import { MUTED_TEXT } from "../businessStyles";
 
@@ -25,6 +27,7 @@ export default function PropertyDetail() {
     state.businessProperties.items.find((item) => item.id === propertyId)
   );
   const [isEditing, setIsEditing] = useState(false);
+  const [isConverting, setIsConverting] = useState(false);
 
   useEffect(() => {
     dispatch(loadBusinessProperties());
@@ -65,14 +68,22 @@ export default function PropertyDetail() {
           label={PROPERTY_STATUS_LABELS[property.status]}
           sx={{ color: "white", borderColor: "rgba(255,255,255,0.3)" }}
         />
-        <Button
-          size="small"
-          startIcon={<EditIcon />}
-          onClick={() => setIsEditing(true)}
-          sx={{ color: "white", ml: "auto" }}
-        >
-          Edit
-        </Button>
+        <Box sx={{ ml: "auto", display: "flex", gap: 1 }}>
+          {property.status === "pre_rental" && (
+            <Button
+              size="small"
+              variant="contained"
+              startIcon={<VpnKeyIcon />}
+              onClick={() => setIsConverting(true)}
+              sx={{ backgroundColor: "#0f4c75" }}
+            >
+              Convert to rental
+            </Button>
+          )}
+          <Button size="small" startIcon={<EditIcon />} onClick={() => setIsEditing(true)} sx={{ color: "white" }}>
+            Edit
+          </Button>
+        </Box>
       </Box>
       <BusinessTabs tabs={tabs} />
       <Box sx={{ mt: 2 }}>
@@ -85,6 +96,7 @@ export default function PropertyDetail() {
         </Routes>
       </Box>
       {isEditing && <PropertyDialog property={property} onClose={() => setIsEditing(false)} />}
+      {isConverting && <ConversionDialog property={property} onClose={() => setIsConverting(false)} />}
     </>
   );
 }
