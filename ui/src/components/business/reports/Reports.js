@@ -10,6 +10,7 @@ import ProfitAndLoss from "./ProfitAndLoss";
 import BalanceSheet from "./BalanceSheet";
 import CashFlow from "./CashFlow";
 import OwnersEquity from "./OwnersEquity";
+import RentRoll from "./RentRoll";
 import "./reportPrint.css";
 
 const REPORT_TABS = [
@@ -17,6 +18,7 @@ const REPORT_TABS = [
   { label: "Balance Sheet", path: "/business/reports/balance-sheet" },
   { label: "Cash Flow", path: "/business/reports/cash-flow" },
   { label: "Owner's Equity", path: "/business/reports/owners-equity" },
+  { label: "Rent Roll", path: "/business/reports/rent-roll" },
   { label: "Trial Balance", path: "/business/reports/trial-balance" },
   { label: "General Ledger", path: "/business/reports/general-ledger" },
 ];
@@ -42,6 +44,7 @@ export default function Reports() {
             <Route path="balance-sheet" element={<BalanceSheet entityId={entityId} />} />
             <Route path="cash-flow" element={<CashFlow entityId={entityId} />} />
             <Route path="owners-equity" element={<OwnersEquity entityId={entityId} />} />
+            <Route path="rent-roll" element={<RentRoll entityId={entityId} />} />
             <Route path="trial-balance" element={<TrialBalance entityId={entityId} />} />
             <Route path="general-ledger" element={<GeneralLedger entityId={entityId} />} />
           </Routes>

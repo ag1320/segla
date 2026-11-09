@@ -6,8 +6,10 @@ import {
   fetchBusinessBalanceSheet,
   fetchBusinessCashFlow,
   fetchBusinessOwnersEquity,
+  fetchBusinessRentRoll,
   serverErrorMessage,
 } from "../utilities/serverCalls";
+import { toLease } from "./businessLeasesSlice";
 
 // A P&L or balance sheet section: account rows plus totals. Computed equity
 // lines (net income) have a null accountId.
@@ -173,6 +175,33 @@ export const loadBusinessOwnersEquity = createAsyncThunk(
   }
 );
 
+// query: { entityId, asOfDate }
+export const loadBusinessRentRoll = createAsyncThunk(
+  "businessReports/loadBusinessRentRoll",
+  async (query, { rejectWithValue }) => {
+    try {
+      const data = await fetchBusinessRentRoll(query);
+      return {
+        asOfDate: data.as_of_date,
+        rows: data.rows.map((row) => ({
+          propertyId: row.property_id,
+          name: row.name,
+          isVacant: row.is_vacant,
+          leases: row.leases.map(toLease),
+          monthlyRentCents: row.monthly_rent_cents,
+          depositsOnLeasesCents: row.deposits_on_leases_cents,
+          depositsHeldCents: row.deposits_held_cents,
+        })),
+        monthlyRentCents: data.monthly_rent_cents,
+        depositsOnLeasesCents: data.deposits_on_leases_cents,
+        depositsHeldCents: data.deposits_held_cents,
+      };
+    } catch (err) {
+      return rejectWithValue(serverErrorMessage(err));
+    }
+  }
+);
+
 const storeReport = (key) => (state, action) => {
   state[key] = action.payload;
   state.error = null;
@@ -190,6 +219,7 @@ const businessReportsSlice = createSlice({
     balanceSheet: null,
     cashFlow: null,
     ownersEquity: null,
+    rentRoll: null,
     error: null,
   },
   reducers: {},
@@ -216,7 +246,9 @@ const businessReportsSlice = createSlice({
       .addCase(loadBusinessCashFlow.fulfilled, storeReport("cashFlow"))
       .addCase(loadBusinessCashFlow.rejected, storeError)
       .addCase(loadBusinessOwnersEquity.fulfilled, storeReport("ownersEquity"))
-      .addCase(loadBusinessOwnersEquity.rejected, storeError);
+      .addCase(loadBusinessOwnersEquity.rejected, storeError)
+      .addCase(loadBusinessRentRoll.fulfilled, storeReport("rentRoll"))
+      .addCase(loadBusinessRentRoll.rejected, storeError);
   },
 });
 

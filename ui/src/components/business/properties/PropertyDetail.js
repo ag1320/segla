@@ -15,13 +15,14 @@ import PropertyOverview from "./PropertyOverview";
 import PropertyValuations from "./PropertyValuations";
 import PropertyLoan from "./PropertyLoan";
 import PropertyFixedAssets from "./PropertyFixedAssets";
+import PropertyLeases from "./PropertyLeases";
 import ConversionDialog from "./ConversionDialog";
 import AcquisitionDialog from "./AcquisitionDialog";
 import { PROPERTY_STATUS_LABELS } from "../settings/settingsLabels";
 import { MUTED_TEXT } from "../businessStyles";
 
-// One property, with a tab per topic. Leases and the
-// capex plan join these tabs in later steps.
+// One property, with a tab per topic. The capex plan joins these tabs in
+// a later step.
 export default function PropertyDetail() {
   const dispatch = useDispatch();
   const propertyId = Number(useParams().propertyId);
@@ -48,6 +49,7 @@ export default function PropertyDetail() {
     { label: "Valuations", path: `${basePath}/valuations` },
     { label: "Loan", path: `${basePath}/loan` },
     { label: "Fixed assets", path: `${basePath}/fixed-assets` },
+    { label: "Leases", path: `${basePath}/leases` },
   ];
 
   return (
@@ -107,6 +109,7 @@ export default function PropertyDetail() {
           <Route path="valuations" element={<PropertyValuations property={property} />} />
           <Route path="loan" element={<PropertyLoan property={property} />} />
           <Route path="fixed-assets" element={<PropertyFixedAssets property={property} />} />
+          <Route path="leases" element={<PropertyLeases property={property} />} />
         </Routes>
       </Box>
       {isEditing && <PropertyDialog property={property} onClose={() => setIsEditing(false)} />}

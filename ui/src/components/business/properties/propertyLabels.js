@@ -11,3 +11,10 @@ export const ASSET_CLASS_LABELS = {
   land_improvement: "Land improvement · 15 years",
   furnishings: "Appliances & furnishings · 5 years",
 };
+
+export const LEASE_STATUS_LABELS = {
+  upcoming: "Upcoming",
+  active: "Active",
+  month_to_month: "Month-to-month",
+  ended: "Ended",
+};

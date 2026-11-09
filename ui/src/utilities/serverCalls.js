@@ -603,6 +603,30 @@ async function fetchBusinessOwnersEquity(query) {
   const res = await axios.get(`${BASE_URL}/business/reports/owners-equity`, { params: query });
   return res.data;
 }
+// query: { entityId, asOfDate }
+async function fetchBusinessRentRoll(query) {
+  const res = await axios.get(`${BASE_URL}/business/reports/rent-roll`, { params: query });
+  return res.data;
+}
+async function fetchBusinessLeases(asOfDate) {
+  const res = await axios.get(`${BASE_URL}/business/leases`, { params: { asOfDate } });
+  return res.data;
+}
+async function postBusinessLease(lease) {
+  const res = await axios.post(`${BASE_URL}/business/leases`, lease);
+  return res.data;
+}
+async function patchBusinessLease(id, changes) {
+  const res = await axios.patch(`${BASE_URL}/business/leases/${id}`, changes);
+  return res.data;
+}
+async function deleteBusinessLease(id) {
+  await axios.delete(`${BASE_URL}/business/leases/${id}`);
+}
+async function postBusinessDepositKept(id, depositKept) {
+  const res = await axios.post(`${BASE_URL}/business/leases/${id}/deposit-kept`, depositKept);
+  return res.data;
+}
 // lockedThroughDate: a month-end 'YYYY-MM-DD', or null to reopen everything
 async function putBusinessPeriodLock(entityId, lockedThroughDate) {
   const res = await axios.put(`${BASE_URL}/business/entities/${entityId}/period-lock`, { lockedThroughDate });
@@ -651,5 +675,6 @@ export {
   fetchBusinessPeriodLock, putBusinessPeriodLock,
   fetchBusinessTrialBalance, fetchBusinessGeneralLedger,
   fetchBusinessProfitAndLoss, fetchBusinessBalanceSheet,
-  fetchBusinessCashFlow, fetchBusinessOwnersEquity,
+  fetchBusinessCashFlow, fetchBusinessOwnersEquity, fetchBusinessRentRoll,
+  fetchBusinessLeases, postBusinessLease, patchBusinessLease, deleteBusinessLease, postBusinessDepositKept,
 };
