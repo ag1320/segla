@@ -12,6 +12,7 @@ import CashFlow from "./CashFlow";
 import OwnersEquity from "./OwnersEquity";
 import RentRoll from "./RentRoll";
 import OperatingStatement from "./OperatingStatement";
+import CapexReserve from "./CapexReserve";
 import "./reportPrint.css";
 
 const REPORT_TABS = [
@@ -21,6 +22,7 @@ const REPORT_TABS = [
   { label: "Owner's Equity", path: "/business/reports/owners-equity" },
   { label: "Rent Roll", path: "/business/reports/rent-roll" },
   { label: "Property NOI", path: "/business/reports/operating-statement" },
+  { label: "CapEx Reserve", path: "/business/reports/capex-reserve" },
   { label: "Trial Balance", path: "/business/reports/trial-balance" },
   { label: "General Ledger", path: "/business/reports/general-ledger" },
 ];
@@ -48,6 +50,7 @@ export default function Reports() {
             <Route path="owners-equity" element={<OwnersEquity entityId={entityId} />} />
             <Route path="rent-roll" element={<RentRoll entityId={entityId} />} />
             <Route path="operating-statement" element={<OperatingStatement />} />
+            <Route path="capex-reserve" element={<CapexReserve entityId={entityId} />} />
             <Route path="trial-balance" element={<TrialBalance entityId={entityId} />} />
             <Route path="general-ledger" element={<GeneralLedger entityId={entityId} />} />
           </Routes>

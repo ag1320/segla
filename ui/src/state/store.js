@@ -26,6 +26,7 @@ import businessPropertyValuationsReducer from "./businessPropertyValuationsSlice
 import businessMortgagesReducer from "./businessMortgagesSlice";
 import businessFixedAssetsReducer from "./businessFixedAssetsSlice";
 import businessLeasesReducer from "./businessLeasesSlice";
+import businessCapexReducer from "./businessCapexSlice";
 import businessJournalEntriesReducer from "./businessJournalEntriesSlice";
 import businessBankAccountsReducer from "./businessBankAccountsSlice";
 import businessBankTransactionsReducer from "./businessBankTransactionsSlice";
@@ -64,6 +65,7 @@ export const store = configureStore({
     businessMortgages: businessMortgagesReducer,
     businessFixedAssets: businessFixedAssetsReducer,
     businessLeases: businessLeasesReducer,
+    businessCapex: businessCapexReducer,
     businessJournalEntries: businessJournalEntriesReducer,
     businessBankAccounts: businessBankAccountsReducer,
     businessBankTransactions: businessBankTransactionsReducer,

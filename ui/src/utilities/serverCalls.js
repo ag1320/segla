@@ -603,6 +603,26 @@ async function fetchBusinessOwnersEquity(query) {
   const res = await axios.get(`${BASE_URL}/business/reports/owners-equity`, { params: query });
   return res.data;
 }
+// query: { entityId, asOfDate }
+async function fetchBusinessCapexPlan(query) {
+  const res = await axios.get(`${BASE_URL}/business/capex-plan`, { params: query });
+  return res.data;
+}
+async function postBusinessCapexComponent(component) {
+  const res = await axios.post(`${BASE_URL}/business/capex-components`, component);
+  return res.data;
+}
+async function patchBusinessCapexComponent(id, changes) {
+  const res = await axios.patch(`${BASE_URL}/business/capex-components/${id}`, changes);
+  return res.data;
+}
+async function deleteBusinessCapexComponent(id) {
+  await axios.delete(`${BASE_URL}/business/capex-components/${id}`);
+}
+// accountId null clears it
+async function putBusinessCapexReserveAccount(entityId, accountId) {
+  await axios.put(`${BASE_URL}/business/entities/${entityId}/capex-reserve-account`, { accountId });
+}
 // query: { propertyId, from, to }
 async function fetchBusinessOperatingStatement(query) {
   const res = await axios.get(`${BASE_URL}/business/reports/operating-statement`, { params: query });
@@ -681,5 +701,7 @@ export {
   fetchBusinessTrialBalance, fetchBusinessGeneralLedger,
   fetchBusinessProfitAndLoss, fetchBusinessBalanceSheet,
   fetchBusinessCashFlow, fetchBusinessOwnersEquity, fetchBusinessRentRoll, fetchBusinessOperatingStatement,
+  fetchBusinessCapexPlan, postBusinessCapexComponent, patchBusinessCapexComponent, deleteBusinessCapexComponent,
+  putBusinessCapexReserveAccount,
   fetchBusinessLeases, postBusinessLease, patchBusinessLease, deleteBusinessLease, postBusinessDepositKept,
 };

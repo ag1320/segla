@@ -8,4 +8,10 @@ function findEntity(entityId, trx = knex) {
   return trx("entities").where({ entity_id: entityId }).first();
 }
 
-export { findEntities, findEntity };
+function updateEntity(entityId, changes, trx = knex) {
+  return trx("entities")
+    .where({ entity_id: entityId })
+    .update({ ...changes, updated_at: knex.fn.now() });
+}
+
+export { findEntities, findEntity, updateEntity };
