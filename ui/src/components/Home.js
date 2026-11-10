@@ -40,6 +40,7 @@ import { loadBask } from "../state/baskSlice";
 import { loadLoans } from "../state/loansSlice";
 import { loadEquity } from "../state/equitySlice";
 import { loadBusinessMarketEquity } from "../state/businessMarketEquitySlice";
+import BusinessHomeTile from "./business/BusinessHomeTile";
 import { loadFixedIncome } from "../state/fixedIncomeSlice";
 import { loadFixedExpenses } from "../state/fixedExpensesSlice";
 
@@ -704,6 +705,9 @@ export default function Home() {
                 </div>
               </div>
             </StyledCard>
+          </Grid>
+          <Grid item xs={12} md={4} lg={3} xl={3}>
+            <BusinessHomeTile />
           </Grid>
           <Grid item xs={12} className="page-margin">
 

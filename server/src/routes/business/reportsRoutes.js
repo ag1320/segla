@@ -16,6 +16,7 @@ import { getOperatingStatement } from "../../services/business/operatingStatemen
 import { getScheduleE, ALLOCATION_METHODS } from "../../services/business/scheduleEService.js";
 import { get1099Candidates, getStartupCosts } from "../../services/business/yearEndService.js";
 import { getMarketEquity } from "../../services/business/marketEquityService.js";
+import { getDashboard } from "../../services/business/dashboardService.js";
 import { ID, ISO_DATE } from "./schemaFields.js";
 
 const TRIAL_BALANCE_QUERY = z.strictObject({
@@ -129,6 +130,14 @@ router.get(
   validate({ query: PERIOD_QUERY }),
   async (req, res) => {
     res.status(200).json(await getOwnersEquity(req.validated.query));
+  },
+);
+
+router.get(
+  "/business/dashboard",
+  validate({ query: AS_OF_QUERY }),
+  async (req, res) => {
+    res.status(200).json(await getDashboard(req.validated.query));
   },
 );
 
