@@ -9,6 +9,7 @@ import Reconcile from "./reconcile/Reconcile";
 import Reports from "./reports/Reports";
 import PropertyList from "./properties/PropertyList";
 import PropertyDetail from "./properties/PropertyDetail";
+import Deals from "./deals/Deals";
 
 const SECTIONS = [
   { label: "Inbox", path: "/business/inbox" },
@@ -16,6 +17,7 @@ const SECTIONS = [
   { label: "Reconcile", path: "/business/reconcile" },
   { label: "Reports", path: "/business/reports" },
   { label: "Properties", path: "/business/properties" },
+  { label: "Deals", path: "/business/deals" },
   { label: "Settings", path: "/business/settings" },
 ];
 
@@ -35,6 +37,7 @@ export default function Business() {
           <Route path="reports/*" element={<Reports />} />
           <Route path="properties" element={<PropertyList />} />
           <Route path="properties/:propertyId/*" element={<PropertyDetail />} />
+          <Route path="deals" element={<Deals />} />
           <Route path="settings/*" element={<BusinessSettings />} />
         </Routes>
       </Box>

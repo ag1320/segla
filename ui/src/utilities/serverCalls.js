@@ -603,6 +603,25 @@ async function fetchBusinessOwnersEquity(query) {
   const res = await axios.get(`${BASE_URL}/business/reports/owners-equity`, { params: query });
   return res.data;
 }
+async function fetchBusinessDeals(entityId) {
+  const res = await axios.get(`${BASE_URL}/business/deals`, { params: { entityId } });
+  return res.data;
+}
+async function postBusinessDealAnalysis(inputs) {
+  const res = await axios.post(`${BASE_URL}/business/deal-analyses`, inputs);
+  return res.data;
+}
+async function postBusinessDeal(deal) {
+  const res = await axios.post(`${BASE_URL}/business/deals`, deal);
+  return res.data;
+}
+async function patchBusinessDeal(id, changes) {
+  const res = await axios.patch(`${BASE_URL}/business/deals/${id}`, changes);
+  return res.data;
+}
+async function deleteBusinessDeal(id) {
+  await axios.delete(`${BASE_URL}/business/deals/${id}`);
+}
 // query: { entityId, asOfDate }
 async function fetchBusinessCapexPlan(query) {
   const res = await axios.get(`${BASE_URL}/business/capex-plan`, { params: query });
@@ -703,5 +722,6 @@ export {
   fetchBusinessCashFlow, fetchBusinessOwnersEquity, fetchBusinessRentRoll, fetchBusinessOperatingStatement,
   fetchBusinessCapexPlan, postBusinessCapexComponent, patchBusinessCapexComponent, deleteBusinessCapexComponent,
   putBusinessCapexReserveAccount,
+  fetchBusinessDeals, postBusinessDealAnalysis, postBusinessDeal, patchBusinessDeal, deleteBusinessDeal,
   fetchBusinessLeases, postBusinessLease, patchBusinessLease, deleteBusinessLease, postBusinessDepositKept,
 };
