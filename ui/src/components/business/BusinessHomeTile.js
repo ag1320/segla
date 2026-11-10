@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Button, Card, CardActions, CardContent, CardHeader, CardMedia, Divider, Grid, Typography } from "@mui/material";
 import { loadBusinessDashboard } from "../../state/businessDashboardSlice";
 import { formatCents } from "./businessFormat";
-import house from "../../images/house.png";
+import logo from "../../images/Gettemy Properties Logo No Text Transparent.png";
 
 // Same look as the other Home cards (see Home.js's StyledCard).
 const CARD_SX = {
@@ -17,7 +17,8 @@ const CARD_SX = {
   flexDirection: "column",
   height: "100%",
 };
-const ACCENT = "rgba(50, 130, 184, 0.4)";
+// Raspberry, so it stands apart from the other cards' accents.
+const ACCENT = "rgba(233, 30, 99, 0.35)";
 
 // [label, value] rows for the business's phase.
 function tileLines(dashboard) {
@@ -49,7 +50,7 @@ export default function BusinessHomeTile() {
   return (
     <Card sx={CARD_SX} className="grow-card custom-card">
       <CardHeader sx={{ backgroundColor: ACCENT }} />
-      <CardMedia component="img" height="100" sx={{ objectFit: "contain", marginTop: "10px" }} image={house} title="rental" />
+      <CardMedia component="img" height="100" sx={{ objectFit: "contain", marginTop: "10px" }} image={logo} title="Gettemy Properties" />
       <CardContent>
         <Typography variant="h5" className="card-text">
           Gettemy Properties
