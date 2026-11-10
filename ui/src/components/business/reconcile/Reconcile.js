@@ -13,6 +13,7 @@ import ReconcileAccountsTable from "./ReconcileAccountsTable";
 import ReconcileDialog from "./ReconcileDialog";
 import PeriodLockPanel from "./PeriodLockPanel";
 import DepreciationPanel from "./DepreciationPanel";
+import YearEndClosePanel from "./YearEndClosePanel";
 
 export default function Reconcile() {
   const dispatch = useDispatch();
@@ -51,6 +52,7 @@ export default function Reconcile() {
       </Typography>
       <ReconcileAccountsTable onReconcile={setReconciling} onUndo={handleUndo} />
       {entityId && <DepreciationPanel entityId={entityId} />}
+      {entityId && <YearEndClosePanel entityId={entityId} />}
       {entityId && <PeriodLockPanel entityId={entityId} />}
       {reconciling && <ReconcileDialog bankAccount={reconciling} onClose={() => setReconciling(null)} />}
     </>

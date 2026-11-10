@@ -20,8 +20,10 @@ async function getProfitAndLoss({ entityId, from, to, compareFrom, compareTo, pr
 
   const [accounts, totals, compareTotals] = await Promise.all([
     findAccounts(),
-    findAccountTotals({ entityId, from, to, propertyId }),
-    hasComparison ? findAccountTotals({ entityId, from: compareFrom, to: compareTo, propertyId }) : null,
+    findAccountTotals({ entityId, from, to, propertyId, excludeClosing: true }),
+    hasComparison
+      ? findAccountTotals({ entityId, from: compareFrom, to: compareTo, propertyId, excludeClosing: true })
+      : null,
   ]);
   const columns = [totals, compareTotals];
 
@@ -85,7 +87,7 @@ async function getOwnersEquity({ entityId, from, to }) {
   const [accounts, openingTotals, periodTotals] = await Promise.all([
     findAccounts(),
     findAccountTotals({ entityId, to: dayBefore(from) }),
-    findAccountTotals({ entityId, from, to }),
+    findAccountTotals({ entityId, from, to, excludeClosing: true }),
   ]);
 
   const changes = accounts

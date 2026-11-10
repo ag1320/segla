@@ -32,7 +32,7 @@ async function getOperatingStatement({ propertyId, from, to }) {
   }
   const [accounts, totals, systemTotals, leases, valuations] = await Promise.all([
     findAccounts(),
-    findAccountTotals({ entityId: property.entity_id, from, to, propertyId }),
+    findAccountTotals({ entityId: property.entity_id, from, to, propertyId, excludeClosing: true }),
     findAccountTotals({ entityId: property.entity_id, from, to, propertyId, source: "system" }),
     findLeases(),
     findValuations(propertyId),

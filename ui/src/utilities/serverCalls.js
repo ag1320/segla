@@ -603,6 +603,14 @@ async function fetchBusinessOwnersEquity(query) {
   const res = await axios.get(`${BASE_URL}/business/reports/owners-equity`, { params: query });
   return res.data;
 }
+async function fetchBusinessYearClosings(entityId) {
+  const res = await axios.get(`${BASE_URL}/business/year-closings`, { params: { entityId } });
+  return res.data;
+}
+async function postBusinessYearClosing(entityId, year) {
+  const res = await axios.post(`${BASE_URL}/business/year-closings`, { entityId, year });
+  return res.data;
+}
 async function fetchBusinessDeals(entityId) {
   const res = await axios.get(`${BASE_URL}/business/deals`, { params: { entityId } });
   return res.data;
@@ -738,6 +746,7 @@ export {
   fetchBusiness1099Candidates, fetchBusinessStartupCosts,
   fetchBusinessCapexPlan, postBusinessCapexComponent, patchBusinessCapexComponent, deleteBusinessCapexComponent,
   putBusinessCapexReserveAccount,
+  fetchBusinessYearClosings, postBusinessYearClosing,
   fetchBusinessDeals, postBusinessDealAnalysis, postBusinessDeal, patchBusinessDeal, deleteBusinessDeal,
   fetchBusinessLeases, postBusinessLease, patchBusinessLease, deleteBusinessLease, postBusinessDepositKept,
 };

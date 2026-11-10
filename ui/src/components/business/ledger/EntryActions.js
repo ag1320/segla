@@ -1,7 +1,7 @@
 import UndoIcon from "@mui/icons-material/Undo";
 import { Box, Chip, IconButton, Tooltip } from "@mui/material";
 
-const SOURCE_LABELS = { import: "Import", manual: "Manual", system: "System" };
+const SOURCE_LABELS = { import: "Import", manual: "Manual", system: "System", closing: "Year close" };
 
 const CHIP_SX = { color: "white", borderColor: "rgba(255,255,255,0.3)" };
 

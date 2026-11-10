@@ -4,9 +4,14 @@ import knex from "../dbConnection.js";
 // `from` through `to` (each optional). propertyId keeps only that
 // property's lines. With byProperty, one row per account and property,
 // where property_id null is company-wide. source keeps only entries from
-// that source ("system" for wizard and depreciation entries). Sums are
-// cast back to bigint so pg returns them as numbers.
-function findAccountTotals({ entityId, from, to, propertyId, source, byProperty = false }, trx = knex) {
+// that source ("system" for wizard and depreciation entries). excludeClosing
+// leaves out year-end closing entries, for reports of a period's activity
+// rather than balances. Sums are cast back to bigint so pg returns them as
+// numbers.
+function findAccountTotals(
+  { entityId, from, to, propertyId, source, excludeClosing = false, byProperty = false },
+  trx = knex,
+) {
   const groupColumns = byProperty
     ? ["journal_lines.account_id", "journal_lines.property_id"]
     : ["journal_lines.account_id"];
@@ -19,6 +24,7 @@ function findAccountTotals({ entityId, from, to, propertyId, source, byProperty 
       if (to) query.where("journal_entries.entry_date", "<=", to);
       if (propertyId) query.where("journal_lines.property_id", propertyId);
       if (source) query.where("journal_entries.source", source);
+      if (excludeClosing) query.whereNot("journal_entries.source", "closing");
     })
     .groupBy(groupColumns)
     .select(

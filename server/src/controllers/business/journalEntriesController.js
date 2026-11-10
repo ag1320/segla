@@ -73,6 +73,34 @@ async function hasJournalLinesThrough({ accountId, throughDate }, trx = knex) {
   return line !== undefined;
 }
 
+// entityId's year-end closing entries that still stand (not reversals, and
+// not reversed), with what each moved into retained earnings.
+function findClosingEntries({ entityId, retainedEarningsAccountId }, trx = knex) {
+  return trx("journal_entries")
+    .leftJoin("journal_lines", function joinRetainedEarnings() {
+      this.on("journal_lines.journal_entry_id", "journal_entries.journal_entry_id").andOnVal(
+        "journal_lines.account_id",
+        retainedEarningsAccountId,
+      );
+    })
+    .where("journal_entries.entity_id", entityId)
+    .where("journal_entries.source", "closing")
+    .whereNull("journal_entries.reverses_journal_entry_id")
+    .whereNotExists(
+      trx("journal_entries as reversal").whereRaw(
+        "reversal.reverses_journal_entry_id = journal_entries.journal_entry_id",
+      ),
+    )
+    .groupBy("journal_entries.journal_entry_id")
+    .select(
+      "journal_entries.journal_entry_id",
+      knex.raw("to_char(journal_entries.entry_date, 'YYYY-MM-DD') as entry_date"),
+      knex.raw("coalesce(sum(journal_lines.credit_cents), 0)::bigint as retained_credit_cents"),
+      knex.raw("coalesce(sum(journal_lines.debit_cents), 0)::bigint as retained_debit_cents"),
+    )
+    .orderBy("journal_entries.entry_date", "desc");
+}
+
 // The date of entityId's earliest line on accountId, or null if none.
 async function findFirstLineDate({ entityId, accountId }, trx = knex) {
   const row = await trx("journal_lines")
@@ -94,6 +122,7 @@ export {
   findJournalLinesForEntries,
   hasJournalLinesThrough,
   findFirstLineDate,
+  findClosingEntries,
   insertJournalEntry,
   insertJournalLines,
 };

@@ -47,7 +47,7 @@ async function getScheduleE({ entityId, taxYear, allocation }) {
     findAccounts(),
     findProperties(),
     findLeases({ entityId }),
-    findAccountTotals({ entityId, from, to, byProperty: true }),
+    findAccountTotals({ entityId, from, to, byProperty: true, excludeClosing: true }),
   ]);
   const accountsById = new Map(accounts.map((account) => [account.account_id, account]));
   // Income reads as credits, expenses as debits.

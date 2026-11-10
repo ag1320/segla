@@ -7,11 +7,14 @@ import BusinessFormDialog from "../BusinessFormDialog";
 import { formatDate, todayDateString } from "../businessFormat";
 
 // A reversal can't be dated before the entry it reverses, so a
-// future-dated entry defaults to its own date instead of today.
+// future-dated entry defaults to its own date instead of today. A year-end
+// close is reversed on its own date.
 export default function ReverseEntryDialog({ entry, onClose }) {
   const dispatch = useDispatch();
   const today = todayDateString();
-  const [entryDate, setEntryDate] = useState(entry.entryDate > today ? entry.entryDate : today);
+  const [entryDate, setEntryDate] = useState(
+    entry.source === "closing" || entry.entryDate > today ? entry.entryDate : today
+  );
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
 

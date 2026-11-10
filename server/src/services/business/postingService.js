@@ -62,6 +62,11 @@ async function reverseJournalEntry(journalEntryId, entryDate) {
       `A reversal can't be dated before the entry it reverses (${original.entry_date})`,
     );
   }
+  // Reopening a closed year undoes its close on the same day, so the year's
+  // income and expenses come back in that year, not the next one.
+  if (original.source === "closing" && entryDate !== original.entry_date) {
+    throw new ValidationError(`Reverse a year-end close on its own date (${original.entry_date})`);
+  }
 
   const originalLines = await findJournalLines(journalEntryId);
   const reversedLines = originalLines.map((line) => ({
@@ -79,7 +84,7 @@ async function reverseJournalEntry(journalEntryId, entryDate) {
         entityId: original.entity_id,
         entryDate,
         memo: `Reversal of entry ${journalEntryId}`,
-        source: "system",
+        source: original.source === "closing" ? "closing" : "system",
         lines: reversedLines,
         reversesJournalEntryId: journalEntryId,
       },
