@@ -14,6 +14,7 @@ import {
 import { getCashFlow } from "../../services/business/cashFlowService.js";
 import { getOperatingStatement } from "../../services/business/operatingStatementService.js";
 import { getScheduleE, ALLOCATION_METHODS } from "../../services/business/scheduleEService.js";
+import { get1099Candidates, getStartupCosts } from "../../services/business/yearEndService.js";
 import { ID, ISO_DATE } from "./schemaFields.js";
 
 const TRIAL_BALANCE_QUERY = z.strictObject({
@@ -33,6 +34,13 @@ const OPERATING_STATEMENT_QUERY = z.strictObject({
   propertyId: ID,
   from: ISO_DATE,
   to: ISO_DATE,
+});
+
+const AS_OF_QUERY = z.strictObject({ entityId: ID, asOfDate: ISO_DATE });
+
+const TAX_YEAR_QUERY = z.strictObject({
+  entityId: ID,
+  taxYear: z.coerce.number().int().min(2000).max(2100),
 });
 
 const SCHEDULE_E_QUERY = z.strictObject({
@@ -118,6 +126,22 @@ router.get(
   validate({ query: PERIOD_QUERY }),
   async (req, res) => {
     res.status(200).json(await getOwnersEquity(req.validated.query));
+  },
+);
+
+router.get(
+  "/business/reports/1099-candidates",
+  validate({ query: TAX_YEAR_QUERY }),
+  async (req, res) => {
+    res.status(200).json(await get1099Candidates(req.validated.query));
+  },
+);
+
+router.get(
+  "/business/reports/startup-costs",
+  validate({ query: AS_OF_QUERY }),
+  async (req, res) => {
+    res.status(200).json(await getStartupCosts(req.validated.query));
   },
 );
 

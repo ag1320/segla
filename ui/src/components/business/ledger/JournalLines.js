@@ -9,7 +9,7 @@ const LINE_HEADER_SX = { ...LINE_CELL_SX, color: MUTED_TEXT, fontSize: "0.75rem"
 
 // One entry's lines. title labels it when two entries are shown together.
 export default function JournalLines({ entry, title }) {
-  const { accountLabel, propertyLabel } = useLedgerLookups();
+  const { accountLabel, propertyLabel, vendorLabel } = useLedgerLookups();
 
   return (
     <>
@@ -23,6 +23,7 @@ export default function JournalLines({ entry, title }) {
           <TableRow>
             <TableCell sx={LINE_HEADER_SX}>Account</TableCell>
             <TableCell sx={LINE_HEADER_SX}>Property</TableCell>
+            <TableCell sx={LINE_HEADER_SX}>Vendor</TableCell>
             <TableCell sx={LINE_HEADER_SX} align="right">Debit</TableCell>
             <TableCell sx={LINE_HEADER_SX} align="right">Credit</TableCell>
           </TableRow>
@@ -41,6 +42,7 @@ export default function JournalLines({ entry, title }) {
               <TableCell sx={{ ...LINE_CELL_SX, color: line.propertyId === null ? MUTED_TEXT : "white" }}>
                 {propertyLabel(line.propertyId)}
               </TableCell>
+              <TableCell sx={{ ...LINE_CELL_SX, color: MUTED_TEXT }}>{vendorLabel(line.vendorId ?? null) ?? ""}</TableCell>
               <TableCell sx={LINE_CELL_SX} align="right">
                 {line.debitCents > 0 && formatCents(line.debitCents)}
               </TableCell>

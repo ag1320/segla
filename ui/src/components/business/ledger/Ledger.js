@@ -6,6 +6,7 @@ import { loadBusinessJournalEntries } from "../../../state/businessJournalEntrie
 import { loadBusinessAccounts } from "../../../state/businessAccountsSlice";
 import { loadBusinessProperties } from "../../../state/businessPropertiesSlice";
 import { loadBusinessEntities } from "../../../state/businessEntitiesSlice";
+import { loadBusinessVendors } from "../../../state/businessVendorsSlice";
 import JournalView from "./JournalView";
 import AccountRegister from "./AccountRegister";
 import JournalEntryDialog from "./JournalEntryDialog";
@@ -24,6 +25,7 @@ export default function Ledger() {
     dispatch(loadBusinessAccounts());
     dispatch(loadBusinessProperties());
     dispatch(loadBusinessEntities());
+    dispatch(loadBusinessVendors());
     dispatch(loadBusinessJournalEntries({ accountId: null }));
   }, [dispatch]);
 

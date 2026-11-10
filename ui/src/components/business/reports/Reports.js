@@ -14,6 +14,8 @@ import RentRoll from "./RentRoll";
 import OperatingStatement from "./OperatingStatement";
 import CapexReserve from "./CapexReserve";
 import ScheduleE from "./ScheduleE";
+import Candidates1099 from "./Candidates1099";
+import StartupCosts from "./StartupCosts";
 import "./reportPrint.css";
 
 const REPORT_TABS = [
@@ -25,6 +27,8 @@ const REPORT_TABS = [
   { label: "Property NOI", path: "/business/reports/operating-statement" },
   { label: "CapEx Reserve", path: "/business/reports/capex-reserve" },
   { label: "Schedule E", path: "/business/reports/schedule-e" },
+  { label: "1099s", path: "/business/reports/1099-candidates" },
+  { label: "Startup Costs", path: "/business/reports/startup-costs" },
   { label: "Trial Balance", path: "/business/reports/trial-balance" },
   { label: "General Ledger", path: "/business/reports/general-ledger" },
 ];
@@ -54,6 +58,8 @@ export default function Reports() {
             <Route path="operating-statement" element={<OperatingStatement />} />
             <Route path="capex-reserve" element={<CapexReserve entityId={entityId} />} />
             <Route path="schedule-e" element={<ScheduleE entityId={entityId} />} />
+            <Route path="1099-candidates" element={<Candidates1099 entityId={entityId} />} />
+            <Route path="startup-costs" element={<StartupCosts entityId={entityId} />} />
             <Route path="trial-balance" element={<TrialBalance entityId={entityId} />} />
             <Route path="general-ledger" element={<GeneralLedger entityId={entityId} />} />
           </Routes>

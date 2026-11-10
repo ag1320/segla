@@ -18,6 +18,7 @@ const toJournalEntry = (row) => ({
     id: line.journal_line_id,
     accountId: line.account_id,
     propertyId: line.property_id,
+    vendorId: line.vendor_id,
     debitCents: line.debit_cents,
     creditCents: line.credit_cents,
     needsCpaReview: line.needs_cpa_review,

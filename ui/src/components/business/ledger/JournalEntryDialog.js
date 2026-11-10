@@ -13,6 +13,7 @@ const emptyLine = () => ({
   key: nextLineKey++,
   accountId: "",
   propertyId: "",
+  vendorId: "",
   debit: "",
   credit: "",
   needsCpaReview: false,
@@ -26,6 +27,7 @@ export default function JournalEntryDialog({ onClose }) {
   const entities = useSelector((state) => state.businessEntities.items);
   const accounts = useSelector((state) => state.businessAccounts.items);
   const properties = useSelector((state) => state.businessProperties.items);
+  const vendors = useSelector((state) => state.businessVendors.items);
   const [entityId, setEntityId] = useState(entities[0]?.id ?? "");
   const [entryDate, setEntryDate] = useState(todayDateString());
   const [memo, setMemo] = useState("");
@@ -62,6 +64,7 @@ export default function JournalEntryDialog({ onClose }) {
           lines: filledLines.map((line) => ({
             accountId: line.accountId,
             propertyId: line.propertyId === "" ? null : line.propertyId,
+            vendorId: line.vendorId === "" ? null : line.vendorId,
             debitCents: centsOrZero(line.debit),
             creditCents: centsOrZero(line.credit),
             needsCpaReview: line.needsCpaReview,
@@ -115,6 +118,7 @@ export default function JournalEntryDialog({ onClose }) {
           line={line}
           accounts={accounts.filter((account) => account.isActive)}
           properties={properties.filter((property) => property.entityId === entityId)}
+          vendors={vendors}
           onChange={(changes) => updateLine(line.key, changes)}
           onRemove={() => removeLine(line.key)}
         />

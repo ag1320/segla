@@ -22,6 +22,7 @@ const JOURNAL_ENTRY_FILTERS = z.strictObject({
 const JOURNAL_LINE = z.strictObject({
   accountId: ID,
   propertyId: ID.nullable().optional(),
+  vendorId: ID.nullable().optional(),
   debitCents: CENTS.optional(),
   creditCents: CENTS.optional(),
   needsCpaReview: z.boolean().optional(),

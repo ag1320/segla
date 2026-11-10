@@ -9,6 +9,8 @@ import {
   fetchBusinessRentRoll,
   fetchBusinessOperatingStatement,
   fetchBusinessScheduleE,
+  fetchBusiness1099Candidates,
+  fetchBusinessStartupCosts,
   serverErrorMessage,
 } from "../utilities/serverCalls";
 import { toLease } from "./businessLeasesSlice";
@@ -280,6 +282,64 @@ export const loadBusinessScheduleE = createAsyncThunk(
   }
 );
 
+// query: { entityId, taxYear }
+export const loadBusiness1099Candidates = createAsyncThunk(
+  "businessReports/loadBusiness1099Candidates",
+  async (query, { rejectWithValue }) => {
+    try {
+      const data = await fetchBusiness1099Candidates(query);
+      return {
+        taxYear: data.tax_year,
+        thresholdCents: data.threshold_cents,
+        rows: data.rows.map((row) => ({
+          vendorId: row.vendor_id,
+          name: row.name,
+          cardCents: row.card_cents,
+          bankCents: row.bank_cents,
+          personalCents: row.personal_cents,
+          reportableCents: row.reportable_cents,
+          needs1099: row.needs_1099,
+          hasW9OnFile: row.has_w9_on_file,
+          w9Location: row.w9_location,
+        })),
+      };
+    } catch (err) {
+      return rejectWithValue(serverErrorMessage(err));
+    }
+  }
+);
+
+// query: { entityId, asOfDate }
+export const loadBusinessStartupCosts = createAsyncThunk(
+  "businessReports/loadBusinessStartupCosts",
+  async (query, { rejectWithValue }) => {
+    try {
+      const data = await fetchBusinessStartupCosts(query);
+      return {
+        asOfDate: data.as_of_date,
+        totalCents: data.total_cents,
+        rows: data.rows.map((row) => ({
+          propertyId: row.property_id,
+          propertyName: row.property_name,
+          placedInServiceDate: row.placed_in_service_date,
+          totalCents: row.total_cents,
+          lines: row.lines.map((line) => ({
+            id: line.journal_line_id,
+            entryId: line.journal_entry_id,
+            entryDate: line.entry_date,
+            memo: line.memo,
+            vendorName: line.vendor_name,
+            amountCents: line.amount_cents,
+            needsCpaReview: line.needs_cpa_review,
+          })),
+        })),
+      };
+    } catch (err) {
+      return rejectWithValue(serverErrorMessage(err));
+    }
+  }
+);
+
 const storeReport = (key) => (state, action) => {
   state[key] = action.payload;
   state.error = null;
@@ -300,6 +360,8 @@ const businessReportsSlice = createSlice({
     rentRoll: null,
     operatingStatement: null,
     scheduleE: null,
+    candidates1099: null,
+    startupCosts: null,
     error: null,
   },
   reducers: {},
@@ -332,7 +394,11 @@ const businessReportsSlice = createSlice({
       .addCase(loadBusinessOperatingStatement.fulfilled, storeReport("operatingStatement"))
       .addCase(loadBusinessOperatingStatement.rejected, storeError)
       .addCase(loadBusinessScheduleE.fulfilled, storeReport("scheduleE"))
-      .addCase(loadBusinessScheduleE.rejected, storeError);
+      .addCase(loadBusinessScheduleE.rejected, storeError)
+      .addCase(loadBusiness1099Candidates.fulfilled, storeReport("candidates1099"))
+      .addCase(loadBusiness1099Candidates.rejected, storeError)
+      .addCase(loadBusinessStartupCosts.fulfilled, storeReport("startupCosts"))
+      .addCase(loadBusinessStartupCosts.rejected, storeError);
   },
 });
 
