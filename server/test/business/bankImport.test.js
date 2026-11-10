@@ -73,6 +73,24 @@ test("an overlapping download adds only the rows not imported yet", async () => 
   assert.deepEqual(result, { imported_count: 1, already_imported_count: 5 });
 });
 
+test("a Chase download whose rows end with an extra comma imports the same rows", async () => {
+  const [header, ...rows] = CHASE_CSV.trim().split("\r\n");
+  const trailingCommaDownload = [header, ...rows.map((row) => `${row},`)].join("\n");
+
+  await importBankCsv(chaseId, CHASE_CSV);
+  const result = await importBankCsv(chaseId, trailingCommaDownload);
+
+  assert.deepEqual(result, { imported_count: 0, already_imported_count: 5 });
+});
+
+test("a row with an extra column that isn't empty is rejected", async () => {
+  const [header, firstRow] = CHASE_CSV.trim().split("\r\n");
+  const badDownload = [header, `${firstRow},EXTRA`].join("\r\n");
+
+  await assert.rejects(() => importBankCsv(chaseId, badDownload), /Line 2 has 8 columns instead of 7/);
+  assert.equal((await findImported(chaseId)).length, 0);
+});
+
 test("a Wells Fargo download skips pending charges and reads quoted text", async () => {
   const result = await importBankCsv(wellsFargoId, WELLS_FARGO_CSV);
 

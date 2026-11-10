@@ -45,8 +45,11 @@ function parseBankCsv(importFormat, csvText) {
   }
 
   const transactions = [];
-  rows.forEach((fields, index) => {
+  rows.forEach((rowFields, index) => {
     const lineNumber = index + 2;
+    // Some Chase downloads end every row, but not the header, with a comma.
+    const hasTrailingComma = rowFields.length === columns.length + 1 && rowFields.at(-1) === "";
+    const fields = hasTrailingComma ? rowFields.slice(0, -1) : rowFields;
     if (fields.length !== columns.length) {
       throw new ValidationError(
         `Line ${lineNumber} has ${fields.length} columns instead of ${columns.length}`,
