@@ -13,6 +13,7 @@ import {
 } from "../../services/business/financialStatementsService.js";
 import { getCashFlow } from "../../services/business/cashFlowService.js";
 import { getOperatingStatement } from "../../services/business/operatingStatementService.js";
+import { getScheduleE, ALLOCATION_METHODS } from "../../services/business/scheduleEService.js";
 import { ID, ISO_DATE } from "./schemaFields.js";
 
 const TRIAL_BALANCE_QUERY = z.strictObject({
@@ -32,6 +33,12 @@ const OPERATING_STATEMENT_QUERY = z.strictObject({
   propertyId: ID,
   from: ISO_DATE,
   to: ISO_DATE,
+});
+
+const SCHEDULE_E_QUERY = z.strictObject({
+  entityId: ID,
+  taxYear: z.coerce.number().int().min(2000).max(2100),
+  allocation: z.enum(ALLOCATION_METHODS).default("equal"),
 });
 
 const ACCOUNT_BALANCES_QUERY = z.strictObject({
@@ -111,6 +118,14 @@ router.get(
   validate({ query: PERIOD_QUERY }),
   async (req, res) => {
     res.status(200).json(await getOwnersEquity(req.validated.query));
+  },
+);
+
+router.get(
+  "/business/reports/schedule-e",
+  validate({ query: SCHEDULE_E_QUERY }),
+  async (req, res) => {
+    res.status(200).json(await getScheduleE(req.validated.query));
   },
 );
 

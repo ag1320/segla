@@ -8,6 +8,7 @@ import {
   fetchBusinessOwnersEquity,
   fetchBusinessRentRoll,
   fetchBusinessOperatingStatement,
+  fetchBusinessScheduleE,
   serverErrorMessage,
 } from "../utilities/serverCalls";
 import { toLease } from "./businessLeasesSlice";
@@ -248,6 +249,37 @@ export const loadBusinessOperatingStatement = createAsyncThunk(
   }
 );
 
+// query: { entityId, taxYear, allocation }
+export const loadBusinessScheduleE = createAsyncThunk(
+  "businessReports/loadBusinessScheduleE",
+  async (query, { rejectWithValue }) => {
+    try {
+      const data = await fetchBusinessScheduleE(query);
+      return {
+        taxYear: data.tax_year,
+        allocation: data.allocation,
+        columns: data.columns.map((column) => ({
+          propertyId: column.property_id,
+          name: column.name,
+          daysInService: column.days_in_service,
+          fairRentalDays: column.fair_rental_days,
+        })),
+        lines: data.lines.map((line) => ({ line: line.line, label: line.label, amounts: line.amounts })),
+        totalExpenses: data.total_expenses,
+        incomeOrLoss: data.income_or_loss,
+        notOnScheduleE: data.not_on_schedule_e.map((item) => ({
+          ...toAccountLine(item),
+          propertyId: item.property_id,
+          propertyName: item.property_name,
+          reason: item.reason,
+        })),
+      };
+    } catch (err) {
+      return rejectWithValue(serverErrorMessage(err));
+    }
+  }
+);
+
 const storeReport = (key) => (state, action) => {
   state[key] = action.payload;
   state.error = null;
@@ -267,6 +299,7 @@ const businessReportsSlice = createSlice({
     ownersEquity: null,
     rentRoll: null,
     operatingStatement: null,
+    scheduleE: null,
     error: null,
   },
   reducers: {},
@@ -297,7 +330,9 @@ const businessReportsSlice = createSlice({
       .addCase(loadBusinessRentRoll.fulfilled, storeReport("rentRoll"))
       .addCase(loadBusinessRentRoll.rejected, storeError)
       .addCase(loadBusinessOperatingStatement.fulfilled, storeReport("operatingStatement"))
-      .addCase(loadBusinessOperatingStatement.rejected, storeError);
+      .addCase(loadBusinessOperatingStatement.rejected, storeError)
+      .addCase(loadBusinessScheduleE.fulfilled, storeReport("scheduleE"))
+      .addCase(loadBusinessScheduleE.rejected, storeError);
   },
 });
 

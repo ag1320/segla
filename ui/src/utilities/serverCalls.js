@@ -642,6 +642,11 @@ async function deleteBusinessCapexComponent(id) {
 async function putBusinessCapexReserveAccount(entityId, accountId) {
   await axios.put(`${BASE_URL}/business/entities/${entityId}/capex-reserve-account`, { accountId });
 }
+// query: { entityId, taxYear, allocation }
+async function fetchBusinessScheduleE(query) {
+  const res = await axios.get(`${BASE_URL}/business/reports/schedule-e`, { params: query });
+  return res.data;
+}
 // query: { propertyId, from, to }
 async function fetchBusinessOperatingStatement(query) {
   const res = await axios.get(`${BASE_URL}/business/reports/operating-statement`, { params: query });
@@ -719,7 +724,7 @@ export {
   fetchBusinessPeriodLock, putBusinessPeriodLock,
   fetchBusinessTrialBalance, fetchBusinessGeneralLedger,
   fetchBusinessProfitAndLoss, fetchBusinessBalanceSheet,
-  fetchBusinessCashFlow, fetchBusinessOwnersEquity, fetchBusinessRentRoll, fetchBusinessOperatingStatement,
+  fetchBusinessCashFlow, fetchBusinessOwnersEquity, fetchBusinessRentRoll, fetchBusinessOperatingStatement, fetchBusinessScheduleE,
   fetchBusinessCapexPlan, postBusinessCapexComponent, patchBusinessCapexComponent, deleteBusinessCapexComponent,
   putBusinessCapexReserveAccount,
   fetchBusinessDeals, postBusinessDealAnalysis, postBusinessDeal, patchBusinessDeal, deleteBusinessDeal,
