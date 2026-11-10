@@ -39,4 +39,25 @@ function findAccountLines({ entityId, accountId, to }, trx = knex) {
     .orderBy([{ column: "journal_entries.entry_date" }, { column: "journal_lines.journal_line_id" }]);
 }
 
-export { findVendorEntryLines, findAccountLines };
+// Lines flagged for CPA review on entries dated from `from` through `to`.
+function findFlaggedLines({ entityId, from, to }, trx = knex) {
+  return trx("journal_lines")
+    .join("journal_entries", "journal_entries.journal_entry_id", "journal_lines.journal_entry_id")
+    .where("journal_entries.entity_id", entityId)
+    .where("journal_entries.entry_date", ">=", from)
+    .where("journal_entries.entry_date", "<=", to)
+    .where("journal_lines.needs_cpa_review", true)
+    .select(
+      "journal_lines.account_id",
+      "journal_lines.property_id",
+      "journal_lines.vendor_id",
+      "journal_lines.debit_cents",
+      "journal_lines.credit_cents",
+      "journal_entries.journal_entry_id",
+      knex.raw("to_char(journal_entries.entry_date, 'YYYY-MM-DD') as entry_date"),
+      "journal_entries.memo",
+    )
+    .orderBy([{ column: "journal_entries.entry_date" }, { column: "journal_lines.journal_line_id" }]);
+}
+
+export { findVendorEntryLines, findAccountLines, findFlaggedLines };

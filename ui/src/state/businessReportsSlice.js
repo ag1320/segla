@@ -11,6 +11,8 @@ import {
   fetchBusinessScheduleE,
   fetchBusiness1099Candidates,
   fetchBusinessStartupCosts,
+  fetchBusinessCpaPackageFiles,
+  fetchBusinessCpaPackageFile,
   serverErrorMessage,
 } from "../utilities/serverCalls";
 import { toLease } from "./businessLeasesSlice";
@@ -340,6 +342,32 @@ export const loadBusinessStartupCosts = createAsyncThunk(
   }
 );
 
+// The year-end package's file list: [{ file, title }].
+export const loadBusinessCpaPackageFiles = createAsyncThunk(
+  "businessReports/loadBusinessCpaPackageFiles",
+  async (_, { rejectWithValue }) => {
+    try {
+      return await fetchBusinessCpaPackageFiles();
+    } catch (err) {
+      return rejectWithValue(serverErrorMessage(err));
+    }
+  }
+);
+
+// One package file's rows, to save as a CSV right away; not kept.
+// query: { entityId, taxYear, allocation }
+export const loadBusinessCpaPackageFile = createAsyncThunk(
+  "businessReports/loadBusinessCpaPackageFile",
+  async ({ file, query }, { rejectWithValue }) => {
+    try {
+      const data = await fetchBusinessCpaPackageFile(file, query);
+      return { fileName: data.file_name, title: data.title, subtitle: data.subtitle, rows: data.rows };
+    } catch (err) {
+      return rejectWithValue(serverErrorMessage(err));
+    }
+  }
+);
+
 const storeReport = (key) => (state, action) => {
   state[key] = action.payload;
   state.error = null;
@@ -362,6 +390,7 @@ const businessReportsSlice = createSlice({
     scheduleE: null,
     candidates1099: null,
     startupCosts: null,
+    cpaPackageFiles: [],
     error: null,
   },
   reducers: {},
@@ -398,7 +427,9 @@ const businessReportsSlice = createSlice({
       .addCase(loadBusiness1099Candidates.fulfilled, storeReport("candidates1099"))
       .addCase(loadBusiness1099Candidates.rejected, storeError)
       .addCase(loadBusinessStartupCosts.fulfilled, storeReport("startupCosts"))
-      .addCase(loadBusinessStartupCosts.rejected, storeError);
+      .addCase(loadBusinessStartupCosts.rejected, storeError)
+      .addCase(loadBusinessCpaPackageFiles.fulfilled, storeReport("cpaPackageFiles"))
+      .addCase(loadBusinessCpaPackageFiles.rejected, storeError);
   },
 });
 

@@ -9,18 +9,24 @@ const CREDIT_NORMAL_TYPES = ["contra_asset", "liability", "equity", "income"];
 // Each account's balance as of asOfDate, in a debit or a credit column.
 // Total debits always equal total credits, because every entry balanced;
 // a trial balance that doesn't net to zero means the books are broken.
-// Accounts with a zero balance are left out.
-async function getTrialBalance({ entityId, asOfDate }) {
+// Accounts with a zero balance are left out. beforeClosing leaves out a
+// year-end close dated asOfDate (the balances the CPA works from), while
+// earlier years stay closed.
+async function getTrialBalance({ entityId, asOfDate, beforeClosing = false }) {
   await assertEntityExists(entityId);
-  const [accounts, totals] = await Promise.all([
+  const [accounts, totals, sameDayClosing] = await Promise.all([
     findAccounts(),
     findAccountTotals({ entityId, to: asOfDate }),
+    beforeClosing ? findAccountTotals({ entityId, from: asOfDate, to: asOfDate, source: "closing" }) : [],
   ]);
+  const netOf = (rows, accountId) => {
+    const row = rows.find((item) => item.account_id === accountId);
+    return row ? row.debit_cents - row.credit_cents : 0;
+  };
 
   const rows = accounts
     .map((account) => {
-      const total = totals.find((row) => row.account_id === account.account_id);
-      const debitBalance = total ? total.debit_cents - total.credit_cents : 0;
+      const debitBalance = netOf(totals, account.account_id) - netOf(sameDayClosing, account.account_id);
       return {
         ...accountColumns(account),
         debit_cents: debitBalance > 0 ? debitBalance : 0,

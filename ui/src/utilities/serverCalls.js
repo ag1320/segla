@@ -650,6 +650,15 @@ async function deleteBusinessCapexComponent(id) {
 async function putBusinessCapexReserveAccount(entityId, accountId) {
   await axios.put(`${BASE_URL}/business/entities/${entityId}/capex-reserve-account`, { accountId });
 }
+async function fetchBusinessCpaPackageFiles() {
+  const res = await axios.get(`${BASE_URL}/business/cpa-package`);
+  return res.data;
+}
+// query: { entityId, taxYear, allocation }
+async function fetchBusinessCpaPackageFile(file, query) {
+  const res = await axios.get(`${BASE_URL}/business/cpa-package/${file}`, { params: query });
+  return res.data;
+}
 // query: { entityId, taxYear }
 async function fetchBusiness1099Candidates(query) {
   const res = await axios.get(`${BASE_URL}/business/reports/1099-candidates`, { params: query });
@@ -744,6 +753,7 @@ export {
   fetchBusinessProfitAndLoss, fetchBusinessBalanceSheet,
   fetchBusinessCashFlow, fetchBusinessOwnersEquity, fetchBusinessRentRoll, fetchBusinessOperatingStatement, fetchBusinessScheduleE,
   fetchBusiness1099Candidates, fetchBusinessStartupCosts,
+  fetchBusinessCpaPackageFiles, fetchBusinessCpaPackageFile,
   fetchBusinessCapexPlan, postBusinessCapexComponent, patchBusinessCapexComponent, deleteBusinessCapexComponent,
   putBusinessCapexReserveAccount,
   fetchBusinessYearClosings, postBusinessYearClosing,

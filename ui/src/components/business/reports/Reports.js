@@ -16,6 +16,7 @@ import CapexReserve from "./CapexReserve";
 import ScheduleE from "./ScheduleE";
 import Candidates1099 from "./Candidates1099";
 import StartupCosts from "./StartupCosts";
+import CpaPackage from "./CpaPackage";
 import "./reportPrint.css";
 
 const REPORT_TABS = [
@@ -29,6 +30,7 @@ const REPORT_TABS = [
   { label: "Schedule E", path: "/business/reports/schedule-e" },
   { label: "1099s", path: "/business/reports/1099-candidates" },
   { label: "Startup Costs", path: "/business/reports/startup-costs" },
+  { label: "CPA Package", path: "/business/reports/cpa-package" },
   { label: "Trial Balance", path: "/business/reports/trial-balance" },
   { label: "General Ledger", path: "/business/reports/general-ledger" },
 ];
@@ -60,6 +62,7 @@ export default function Reports() {
             <Route path="schedule-e" element={<ScheduleE entityId={entityId} />} />
             <Route path="1099-candidates" element={<Candidates1099 entityId={entityId} />} />
             <Route path="startup-costs" element={<StartupCosts entityId={entityId} />} />
+            <Route path="cpa-package" element={<CpaPackage entityId={entityId} />} />
             <Route path="trial-balance" element={<TrialBalance entityId={entityId} />} />
             <Route path="general-ledger" element={<GeneralLedger entityId={entityId} />} />
           </Routes>
