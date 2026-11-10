@@ -24,6 +24,7 @@ export default function WhatChanged() {
 
   let rows = [];
   let unchanged = [];
+  let reclassified = 0;
   if (change) {
     const all = NET_WORTH_CATEGORIES.map((cat) => {
       const current = breakdown[cat.key] || 0;
@@ -34,6 +35,14 @@ export default function WhatChanged() {
     });
     rows = all.filter((r) => Math.abs(r.impact) >= 0.5).sort((a, b) => Math.abs(b.impact) - Math.abs(a.impact));
     unchanged = all.filter((r) => Math.abs(r.impact) < 0.5 && (r.current || r.delta));
+    // Converting the house to a rental moves its equity from House and
+    // Mortgage into Gettemy Properties. That part of the business line's
+    // rise isn't a gain, so it's called out.
+    const impactOf = (key) => all.find((r) => r.key === key).impact;
+    const homeEquityMoved = -(impactOf("house") + impactOf("mortgage"));
+    if (impactOf("house") < 0 && impactOf("businessEquity") > 0) {
+      reclassified = Math.min(homeEquityMoved, impactOf("businessEquity"));
+    }
   }
   const maxImpact = Math.max(1, ...rows.map((r) => Math.abs(r.impact)));
 
@@ -124,6 +133,12 @@ export default function WhatChanged() {
               </Box>
             </Box>
           ))}
+
+          {reclassified >= 0.5 && (
+            <Typography variant="caption" component="div" sx={{ color: mutedText, mt: 1.5 }}>
+              {`${formatCurrency(reclassified)} moved from House and Mortgage to Gettemy Properties: a reclassification, not a gain.`}
+            </Typography>
+          )}
 
           {unchanged.length > 0 && (
             <Typography variant="caption" component="div" sx={{ color: mutedText, mt: 1.5 }}>

@@ -16,6 +16,7 @@ export const NET_WORTH_CATEGORIES = [
   { key: "crypto", label: "Crypto", kind: "asset" },
   { key: "emergency", label: "Emergency Fund", kind: "asset" },
   { key: "house", label: "House", kind: "asset" },
+  { key: "businessEquity", label: "Gettemy Properties", kind: "asset" },
   { key: "mortgage", label: "Mortgage", kind: "liability" },
   { key: "studentLoan", label: "Student Loans", kind: "liability" },
   { key: "autoLoan", label: "Auto Loans", kind: "liability" },

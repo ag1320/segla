@@ -18,6 +18,7 @@ const transformSnapshot = (item) => ({
   crypto: item.crypto,
   emergency: item.emergency,
   house: item.house,
+  businessEquity: item.business_equity,
   mortgage: item.mortgage,
   studentLoan: item.student_loan,
   autoLoan: item.auto_loan,

@@ -146,12 +146,15 @@ const selectBudgetComparison = createSelector(
   }
 );
 
+// The business at market value, in dollars like the personal totals.
+const selectBusinessEquity = (state) => state.businessMarketEquity.marketEquityCents / 100;
+
 // Mirrors Home.js's Net Worth card math (and the server's
 // netWorthController.computeNetWorth) - the single place the live
 // assets/liabilities/net worth totals are derived.
 const selectNetWorthTotals = createSelector(
-  [selectInvestmentTotals, selectLoanTotals],
-  (investments, loans) => {
+  [selectInvestmentTotals, selectLoanTotals, selectBusinessEquity],
+  (investments, loans, businessEquity) => {
     // Keys match netWorthSlice's snapshot fields / netWorthCategories.js
     const breakdown = {
       retirement: investments.vanguardRetirementTotal + investments.tspTotal,
@@ -160,6 +163,8 @@ const selectNetWorthTotals = createSelector(
       crypto: investments.cryptoTotal,
       emergency: investments.baskTotal,
       house: investments.houseValuationTotal,
+      // Gettemy Properties at market value, as one line
+      businessEquity,
       mortgage: loans.mortgageTotal,
       studentLoan: loans.studentLoanTotal,
       autoLoan: loans.autoLoanTotal,
@@ -170,7 +175,8 @@ const selectNetWorthTotals = createSelector(
       breakdown.college +
       breakdown.crypto +
       breakdown.emergency +
-      breakdown.house;
+      breakdown.house +
+      breakdown.businessEquity;
     const totalLiabilities = breakdown.mortgage + breakdown.studentLoan + breakdown.autoLoan;
     return { breakdown, totalAssets, totalLiabilities, netWorth: totalAssets - totalLiabilities };
   }

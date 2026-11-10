@@ -39,6 +39,7 @@ import { loadPa529 } from "../state/pa529Slice";
 import { loadBask } from "../state/baskSlice";
 import { loadLoans } from "../state/loansSlice";
 import { loadEquity } from "../state/equitySlice";
+import { loadBusinessMarketEquity } from "../state/businessMarketEquitySlice";
 import { loadFixedIncome } from "../state/fixedIncomeSlice";
 import { loadFixedExpenses } from "../state/fixedExpensesSlice";
 
@@ -118,6 +119,7 @@ export default function Home() {
     dispatch(loadBask());
     dispatch(loadLoans());
     dispatch(loadEquity());
+    dispatch(loadBusinessMarketEquity());
     dispatch(loadFixedIncome());
     dispatch(loadFixedExpenses());
     dispatch(loadNetWorthSnapshots());

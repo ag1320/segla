@@ -650,6 +650,10 @@ async function deleteBusinessCapexComponent(id) {
 async function putBusinessCapexReserveAccount(entityId, accountId) {
   await axios.put(`${BASE_URL}/business/entities/${entityId}/capex-reserve-account`, { accountId });
 }
+async function fetchBusinessMarketEquity(asOfDate) {
+  const res = await axios.get(`${BASE_URL}/business/reports/market-equity`, { params: { asOfDate } });
+  return res.data;
+}
 async function fetchBusinessCpaPackageFiles() {
   const res = await axios.get(`${BASE_URL}/business/cpa-package`);
   return res.data;
@@ -753,7 +757,7 @@ export {
   fetchBusinessProfitAndLoss, fetchBusinessBalanceSheet,
   fetchBusinessCashFlow, fetchBusinessOwnersEquity, fetchBusinessRentRoll, fetchBusinessOperatingStatement, fetchBusinessScheduleE,
   fetchBusiness1099Candidates, fetchBusinessStartupCosts,
-  fetchBusinessCpaPackageFiles, fetchBusinessCpaPackageFile,
+  fetchBusinessCpaPackageFiles, fetchBusinessCpaPackageFile, fetchBusinessMarketEquity,
   fetchBusinessCapexPlan, postBusinessCapexComponent, patchBusinessCapexComponent, deleteBusinessCapexComponent,
   putBusinessCapexReserveAccount,
   fetchBusinessYearClosings, postBusinessYearClosing,

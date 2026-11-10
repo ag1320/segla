@@ -29,6 +29,7 @@ import businessLeasesReducer from "./businessLeasesSlice";
 import businessCapexReducer from "./businessCapexSlice";
 import businessDealsReducer from "./businessDealsSlice";
 import businessYearClosingsReducer from "./businessYearClosingsSlice";
+import businessMarketEquityReducer from "./businessMarketEquitySlice";
 import businessJournalEntriesReducer from "./businessJournalEntriesSlice";
 import businessBankAccountsReducer from "./businessBankAccountsSlice";
 import businessBankTransactionsReducer from "./businessBankTransactionsSlice";
@@ -70,6 +71,7 @@ export const store = configureStore({
     businessCapex: businessCapexReducer,
     businessDeals: businessDealsReducer,
     businessYearClosings: businessYearClosingsReducer,
+    businessMarketEquity: businessMarketEquityReducer,
     businessJournalEntries: businessJournalEntriesReducer,
     businessBankAccounts: businessBankAccountsReducer,
     businessBankTransactions: businessBankTransactionsReducer,

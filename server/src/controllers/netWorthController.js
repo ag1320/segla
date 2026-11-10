@@ -1,5 +1,6 @@
 import knex from "./dbConnection.js";
 import { fetchCryptoMarketData } from "./cryptoController.js";
+import { getMarketEquity } from "../services/business/marketEquityService.js";
 
 // Calendar day the snapshot belongs to, in the household's timezone rather
 // than the server's (the VM/container clock is UTC, so an edit at 9pm
@@ -57,6 +58,7 @@ async function computeNetWorth() {
     equity,
     loans,
     crypto,
+    business,
   ] = await Promise.all([
     knex("vanguard_retirement").select("current_value"),
     knex("tsp").select("current_value"),
@@ -66,6 +68,7 @@ async function computeNetWorth() {
     knex("equity").select("valuation"),
     knex("loans").select("type", "remaining_balance"),
     getCryptoTotal(),
+    getMarketEquity(todayString()),
   ]);
 
   const loansOfType = (type) =>
@@ -78,6 +81,9 @@ async function computeNetWorth() {
     crypto,
     emergency: sumBy(bask, "current_value"),
     house: sumBy(equity, "valuation"),
+    // The business at market value: one line, so its house, mortgage and
+    // cash aren't counted again on the personal side.
+    business_equity: business.market_equity_cents / 100,
     mortgage: loansOfType("Mortgage"),
     student_loan: loansOfType("Student Loan"),
     auto_loan: loansOfType("Auto Loan"),
@@ -89,7 +95,8 @@ async function computeNetWorth() {
     breakdown.college +
     breakdown.crypto +
     breakdown.emergency +
-    breakdown.house;
+    breakdown.house +
+    breakdown.business_equity;
   const total_liabilities =
     breakdown.mortgage + breakdown.student_loan + breakdown.auto_loan;
 
@@ -117,6 +124,7 @@ const SNAPSHOT_COLUMNS = [
   "crypto",
   "emergency",
   "house",
+  "business_equity",
   "mortgage",
   "student_loan",
   "auto_loan",

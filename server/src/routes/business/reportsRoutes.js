@@ -15,6 +15,7 @@ import { getCashFlow } from "../../services/business/cashFlowService.js";
 import { getOperatingStatement } from "../../services/business/operatingStatementService.js";
 import { getScheduleE, ALLOCATION_METHODS } from "../../services/business/scheduleEService.js";
 import { get1099Candidates, getStartupCosts } from "../../services/business/yearEndService.js";
+import { getMarketEquity } from "../../services/business/marketEquityService.js";
 import { ID, ISO_DATE } from "./schemaFields.js";
 
 const TRIAL_BALANCE_QUERY = z.strictObject({
@@ -37,6 +38,8 @@ const OPERATING_STATEMENT_QUERY = z.strictObject({
 });
 
 const AS_OF_QUERY = z.strictObject({ entityId: ID, asOfDate: ISO_DATE });
+
+const DATE_QUERY = z.strictObject({ asOfDate: ISO_DATE });
 
 const TAX_YEAR_QUERY = z.strictObject({
   entityId: ID,
@@ -126,6 +129,15 @@ router.get(
   validate({ query: PERIOD_QUERY }),
   async (req, res) => {
     res.status(200).json(await getOwnersEquity(req.validated.query));
+  },
+);
+
+// The whole business at market value, for personal net worth.
+router.get(
+  "/business/reports/market-equity",
+  validate({ query: DATE_QUERY }),
+  async (req, res) => {
+    res.status(200).json(await getMarketEquity(req.validated.query.asOfDate));
   },
 );
 

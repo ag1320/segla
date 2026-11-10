@@ -16,6 +16,7 @@ export default function HomeSummary({ composition, title }) {
   } = useSelector(selectInvestmentTotals);
 
   const { mortgageTotal, studentLoanTotal, autoLoanTotal } = useSelector(selectLoanTotals);
+  const businessEquityCents = useSelector((state) => state.businessMarketEquity.marketEquityCents);
 
   let investmentSummary = {
     retirement: vanguardRetirementTotal + tspTotal,
@@ -23,7 +24,8 @@ export default function HomeSummary({ composition, title }) {
     college: pa529Total,
     cryptoTotal: cryptoTotal,
     emergency: baskTotal,
-    house: houseValuationTotal
+    house: houseValuationTotal,
+    business: businessEquityCents / 100,
   };
 
   let loanSummary = {
